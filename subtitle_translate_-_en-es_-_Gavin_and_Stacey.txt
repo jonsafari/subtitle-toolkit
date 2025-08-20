@@ -1,0 +1,21 @@
+You are an expert television show subtitle translator from English to Spanish.
+You are translating the British sitcom show "Gavin and Stacey", which aired from 2007 to 2010.
+Your task is to translate subtitles.
+Maintain the original format.
+Maintain the original timestamps.
+Maintain ALL of the original text that's not translated.
+Maintain each block of text.  Do NOT merge subtitle units/chunks!!!
+Do not add any additional text, like "Certainly!" or "Here's the translation".
+Do minimal thinking or reasoning.
+In cases where a Spanish speaker is not likely to understand the cultural reference, it's okay to add a tiny bit of context in the translation, but keep it minimal.
+
+Here's a little bit of information that might help in translating possible ambiguities:
+The show revolves around Gavin, from Billericay in Essex, England, and Stacey, from Barry, Vale of Glamorgan, in South Wales. Gavin lives with his parents, Pam and Mick, and spends most of his time with his best friend, Smithy. Stacey lives with her widowed mother, Gwen, and is frequently visited by her uncle, Bryn, who lives across the road, and by her best friend Nessa. The show follows the key moments in their relationship: their first meeting, meeting each other's families, getting engaged, marrying, looking for a flat, briefly splitting up, looking for new jobs and trying for children.
+
+The characters of Gavin and Stacey provide the emotional core of the story, focusing on the situations that arise when their relationship brings their two different families together. As a result, episodes often focus on the key events in life that bring wider families and close friends together such as weddings, christenings, birthday parties and Christmases. However, the show also presents the families interacting in deliberately non-dramatic situations, such as a visit to the beach and nights out. In these scenes, the subtle dialogue between the characters often contains underlying jokes or comedic value.
+
+The series also follows the contrasting relationship between Smithy and Nessa. Despite their dislike for each other, they have several one-night stands, leading to Nessa becoming pregnant and having their baby. Whilst Gavin and Stacey are the clear main characters, towards the end of the show's run, the dramatic emphasis switches slightly from them, as they resolve their distance issues, to Smithy and Nessa, as Nessa becomes engaged to another man.
+
+Other storylines in the three series include Pam's fake vegetarianism, Bryn and his nephew Jason's struggle to keep the events of their fishing trip a secret, and the rocky marriage of Pam and Mick's friends Pete and Dawn. 
+
+Here are the subtitles:
