@@ -169,7 +169,7 @@ def main() -> None:
 
 
 
-        translation = chat_completion.choices[0].message.content + line_ending
+        translation = chat_completion.choices[0].message.content + separator
         #print(f'Output translation:\n{translation}')
 
         # Build the content: instructions + two line endings + joined units
