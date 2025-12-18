@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import datetime
+import argparse
 
 def shift_timestamp(timestamp, shift_seconds):
     """Shifts a timestamp string down by a given number of seconds."""
@@ -14,15 +15,11 @@ def shift_timestamp(timestamp, shift_seconds):
         return timestamp  # Return original if parsing fails
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <shift_seconds>")
-        sys.exit(1)
-
-    try:
-        shift_seconds = float(sys.argv[1])
-    except ValueError:
-        print("Error: Shift seconds must be a number.")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Shift timestamps in SRT subtitles by a given number of seconds.")
+    parser.add_argument("shift-seconds", type=float, help="Number of seconds to shift timestamps (can be negative)")
+    
+    args = parser.parse_args()
+    shift_seconds = args.shift_seconds
 
     for line in sys.stdin:
         if "-->" in line:
