@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Subtitle_Timeshift
+Exec=/home/User/src/subtitle_fixes/subtitle_timeshift_gui.sh
+Comment=
+Terminal=true
+PrefersNonDefaultGPU=false
+Icon=fluxgui
+Type=Application
