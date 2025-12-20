@@ -1,4 +1,4 @@
-# Subtitle Toolkit  
+# Subtitle Toolkit  🍿
 
 A small collection of utilities for **fixing** (time‑shifting) and **translating** SRT subtitle files.  
 The tools are deliberately lightweight, command‑line‑first, and can be combined with any LLM that speaks the OpenAI API (including local models).
@@ -194,15 +194,10 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
 #### Example workflow  
 
 ```bash
-# 1️⃣ Prepare an instruction file (copy one of the examples or write your own)
-cp subtitle_translate_-_en-es_-_Schitts_Creek.txt my_instructions.txt
-
-# 2️⃣ Run the translator
 ./subtitle_translate.py season01.srt \
-    --instructions my_instructions.txt \
-    --chunk-size 25 \
+    --instructions instructions/subtitle_translate_-_en-es_-_Schitts_Creek.txt \
     --output-dir ./es_translation \
-    --api-base http://localhost:11434/v1 \
+    --api-base http://localhost:8080/v1 \
     --model-id llama3:8b \
     --api-key dummy-key
 ```
@@ -216,8 +211,7 @@ cat ./es_translation/chunk_*.srt > season01_es.srt
 
 #### Important notes  
 
-* **Line endings** – The script detects whether the source file uses `\n` or `\r\n` and preserves that style in the output.  
-* **Instruction file** – Must be plain text; the script strips trailing whitespace before sending it to the model.  
+* **Instruction file** – This file is important and provides useful context about the show/movie that you're translating. I recommend copying the Synopsis section of the Wikipedia article for the show/movie that you're translating.  The file must be plain text.
 * **API limits** – Adjust `--chunk-size` if you hit token‑limit errors. Smaller chunks = more requests, larger chunks = fewer requests but higher token usage.  
 * **Model behaviour** – The provided instruction files explicitly ask the model **not** to add extra text, to keep the original formatting, and to translate only the dialogue. If you notice stray commentary, tweak the instruction file accordingly.
 
