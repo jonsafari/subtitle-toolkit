@@ -112,10 +112,9 @@ The script will:
 
 # Custom instruction file, chunk size, output directory and API endpoint
 ./subtitle_translate.py path/to/english.srt \
-    --instructions subtitle_translate_-_en-es_-_Gavin_and_Stacey.txt \
-    --chunk-size 40 \
+    --instructions instructions/subtitle_translate_-_en-es_-_Gavin_and_Stacey.txt \
     --output-dir ./translated_chunks \
-    --api-base http://localhost:11434/v1 \
+    --api-base http://localhost:8080/v1 \
     --model-id llama3:8b \
     --api-key dummy-key
 ```
