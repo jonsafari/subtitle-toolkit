@@ -95,7 +95,15 @@ cat original.srt | ./subtitle_timeshift.py -f 00:01:32,945 > aligned.srt
 ./subtitle_timeshift_gui.sh
 ```
 
-The script will:
+For an all-GUI experience, you can edit the file `Subtitle_Timeshift.desktop` to ensure your correct local path in the `Exec` line, and then copy it to `~/Desktop`.
+Afterwards you should see an icon on your desktop, which will launch the script above.
+
+```bash
+sensible-editor Subtitle_Timeshift.desktop
+cp Subtitle_Timeshift.desktop ~/Desktop/
+```
+
+The GUI dialogue will:
 
 1. Prompt you to pick a video (optional – just opens it with the default player).  
 2. Ask for the desired start time of the first subtitle (`HH:MM:SS,mmm`).  
