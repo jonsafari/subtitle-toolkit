@@ -8,7 +8,7 @@ The tools are deliberately lightweight, command‑line‑first, and can be combi
 | `subtitle_timeshift.py` | Shifts every timestamp in an SRT stream by a fixed amount **or** aligns the first subtitle to a user‑provided start time. | Fix subtitles that are out of sync with the video. |
 | `subtitle_timeshift_gui.sh` | Small Zenity‑based GUI wrapper around `subtitle_timeshift.py`. | Users who prefer a point‑and‑click workflow on Linux. |
 | `subtitle_translate.py` | Splits a large SRT file into manageable chunks, prepends a *translation‑instruction* file, sends each chunk to an OpenAI‑compatible endpoint and writes the translated chunks to disk. | Batch‑translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
-| `subtitle_translate‑‑*.txt` | Example instruction files that tell the LLM how to translate (keep formatting, don’t add extra text, etc.). | Supply to `subtitle_translate.py` via `--instructions`. |
+| instructions/`subtitle_translate_*.txt` | Example instruction files that tell the LLM how to translate (show/movie context, keep formatting, don’t add extra text, etc.). | Supply to `subtitle_translate.py` via `--instructions`. |
 
 ---
 
