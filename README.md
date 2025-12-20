@@ -135,7 +135,7 @@ The content of each file is **only the translated subtitle block** (the instruct
 |--------|-------------|
 | `-s`, `--shift-seconds <float>` | Shift every timestamp by the given number of seconds. Positive values move subtitles **earlier** (i.e. they appear sooner). |
 | `-f`, `--first-entry-starts-at <HH:MM:SS,mmm>` | Compute the required shift so that the **first** subtitle starts at the supplied time. The script reads the first timestamp it encounters, calculates the difference, and then applies that shift to the whole file. |
-| *Input* | The script reads **STDIN**. Pipe a file (`cat file.srt | …`) or redirect (`./subtitle_timeshift.py -s 1.2 < file.srt`). |
+| *Input* | The script reads **STDIN**. Pipe a file (`cat file.srt \| …`) or redirect (`./subtitle_timeshift.py -s 1.2 < file.srt`). |
 | *Output* | Printed to **STDOUT** – redirect to a new file. |
 
 **Behaviour notes**
