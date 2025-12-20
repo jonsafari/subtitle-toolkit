@@ -38,10 +38,9 @@ The tools are deliberately lightweight, command‑line‑first, and can be combi
 |-------------|--------------------------|
 | **Python** | 3.8+ (tested on 3.10, 3.11) |
 | **pip** | To install the Python dependencies |
-| **OpenAI Python client** | `openai>=1.0` – used by `subtitle_translate.py` |
+| **OpenAI Python SDK** *(only needed for translation)*| `openai>=1.0` – used by `subtitle_translate.py`. You can use a local LLM. |
 | **Zenity** *(optional, for the GUI script)* | `zenity` must be in `$PATH`. Available in most Linux distros (`sudo apt install zenity` on Debian/Ubuntu). |
 | **A working OpenAI‑compatible endpoint** | Can be the official `api.openai.com`, a self‑hosted model (e.g. Llama.cpp, Ollama, vLLM) or any server that implements the OpenAI chat completion API. |
-| **ffmpeg/mediaplayer** *(optional)* | Not required by the scripts, but handy for checking sync after time‑shifting. |
 
 ---
 
