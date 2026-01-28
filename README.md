@@ -83,10 +83,10 @@ chmod +x subtitle_timeshift.py subtitle_timeshift_gui.sh subtitle_translate.py
 
 ```bash
 # Shift every timestamp 2.5 seconds earlier (positive = earlier)
-cat original.srt | ./subtitle_timeshift.py -s 2.5 > shifted.srt
+cat original.srt | ./subtitle_timeshift.py --shift-seconds 2.5 > shifted.srt
 
 # Or align the first subtitle to a concrete start time
-cat original.srt | ./subtitle_timeshift.py -f 00:01:32,945 > aligned.srt
+cat original.srt | ./subtitle_timeshift.py --first-entry-starts-at 00:01:32,945 > aligned.srt
 ```
 
 ### <a name="using-the-gui-wrapper"></a>Using the GUI wrapper  
