@@ -15,4 +15,4 @@ OUT_FILENAME=$(zenity --title='New name of corrected subtitle file' --text 'New 
 # Create temporary file, in case input and output are same file
 tmpfile=$(mktemp)
 
-cat $SRT_FILE | subtitle_timeshift.py --first-entry-starts-at ${START_TIME} > $tmpfile && mv $tmpfile ${OUT_FILENAME}
+cat "$SRT_FILE" | subtitle_timeshift.py --first-entry-starts-at "${START_TIME}" > "$tmpfile" && mv "$tmpfile" "${OUT_FILENAME}"
