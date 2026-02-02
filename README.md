@@ -7,6 +7,7 @@ The tools are deliberately lightweight, command‑line‑first, and can be combi
 |--------|--------------|------------------|
 | `subtitle_timeshift.py` | Shifts every timestamp in an SRT stream by a fixed amount **or** aligns the first subtitle to a user‑provided start time. | Fix subtitles that are out of sync with the video. |
 | `subtitle_timeshift_gui.sh` | Small Zenity‑based GUI wrapper around `subtitle_timeshift.py`. | Users who prefer a point‑and‑click workflow on Linux. |
+| `subtitle_mkv2srt.py` | Extracts subtitles from MKV files and converts them to SRT format, removing problematic ASS/SSA formatting tags. | Extract subtitles from MKV files for use with video players. |
 | `subtitle_translate.py` | Splits a large SRT file into manageable chunks, prepends a *translation‑instruction* file, sends each chunk to an OpenAI‑compatible endpoint and writes the translated chunks to disk. | Batch‑translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
 | instructions/`subtitle_translate_*.txt` | Example instruction files that tell the LLM how to translate (show/movie context, keep formatting, don’t add extra text, etc.). | Supply to `subtitle_translate.py` via `--instructions`. |
 
@@ -23,6 +24,7 @@ The tools are deliberately lightweight, command‑line‑first, and can be combi
 4. [Detailed Usage](#detailed-usage)  
    - [`subtitle_timeshift.py`](#subtitle_timeshiftpy)  
    - [`subtitle_timeshift_gui.sh`](#subtitle_timeshift_guish)  
+   - [`subtitle_mkv2srt.py`](#subtitle_mkv2srt)  
    - [`subtitle_translate.py`](#subtitle_translatepy)  
 5. [Configuration & Environment Variables](#configuration)  
 6. [Troubleshooting](#troubleshooting)  
@@ -41,6 +43,7 @@ The tools are deliberately lightweight, command‑line‑first, and can be combi
 | **OpenAI Python SDK** *(only needed for translation)*| `openai>=1.0` – used by `subtitle_translate.py`. You can use a local LLM. |
 | **Zenity** *(optional, for the GUI script)* | `zenity` must be in `$PATH`. Available in most Linux distros (`sudo apt install zenity` on Debian/Ubuntu). |
 | **A working OpenAI‑compatible endpoint** | Can be the official `api.openai.com`, a self‑hosted model (e.g. Llama.cpp, Ollama, vLLM) or any server that implements the OpenAI chat completion API. |
+| **FFmpeg** | Required for subtitle extraction. Install via your system's package manager. |
 
 ---
 
@@ -71,7 +74,7 @@ If you only need the time‑shifting utilities you can skip the `openai` depende
 Make the scripts executable:
 
 ```bash
-chmod +x subtitle_timeshift.py subtitle_timeshift_gui.sh subtitle_translate.py
+chmod +x subtitle_timeshift.py subtitle_timeshift_gui.sh subtitle_mkv2srt.py subtitle_translate.py
 ```
 
 ---
@@ -173,6 +176,41 @@ If you do not need the GUI, just use `subtitle_timeshift.py` directly.
 
 ---
 
+### <a name="subtitle_mkv2srt"></a>`subtitle_mkv2srt.py`
+
+#### Purpose  
+
+Extracts subtitles from MKV files and converts them to SRT (SubRip) format.
+
+#### Command‑line options  
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--input` or `-i` | – | Path to the input MKV file (required). |
+| `--output` or `-o` | – | Output SRT file path (optional). If not specified, extracts all subtitles to individual files. |
+| `--language` or `-l` | – | Language code to filter subtitles (e.g., "en", "es"). |
+
+#### Examples  
+
+```bash
+# Extract all subtitles from an MKV file
+./subtitle_mkv2srt.py --input video.mkv
+
+# Extract subtitles in a specific language
+./subtitle_mkv2srt.py --input video.mkv --language en
+
+# Extract to a specific output file
+./subtitle_mkv2srt.py --input video.mkv --output subtitles.srt
+```
+
+#### Important notes  
+
+* The script requires `ffmpeg` to be installed and available in `$PATH`.
+* ASS/SSA formatting tags like {\an7} are automatically removed to ensure compatibility with video players.
+* If no subtitles are found in the MKV file, the script will report this and exit.
+
+---
+
 ### <a name="subtitle_translatepy"></a>`subtitle_translate.py`
 
 #### Purpose  
@@ -248,6 +286,7 @@ The command‑line arguments always take precedence over environment variables.
 | GUI script crashes with “zenity: command not found” | `zenity` not installed. | Install via package manager (`sudo apt install zenity` on Debian/Ubuntu, `brew install zenity` on macOS via Homebrew). |
 | Translated subtitles lose numbering or timestamps | The instruction file asked the model to “maintain format” but the model ignored it. | Tighten the instruction (e.g., add “**Do not modify the index numbers or timestamps**”). |
 | Output file contains Windows line endings on Linux (or vice‑versa) | Mixed line endings in the source file. | The script preserves the original style; if you need a specific style, run `dos2unix` or `unix2dos` after translation. |
+| `Error: ffmpeg is required but not found` | FFmpeg not installed. | Install FFmpeg using your system's package manager. |
 
 ---
 
