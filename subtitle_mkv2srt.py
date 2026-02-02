@@ -42,7 +42,36 @@ def extract_subtitles(mkv_file: Path, language: str = None, output_file: Path = 
     
     # Add language filter if specified
     if language:
-        cmd.extend(['-map', f'0:s:{language}'])
+        # Find subtitle track by language using ffprobe first
+        try:
+            probe_cmd = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_streams', str(mkv_file)]
+            result = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
+            import json
+            info = json.loads(result.stdout)
+            
+            # Find subtitle track with matching language
+            subtitle_tracks = []
+            for stream in info['streams']:
+                if stream['codec_type'] == 'subtitle':
+                    if 'tags' in stream and 'language' in stream['tags']:
+                        if stream['tags']['language'] == language:
+                            subtitle_tracks.append(stream)
+            
+            if subtitle_tracks:
+                # Use the first matching track
+                track_index = subtitle_tracks[0]['index']
+                cmd.extend(['-map', f'0:s:{track_index}'])
+            else:
+                print(f"Warning: No subtitle track found with language '{language}'")
+                # Try to extract all subtitles if specific language not found
+                cmd.extend(['-map', '0:s'])
+        except Exception as e:
+            print(f"Warning: Could not determine subtitle track by language: {e}")
+            # Fall back to extracting all subtitles
+            cmd.extend(['-map', '0:s'])
+    else:
+        # Extract all subtitle tracks
+        cmd.extend(['-map', '0:s'])
     
     # Add output file
     cmd.append(str(output_file))
@@ -82,6 +111,10 @@ def extract_all_subtitles(mkv_file: Path) -> list:
         for stream in info['streams']:
             if stream['codec_type'] == 'subtitle':
                 subtitle_tracks.append(stream)
+        
+        if not subtitle_tracks:
+            print("No subtitle tracks found in the MKV file")
+            return []
         
         # Extract each subtitle track
         for i, stream in enumerate(subtitle_tracks):
@@ -131,21 +164,25 @@ def clean_srt_content(content: str) -> str:
             
         # Split block into lines
         lines = block.split('\n')
+        
+        # First two lines are sequence number and timecodes - preserve them
         cleaned_lines = []
         
-        for line in lines:
-            if not line.strip():
-                # Empty line - keep it
-                cleaned_lines.append('')
+        # Process text lines (skip sequence number and timecodes)
+        for i, line in enumerate(lines):
+            if i < 2:
+                # Keep sequence number and timecodes as-is
+                cleaned_lines.append(line)
             else:
-                # Remove ASS/SSA formatting tags from the line
-                # This pattern matches {\an7}, {\b1}, {\i1}, etc. and removes them
-                cleaned_line = re.sub(r'\{[^}]*\}', '', line)
-                # Remove any remaining backslashes that might be left over
-                cleaned_line = re.sub(r'\\[a-zA-Z][0-9]*', '', cleaned_line)
-                # Only add non-empty lines
-                if cleaned_line.strip():
-                    cleaned_lines.append(cleaned_line)
+                # Clean text lines - remove ASS/SSA formatting tags
+                if line.strip():
+                    # Remove ASS/SSA formatting tags like {\an7}, {\b1}, {\i1}, etc.
+                    cleaned_line = re.sub(r'\{[^}]*\}', '', line)
+                    # Remove any remaining backslashes that might be left over
+                    cleaned_line = re.sub(r'\\[a-zA-Z][0-9]*', '', cleaned_line)
+                    # Only add non-empty lines
+                    if cleaned_line.strip():
+                        cleaned_lines.append(cleaned_line)
         
         # Join the cleaned lines back together
         cleaned_block = '\n'.join(cleaned_lines)
