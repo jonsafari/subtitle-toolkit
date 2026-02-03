@@ -38,13 +38,13 @@ def extract_subtitles(mkv_file: Path, language: str = None, output_file: Path = 
         output_file = mkv_file.with_suffix('.srt')
     
     # Build ffmpeg command
-    cmd = ['ffmpeg', '-i', str(mkv_file), '-f', 'srt']
+    cmd = ['ffmpeg', '-loglevel', 'error', '-i', str(mkv_file), '-f', 'srt']
     
     # Add language filter if specified
     if language:
         # Find subtitle track by language using ffprobe first
         try:
-            probe_cmd = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_streams', str(mkv_file)]
+            probe_cmd = ['ffprobe', '-loglevel', 'error', '-v', 'quiet', '-print_format', 'json', '-show_streams', str(mkv_file)]
             result = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
             import json
             info = json.loads(result.stdout)
@@ -118,15 +118,26 @@ def extract_all_subtitles(mkv_file: Path) -> list:
         
         # Extract each subtitle track
         for i, stream in enumerate(subtitle_tracks):
-            # Generate output filename based on track index
-            output_file = mkv_file.with_name(f"{mkv_file.stem}_sub{i:02d}.srt")
+            # Determine language for naming the output file
+            language = "unknown"
+            if 'tags' in stream and 'language' in stream['tags']:
+                language = stream['tags']['language']
+            elif 'codec_name' in stream and 'dvd' in stream['codec_name']:
+                # For DVD subtitle streams, we might want to use a different naming convention
+                language = "dvd"
+            
+            # Generate output filename based on language or track index
+            if language != "unknown" and language != "dvd":
+                output_file = mkv_file.with_name(f"{mkv_file.stem}.{language}.srt")
+            else:
+                output_file = mkv_file.with_name(f"{mkv_file.stem}_sub{i:02d}.srt")
             
             # Build ffmpeg command for this specific subtitle track
-            cmd = ['ffmpeg', '-i', str(mkv_file), '-map', f'0:s:{i}', '-f', 'srt', str(output_file)]
+            cmd = ['ffmpeg', '-loglevel', 'error', '-i', str(mkv_file), '-map', f'0:s:{i}', '-f', 'srt', str(output_file)]
             
             try:
                 subprocess.run(cmd, capture_output=True, check=True)
-                print(f"Successfully extracted subtitle track {i} to {output_file}")
+                print(f"Successfully extracted subtitle track {i} ({language}) to {output_file}")
                 srt_files.append(output_file)
             except subprocess.CalledProcessError as e:
                 print(f"Error extracting subtitle track {i}: {e.stderr}")
