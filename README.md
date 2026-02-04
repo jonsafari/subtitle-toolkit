@@ -121,10 +121,10 @@ The GUI dialogue will:
 # Basic call – uses the default instruction file `subtitle_translate.txt`
 ./subtitle_translate.py path/to/english.srt
 
-# Custom instruction file, chunk size, output directory and API endpoint
+# Custom instruction file, chunk size, output SRT file and API endpoint
 ./subtitle_translate.py path/to/english.srt \
     --instructions instructions/subtitle_translate_-_en-es_-_Gavin_and_Stacey.txt \
-    --output-dir ./translated_chunks \
+    --output path/to/spanish.srt \
     --api-base http://localhost:8080/v1 \
     --model-id llama3:8b \
     --api-key dummy-key
@@ -230,7 +230,7 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
 | `input_file` | – | Path to the source `.srt`. |
 | `--instructions` | `subtitle_translate.txt` | Path to the instruction file that tells the model how to translate. |
 | `--chunk-size` | `30` | Number of subtitle units per API request. |
-| `--output-dir` | `/tmp/` | Directory where the translated chunks are saved. |
+| `--output` | Path to the target `.srt` | Output translated SRT file name. |
 | `--api-base` | `http://localhost:8080` | Base URL of the OpenAI‑compatible server. |
 | `--model-id` | `local-model` | Model identifier used in the request. |
 | `--api-key` | `dummy-key` | API key (some servers require a non‑empty value). |
@@ -240,7 +240,7 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
 ```bash
 ./subtitle_translate.py season01.srt \
     --instructions instructions/subtitle_translate_-_en-es_-_Schitts_Creek.txt \
-    --output-dir ./es_translation \
+    --output path/to/spanish.srt \
     --api-base http://localhost:8080/v1 \
     --model-id llama3:8b \
     --api-key dummy-key
