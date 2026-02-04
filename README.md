@@ -8,7 +8,7 @@ The tools are deliberately lightweight, command‑line‑first, and can be combi
 | `subtitle_timeshift.py` | Shifts every timestamp in an SRT stream by a fixed amount **or** aligns the first subtitle to a user‑provided start time. | Fix subtitles that are out of sync with the video. |
 | `subtitle_timeshift_gui.sh` | Small Zenity‑based GUI wrapper around `subtitle_timeshift.py`. | Users who prefer a point‑and‑click workflow on Linux. |
 | `subtitle_mkv2srt.py` | Extracts subtitles from MKV files and converts them to SRT format. | Extract subtitles from MKV files for use with video players. |
-| `subtitle_translate.py` | Splits a large SRT file into manageable chunks, prepends a *translation‑instruction* file, sends each chunk to an OpenAI‑compatible endpoint and writes the translated chunks to disk. | Batch‑translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
+| `subtitle_translate.py` | Translates a subtitle (SRT/SubRip) file, using a *translation‑instruction* file and an OpenAI‑compatible endpoint and writes the translated output to a new SRT file. | Translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
 | instructions/`subtitle_translate_*.txt` | Example instruction files that tell the LLM how to translate (show/movie context, keep formatting, don’t add extra text, etc.). | Supply to `subtitle_translate.py` via `--instructions`. |
 
 ---
@@ -130,9 +130,6 @@ The GUI dialogue will:
     --api-key dummy-key
 ```
 
-Each chunk will be written as `chunk_01.srt`, `chunk_02.srt`, … inside the chosen output directory.  
-The content of each file is **only the translated subtitle block** (the instruction header is **not** written to the output – it is only sent to the LLM).
-
 ---
 
 <a name="detailed-usage"></a>
@@ -221,7 +218,7 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
 2. **Chunks** a configurable number of units together (default 30).  
 3. **Prepends** a user‑provided instruction file (e.g. “You are an expert translator …”).  
 4. Sends each chunk to an OpenAI‑compatible chat endpoint.  
-5. Writes the translated chunk to a separate `.srt` file.
+5. Writes the translated output to a new `.srt` file.
 
 #### Command‑line options  
 
@@ -244,13 +241,6 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
     --api-base http://localhost:8080/v1 \
     --model-id llama3:8b \
     --api-key dummy-key
-```
-
-After the run you will have a series of `chunk_01.srt`, `chunk_02.srt`, … in `./es_translation`.  
-You can concatenate them (preserving order) to obtain a single translated file:
-
-```bash
-cat ./es_translation/chunk_*.srt > season01_es.srt
 ```
 
 #### Important notes  
