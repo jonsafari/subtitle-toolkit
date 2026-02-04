@@ -227,7 +227,7 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
 | `input_file` | – | Path to the source `.srt`. |
 | `--instructions` | `subtitle_translate.txt` | Path to the instruction file that tells the model how to translate. |
 | `--chunk-size` | `30` | Number of subtitle units per API request. |
-| `--output` | Path to the target `.srt` | Output translated SRT file name. |
+| `--output` | `<input>_translated.srt` | Output translated SRT file name. |
 | `--api-base` | `http://localhost:8080` | Base URL of the OpenAI‑compatible server. |
 | `--model-id` | `local-model` | Model identifier used in the request. |
 | `--api-key` | `dummy-key` | API key (some servers require a non‑empty value). |
