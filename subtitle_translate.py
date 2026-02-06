@@ -155,8 +155,11 @@ def main() -> None:
 
     separator = line_ending * 2
 
-    # Translate each chunk and collect translations with progress bar
-    all_translations = []
+    # Translate each chunk and write to output file incrementally
+    # Truncate output file if it exists
+    with open(output_path, 'w', encoding='utf-8') as f:
+        pass  # This truncates the file
+
     for idx, chunk in enumerate(tqdm(chunks, desc="Translating chunks"), start=1):
         source_text_chunk = separator.join(chunk) + line_ending
 
@@ -169,13 +172,12 @@ def main() -> None:
         )
 
         translation = chat_completion.choices[0].message.content + separator
-        all_translations.append(translation)
+
+        # Write translation directly to output file
+        with open(output_path, 'a', encoding='utf-8') as f:
+            f.write(translation)
 
         print(f"Translated chunk {idx}/{len(chunks)} ({len(chunk)} units)")
-
-    # Write all translations to a single output file
-    full_content = "".join(all_translations)
-    write_file(output_path, full_content)
 
     print(f"\nFinished! Translated {len(chunks)} chunks written to {output_path.resolve()}")
 
