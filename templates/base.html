@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Subtitle Toolkit{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .dark {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        .tool-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        .dark .tool-card {
+            border-color: #334155;
+        }
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: #94a3b8;
+        }
+        .dark .tool-card:hover {
+            border-color: #64748b;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .form-input {
+            border: 1px solid #cbd5e1;
+        }
+        .dark .form-input {
+            border-color: #334155;
+        }
+        .form-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .dark .form-input:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+        .dark .bg-white {
+            background-color: #1e293b !important;
+        }
+        .dark .bg-gray-50 {
+            background-color: #0f172a !important;
+        }
+        .dark .text-gray-900 {
+            color: #e2e8f0;
+        }
+        .dark .text-gray-600 {
+            color: #94a3b8;
+        }
+        .dark .text-gray-500 {
+            color: #64748b;
+        }
+        .dark .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .dark .border-gray-200 {
+            border-color: #334155;
+        }
+        .dark .border-blue-200 {
+            border-color: #3b82f6;
+        }
+        .dark .bg-blue-50 {
+            background-color: #0c4a6e;
+        }
+        .dark .text-blue-800 {
+            color: #93c5fd;
+        }
+        .dark .bg-red-50 {
+            background-color: #1e293b;
+        }
+        .dark .text-red-700 {
+            color: #f87171;
+        }
+        .file-upload-label {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .file-upload-label:hover {
+            background-color: #2563eb;
+        }
+        .file-upload-input {
+            display: none;
+        }
+        .theme-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            background-color: #e2e8f0;
+            cursor: pointer;
+        }
+        .dark .theme-toggle {
+            background-color: #334155;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-white dark:bg-slate-900">
+    <header class="bg-white shadow-sm dark:bg-slate-800">
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
+                    <i class="fas fa-popcorn mr-3 text-yellow-500 fa-lg"></i>
+                    Subtitle Toolkit
+                </h1>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium dark:text-gray-300 dark:hover:text-blue-400">
+                        Home
+                    </a>
+                    <a href="/timeshift" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium dark:text-gray-300 dark:hover:text-blue-400">
+                        Time Shift
+                    </a>
+                    <a href="/mkv2srt" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium dark:text-gray-300 dark:hover:text-blue-400">
+                        MKV to SRT
+                    </a>
+                    <a href="/translate" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium dark:text-gray-300 dark:hover:text-blue-400">
+                        Translate
+                    </a>
+                    <button id="theme-toggle" class="theme-toggle text-gray-500 dark:text-gray-300">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-white border-t mt-12 dark:bg-slate-800 dark:border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+            <p class="text-center text-gray-500 text-sm dark:text-gray-400">
+                Subtitle Toolkit Web Interface &copy; {{ year }}
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Dark mode toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+
+        // Check for saved theme preference or respect system preference
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            html.classList.add('dark');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        });
+
+        // Auto-detect system theme change
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                if (e.matches) {
+                    html.classList.add('dark');
+                    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                } else {
+                    html.classList.remove('dark');
+                    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

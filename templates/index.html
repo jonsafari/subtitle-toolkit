@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Subtitle Toolkit - Home{% endblock %}
+
+{% block content %}
+<div class="text-center mb-12">
+    <h1 class="text-4xl font-bold text-gray-900 mb-4 dark:text-white">Subtitle Toolkit</h1>
+    <p class="text-xl text-gray-600 max-w-3xl mx-auto dark:text-gray-300">
+        A modern, simple, fast, and secure web interface for subtitle manipulation and translation tools.
+    </p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+    <a href="/timeshift" class="tool-card bg-white rounded-lg p-6 shadow-md hover:shadow-lg dark:bg-slate-800">
+        <div class="flex justify-center mb-4">
+            <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl dark:bg-slate-700 dark:text-blue-400">
+                🕐
+            </div>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2 dark:text-white">Time Shift</h3>
+        <p class="text-gray-600 dark:text-gray-300">
+            Shift timestamps in subtitle files to fix synchronization issues with videos.
+        </p>
+    </a>
+
+    <a href="/mkv2srt" class="tool-card bg-white rounded-lg p-6 shadow-md hover:shadow-lg dark:bg-slate-800">
+        <div class="flex justify-center mb-4">
+            <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center text-2xl dark:bg-slate-700 dark:text-green-400">
+                🎬
+            </div>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2 dark:text-white">MKV to SRT</h3>
+        <p class="text-gray-600 dark:text-gray-300">
+            Extract subtitles from MKV files and convert them to SRT format.
+        </p>
+    </a>
+
+    <a href="/translate" class="tool-card bg-white rounded-lg p-6 shadow-md hover:shadow-lg dark:bg-slate-800">
+        <div class="flex justify-center mb-4">
+            <div class="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center text-2xl dark:bg-slate-700 dark:text-purple-400">
+                🌐
+            </div>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2 dark:text-white">Translate</h3>
+        <p class="text-gray-600 dark:text-gray-300">
+            Translate subtitle files using AI models with customizable instructions.
+        </p>
+    </a>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6 dark:bg-slate-800">
+    <h2 class="text-2xl font-bold text-gray-900 mb-4 dark:text-white">How to Use</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-10 w-10 rounded-full bg-blue-100 dark:bg-slate-700">
+                    <span class="text-blue-800 font-bold dark:text-blue-400">1</span>
+                </div>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Select Tool</h3>
+                <p class="mt-2 text-gray-600 dark:text-gray-300">Choose the subtitle tool you want to use from the navigation menu or cards above.</p>
+            </div>
+        </div>
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-10 w-10 rounded-full bg-blue-100 dark:bg-slate-700">
+                    <span class="text-blue-800 font-bold dark:text-blue-400">2</span>
+                </div>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Upload File</h3>
+                <p class="mt-2 text-gray-600 dark:text-gray-300">Upload your subtitle or video file and configure the tool settings.</p>
+            </div>
+        </div>
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-10 w-10 rounded-full bg-blue-100 dark:bg-slate-700">
+                    <span class="text-blue-800 font-bold dark:text-blue-400">3</span>
+                </div>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Get Results</h3>
+                <p class="mt-2 text-gray-600 dark:text-gray-300">Download your processed subtitle file with the results.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
