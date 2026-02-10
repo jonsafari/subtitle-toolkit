@@ -3,7 +3,7 @@
 FastAPI web interface for the Subtitle Toolkit
 """
 from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import subprocess
@@ -15,6 +15,11 @@ import shutil
 app = FastAPI(title="Subtitle Toolkit Web Interface")
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Serve favicon at root path
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse("static/favicon.ico")
 
 # Tool paths
 TIMESHIFT_SCRIPT = "./subtitle_timeshift.py"
