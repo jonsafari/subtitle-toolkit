@@ -2,7 +2,7 @@
 """
 FastAPI web interface for the Subtitle Toolkit
 """
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, UploadFile
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -124,15 +124,20 @@ async def timeshift_download(request: Request, output: str = Form(None)):
 async def mkv2srt_page(request: Request):
     return templates.TemplateResponse("mkv2srt.html", {"request": request})
 
+from fastapi import FastAPI, Request, Form, UploadFile
+# ... (other imports remain the same)
+
+# ... (other code remains the same)
+
 @app.post("/mkv2srt", response_class=HTMLResponse)
 async def mkv2srt_submit(
     request: Request,
-    mkv_file: str = Form(None),
+    mkv_file: UploadFile = Form(None),
     language: str = Form(None),
     output_file: str = Form(None)
 ):
     # Validate inputs
-    if not mkv_file:
+    if not mkv_file or mkv_file.filename is None or mkv_file.filename == "":
         return templates.TemplateResponse("mkv2srt.html", {
             "request": request,
             "error": "Please upload an MKV file"
@@ -142,7 +147,9 @@ async def mkv2srt_submit(
     try:
         # Create a temporary file for the input
         with tempfile.NamedTemporaryFile(mode='wb', suffix='.mkv', delete=False) as tmp_input:
-            tmp_input.write(mkv_file.encode('utf-8') if isinstance(mkv_file, str) else mkv_file)
+            # Read file content and write to temporary file
+            content = await mkv_file.read()
+            tmp_input.write(content)
             tmp_input_path = tmp_input.name
 
         # Build command
@@ -169,14 +176,18 @@ async def mkv2srt_submit(
         })
 
     except subprocess.CalledProcessError as e:
+        # Provide more detailed error information
+        error_msg = f"Error processing file: {e.stderr} (return code: {e.returncode})"
+        if e.stdout:
+            error_msg += f" | stdout: {e.stdout[:200]}..."
         return templates.TemplateResponse("mkv2srt.html", {
             "request": request,
-            "error": f"Error processing file: {e.stderr}"
+            "error": error_msg
         })
     except Exception as e:
         return templates.TemplateResponse("mkv2srt.html", {
             "request": request,
-            "error": f"Unexpected error: {str(e)}"
+            "error": f"Unexpected error: {str(e)} (type: {type(e).__name__})"
         })
 
 @app.get("/translate", response_class=HTMLResponse)

@@ -29,7 +29,7 @@
     </div>
     {% endif %}
 
-    <form method="post" class="bg-white rounded-lg shadow-md p-6 dark:bg-slate-800">
+    <form method="post" enctype="multipart/form-data" class="bg-white rounded-lg shadow-md p-6 dark:bg-slate-800">
         <div class="mb-6">
             <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="mkv_file">
                 Upload MKV File
@@ -38,7 +38,7 @@
                 <label for="mkv_file_upload" class="file-upload-label">
                     <i class="fas fa-upload mr-2"></i> Choose File
                 </label>
-                <input type="file" id="mkv_file_upload" name="mkv_file_upload" class="file-upload-input" accept=".mkv">
+                <input type="file" id="mkv_file_upload" name="mkv_file" class="file-upload-input" accept=".mkv">
                 <span id="file-name" class="ml-4 text-gray-500 dark:text-gray-400">No file chosen</span>
             </div>
         </div>
