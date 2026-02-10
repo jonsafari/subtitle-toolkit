@@ -81,37 +81,37 @@ def main() -> None:
     parser.add_argument(
         '--instructions',
         type=Path,
-        default=Path('subtitle_translate.txt'),
-        help='Path to the instructions file (default: subtitle_translate.txt).'
+        default=Path('translation_instruction_prompts/subtitle_translate_-_en-es_-_default.txt'),
+        help='Path to the instructions file. Default: %(default)s'
     )
     parser.add_argument(
         '--chunk-size',
         type=int,
         default=30,
-        help='Number of subtitle units per chunk (default: 30).'
+        help='Number of subtitle units per chunk. Default: %(default)s'
     )
     parser.add_argument(
         '--output',
         type=Path,
-        help='Output file path (default: derived from input filename, e.g., input_translated.srt).'
+        help='Output file path. Default: derived from input filename, e.g., input_translated.srt'
     )
     parser.add_argument(
         '--api-base',
         type=str,
         default='http://localhost:8080',
-        help='OpenAI-API base URL. (default: http://localhost:8080)'
+        help='OpenAI-API base URL. Default: %(default)s'
     )
     parser.add_argument(
         '--model-id',
         type=str,
         default='local-model',
-        help='OpenAI-API model ID (default: local-model)'
+        help='OpenAI-API model ID. Default: %(default)s'
     )
     parser.add_argument(
         '--api-key',
         type=str,
         default='dummy-key',
-        help='OpenAI-API key. (default: dummy-key)'
+        help='OpenAI-API key. Default: %(default)s'
     )
 
     args = parser.parse_args()
