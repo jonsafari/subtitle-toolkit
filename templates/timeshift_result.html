@@ -13,7 +13,7 @@
 
     <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800 dark:text-white">
         <h2 class="text-xl font-semibold text-gray-900 mb-4 dark:text-white">Processed Subtitle Content</h2>
-        <div class="bg-gray-50 rounded-lg p-4 dark:bg-slate-700 dark:text-gray-100">
+        <div class="bg-gray-50 rounded-lg p-4 dark:bg-slate-700 dark:text-gray-100 max-h-96 overflow-y-auto">
             <pre class="whitespace-pre-wrap text-sm">{{ output }}</pre>
         </div>
     </div>
@@ -27,7 +27,7 @@
         </a>
         <form action="/timeshift/download" method="post" style="display: inline;">
             <input type="hidden" name="output" value="{{ output }}">
-            <button type="submit" class="save-button px-6 py-2 rounded-md font-medium transition duration-200 border border-green-700">
+            <button type="submit" class="save-button px-6 py-2 rounded-md font-medium transition duration-200">
                 Save to File
             </button>
         </form>
