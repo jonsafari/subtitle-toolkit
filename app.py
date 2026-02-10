@@ -11,6 +11,7 @@ import os
 import tempfile
 from pathlib import Path
 import shutil
+import urllib.parse
 
 app = FastAPI(title="Subtitle Toolkit Web Interface")
 templates = Jinja2Templates(directory="templates")
@@ -94,6 +95,28 @@ async def timeshift_submit(
             "request": request,
             "error": f"Unexpected error: {str(e)}"
         })
+
+@app.post("/timeshift/download", response_class=HTMLResponse)
+async def timeshift_download(request: Request, output: str = Form(None)):
+    if not output:
+        # If no output provided, redirect to timeshift page
+        return templates.TemplateResponse("timeshift.html", {"request": request})
+
+    # URL decode the output content
+    decoded_output = urllib.parse.unquote(output)
+
+    # Create a temporary file with the output content
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.srt', delete=False, encoding='utf-8') as tmp_file:
+        tmp_file.write(decoded_output)
+        tmp_file_path = tmp_file.name
+
+    # Return the file for download
+    return FileResponse(
+        tmp_file_path,
+        media_type="application/octet-stream",
+        filename="processed_subtitles.srt",
+        background=lambda: os.unlink(tmp_file_path)  # Clean up after download
+    )
 
 @app.get("/mkv2srt", response_class=HTMLResponse)
 async def mkv2srt_page(request: Request):

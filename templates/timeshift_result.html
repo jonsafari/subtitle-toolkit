@@ -25,6 +25,12 @@
         <a href="/" class="text-gray-700 px-6 py-2 border border-gray-300 rounded-md font-medium hover:bg-gray-50 transition duration-200 dark:text-gray-300 dark:border-slate-600 dark:hover:bg-slate-700">
             Back to Home
         </a>
+        <form action="/timeshift/download" method="post" style="display: inline;">
+            <input type="hidden" name="output" value="{{ output }}">
+            <button type="submit" class="btn-secondary text-white px-6 py-2 rounded-md font-medium hover:bg-green-700 transition duration-200">
+                Save to File
+            </button>
+        </form>
     </div>
 </div>
 {% endblock %}
