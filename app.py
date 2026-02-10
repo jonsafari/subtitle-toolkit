@@ -211,7 +211,8 @@ async def translate_submit(
     chunk_size: int = Form(30),
     api_base: str = Form("http://localhost:8080"),
     model_id: str = Form("local-model"),
-    api_key: str = Form("dummy-key")
+    api_key: str = Form("dummy-key"),
+    output_file: str = Form(None)
 ):
     # Validate inputs
     if not srt_file:
@@ -245,6 +246,8 @@ async def translate_submit(
         cmd.extend(["--api-base", api_base])
         cmd.extend(["--model-id", model_id])
         cmd.extend(["--api-key", api_key])
+        if output_file:
+            cmd.extend(["--output", output_file])
 
         # Run the command
         result = subprocess.run(

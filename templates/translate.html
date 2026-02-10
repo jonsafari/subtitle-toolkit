@@ -147,6 +147,20 @@
             </div>
         </div>
 
+        <div class="mb-6">
+            <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="output_file">
+                Output File Path (Optional)
+            </label>
+            <input
+                type="text"
+                id="output_file"
+                name="output_file"
+                class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                placeholder="Leave blank to auto-generate output filename"
+            >
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">If left blank, output filename will be derived from input filename (e.g., input_translated.srt)</p>
+        </div>
+
         <div class="flex justify-end">
             <button
                 type="submit"
