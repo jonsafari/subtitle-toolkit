@@ -23,8 +23,13 @@ def shift_timestamp(timestamp: str, shift_seconds: float) -> str:
 
 
 def timestamp_to_seconds(timestamp: str) -> float:
-    """Convert an ``HH:MM:SS,mmm`` timestamp to a float number of seconds."""
-    t = datetime.datetime.strptime(timestamp, "%H:%M:%S,%f")
+    """Convert an ``HH:MM:SS`` or ``HH:MM:SS,mmm`` timestamp to a float number of seconds."""
+    if ',' in timestamp:
+        # Include fractional part
+        t = datetime.datetime.strptime(timestamp, "%H:%M:%S,%f")
+    else:
+        # No fractional part
+        t = datetime.datetime.strptime(timestamp, "%H:%M:%S")
     return (
         t.hour * 3600
         + t.minute * 60
@@ -58,7 +63,7 @@ def parse_args():
         type=str,
         help=(
             "Desired start time of the first subtitle entry, in the form "
-            "HH:MM:SS,mmm (e.g. 00:01:32,945)."
+            "HH:MM:SS or HH:MM:SS,mmm (e.g. 00:01:32 or 00:01:32,945)."
         ),
     )
     return parser.parse_args()
@@ -79,7 +84,7 @@ def main():
         except ValueError:
             sys.stderr.write(
                 f"Error: cannot parse '--first-entry-starts-at' value "
-                f"'{args.first_entry_starts_at}'. Expected format HH:MM:SS,mmm\n"
+                f"'{args.first_entry_starts_at}'. Expected format HH:MM:SS or HH:MM:SS,mmm\n"
             )
             sys.exit(1)
 
