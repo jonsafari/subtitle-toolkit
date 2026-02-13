@@ -90,18 +90,20 @@
                 Process Subtitles
             </button>
         </div>
+		<br><br>
         <div class="mb-6">
             <!-- Time Calculator -->
+			Time Calculator Tool
             <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="timestamp1_input">
-                Timestamp 1
+                Current SRT Timestamp
             </label>
             <input type="text" id="timestamp1_input" class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white" placeholder="e.g., 00:01:32,945">
             <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="timestamp2_input">
-                Timestamp 2
+                Video Timestamp
             </label>
             <input type="text" id="timestamp2_input" class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white" placeholder="e.g., 00:02:15,123">
             <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="duration_seconds_input">
-                Duration (seconds)
+                Offset in Seconds
             </label>
             <input type="number" id="duration_seconds_input" class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white" readonly>
         </div>
@@ -231,7 +233,7 @@
             function updateDuration() {
                 const t1 = parseTimestampToSeconds(timestamp1Input.value);
                 const t2 = parseTimestampToSeconds(timestamp2Input.value);
-                const diff = Math.abs(t2 - t1);
+                const diff = t1 - t2;
                 durationInput.value = diff.toFixed(3);
             }
 
