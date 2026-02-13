@@ -1,7 +1,5 @@
 {% extends "base.html" %}
 
-{% block title %}Time Shift Tool{% endblock %}
-
 {% block content %}
 <div class="max-w-3xl mx-auto">
     <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800">
@@ -13,192 +11,235 @@
             <i class="fas fa-arrow-left mr-1"></i> Back to Home
         </a>
 
-    <div class="mb-6">
-        <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="srt_file_upload">
-            Upload SRT File
-        </label>
-        <div class="flex items-center">
-            <label for="srt_file_upload" class="file-upload-label">
-                <i class="fas fa-upload mr-2"></i> Choose File
+        <div class="mb-6">
+            <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="srt_file_upload">
+                Upload SRT File
             </label>
-            <input type="file" id="srt_file_upload" name="srt_file_upload" class="file-upload-input" accept=".srt">
-            <span id="file-name" class="ml-4 text-gray-500 dark:text-gray-400">No file chosen</span>
+            <div class="flex items-center">
+                <label for="srt_file_upload" class="file-upload-label">
+                    <i class="fas fa-upload mr-2"></i> Choose File
+                </label>
+                <input type="file" id="srt_file_upload" name="srt_file_upload" class="file-upload-input" accept=".srt">
+                <span id="file-name" class="ml-4 text-gray-500 dark:text-gray-400">No file chosen</span>
+            </div>
+            <textarea
+                id="srt_file"
+                name="srt_file"
+                rows="10"
+                class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                placeholder="Paste your SRT content here or upload a file..."
+                required
+            ></textarea>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Paste the content of your SRT file here or upload a file</p>
         </div>
-        <textarea
-            id="srt_file"
-            name="srt_file"
-            rows="10"
-            class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-            placeholder="Paste your SRT content here or upload a file..."
-            required
-        ></textarea>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Paste the content of your SRT file here or upload a file</p>
-    </div>
 
-    <div class="mb-6">
-        <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="video_file_upload">
-            View Video (Optional; to help determine timestamps)
-        </label>
-        <div class="flex items-center">
-            <label for="video_file_upload" class="file-upload-label">
-                <i class="fas fa-video mr-2"></i> Choose Video
+        <div class="mb-6">
+            <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="video_file_upload">
+                View Video (Optional; to help determine timestamps)
             </label>
-            <input type="file" id="video_file_upload" name="video_file_upload" class="file-upload-input" accept="video/*">
+            <div class="flex items-center">
+                <label for="video_file_upload" class="file-upload-label">
+                    <i class="fas fa-video mr-2"></i> Choose Video
+                </label>
+                <input type="file" id="video_file_upload" name="video_file_upload" class="file-upload-input" accept="video/*">
+            </div>
+            <span id="video-file-name" class="ml-4 text-gray-500 dark:text-gray-400"></span>
         </div>
-        <span id="video-file-name" class="ml-4 text-gray-500 dark:text-gray-400"></span>
-    </div>
 
-    <div class="mb-6">
-        <video id="video-preview" controls class="w-full rounded-md border border-slate-300 dark:border-slate-300 dark:bg-slate-800/20" style="max-height: 300px; display: none;"></video>
-        <track kind="subtitles" srclang="en" label="Processed Subtitles" id="subtitle-track"></track>
-    </div>
+        <div class="mb-6">
+            <video id="video-preview" controls class="w-full rounded-md border border-slate-300 dark:border-slate-300 dark:bg-slate-800/20" style="max-height: 300px; display: none;"></video>
+            <track kind="subtitles" srclang="en" label="Processed Subtitles" id="subtitle-track"></track>
+        </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div>
-            <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="shift_seconds">
-                Shift Seconds
-            </label>
-            <input
-                type="number"
-                id="shift_seconds"
-                name="shift_seconds"
-                step="0.01"
-                class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                placeholder="e.g., 2.5"
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="shift_seconds">
+                    Shift Seconds
+                </label>
+                <input
+                    type="number"
+                    id="shift_seconds"
+                    name="shift_seconds"
+                    step="0.01"
+                    class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                    placeholder="e.g., 2.5"
+                >
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Shift all timestamps by this number of seconds (positive = earlier)</p>
+            </div>
+
+            <div>
+                <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="first_entry_starts_at">
+                    First Entry Start Time
+                </label>
+                <input
+                    type="text"
+                    id="first_entry_starts_at"
+                    name="first_entry_starts_at"
+                    class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                    placeholder="e.g., 00:01:32,945 or 00:01:32"
+                >
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Align the first subtitle to this start time</p>
+            </div>
+        </div>
+
+        <div class="flex justify-end">
+            <button
+                type="submit"
+                class="btn-primary text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition duration-200"
             >
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Shift all timestamps by this number of seconds (positive = earlier)</p>
+                Process Subtitles
+            </button>
         </div>
-
-        <div>
-            <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="first_entry_starts_at">
-                First Entry Start Time
+        <div class="mb-6">
+            <!-- Time Calculator -->
+            <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="timestamp1_input">
+                Timestamp 1
             </label>
-            <input
-                type="text"
-                id="first_entry_starts_at"
-                name="first_entry_starts_at"
-                class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                placeholder="e.g., 00:01:32,945 or 00:01:32"
-            >
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Align the first subtitle to this start time</p>
+            <input type="text" id="timestamp1_input" class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white" placeholder="e.g., 00:01:32,945">
+            <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="timestamp2_input">
+                Timestamp 2
+            </label>
+            <input type="text" id="timestamp2_input" class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white" placeholder="e.g., 00:02:15,123">
+            <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="duration_seconds_input">
+                Duration (seconds)
+            </label>
+            <input type="number" id="duration_seconds_input" class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white" readonly>
+        </div>
+
+        </form>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6 dark:bg-blue-900/20 dark:border-blue-700">
+            <h3 class="text-lg font-medium text-blue-800 mb-2 dark:text-blue-300">Usage Examples</h3>
+            <ul class="list-disc pl-5 text-blue-700 space-y-1 dark:text-blue-300">
+                <li>Shift all subtitles 2.5 seconds earlier: <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">--shift-seconds 2.5</code></li>
+                <li>Align first subtitle to 00:01:32,945: <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">--first-entry-starts-at 00:01:32,945</code></li>
+            </ul>
         </div>
     </div>
 
-    <div class="flex justify-end">
-        <button
-            type="submit"
-            class="btn-primary text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition duration-200"
-        >
-            Process Subtitles
-        </button>
-    </div>
-    </form>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const fileInput = document.getElementById('srt_file_upload');
+            const videoInput = document.getElementById('video_file_upload');
+            const fileNameSpan = document.getElementById('file-name');
+            const videoNameSpan = document.getElementById('video-file-name');
+            const textArea = document.getElementById('srt_file');
+            const videoPreview = document.getElementById('video-preview');
+            const subtitleTrack = document.getElementById('subtitle-track');
 
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6 dark:bg-blue-900/20 dark:border-blue-700">
-        <h3 class="text-lg font-medium text-blue-800 mb-2 dark:text-blue-300">Usage Examples</h3>
-        <ul class="list-disc pl-5 text-blue-700 space-y-1 dark:text-blue-300">
-            <li>Shift all subtitles 2.5 seconds earlier: <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">--shift-seconds 2.5</code></li>
-            <li>Align first subtitle to 00:01:32,945: <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">--first-entry-starts-at 00:01:32,945</code></li>
-        </ul>
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Elements
-    const fileInput = document.getElementById('srt_file_upload');
-    const videoInput = document.getElementById('video_file_upload');
-    const fileNameSpan = document.getElementById('file-name');
-    const videoNameSpan = document.getElementById('video-file-name');
-    const textArea = document.getElementById('srt_file');
-    const videoPreview = document.getElementById('video-preview');
-    const subtitleTrack = document.getElementById('subtitle-track');
-
-    // Parse SRT to VTT
-    function parseSrtToVtt(srtContent) {
-        const lines = srtContent.trim().split('\n');
-        let cues = [];
-        for (let i = 0; i < lines.length; ) {
-            const line = lines[i].trim();
-            if (line.match(/^\d+$/)) {
-                i++;
-                const start = lines[i].trim();
-                i++;
-                const end = lines[i].trim();
-                i++;
-                const text = lines.slice(i).join('\n').trim();
-                cues.push({ start, end, text });
-                i++;
-            } else {
-                i++;
+            // Parse SRT to VTT
+            function parseSrtToVtt(srtContent) {
+                const lines = srtContent.trim().split('\n');
+                let cues = [];
+                for (let i = 0; i < lines.length; ) {
+                    const line = lines[i].trim();
+                    if (/^\d+$/.test(line)) {
+                        i++;
+                        const start = lines[i].trim();
+                        i++;
+                        const end = lines[i].trim();
+                        i++;
+                        const text = lines.slice(i).join('\n').trim();
+                        cues.push({ start, end, text });
+                        i++;
+                    } else {
+                        i++;
+                    }
+                }
+                // Convert cues to VTT format
+                let vtt = 'WEBVTT\n\n';
+                cues.forEach(cue => {
+                    vtt += cue.start.replace('.', ',') + '-->' + cue.end.replace('.', ',') + '\n';
+                    vtt += cue.text + '\n\n';
+                });
+                return vtt;
             }
-        }
-        let vtt = 'WEBVTT\n\n';
-        cues.forEach(cue => {
-            vtt += cue.start.replace('.', ',') + '-->' + cue.end.replace('.', ',') + '\n';
-            vtt += cue.text + '\n\n';
-        });
-        return vtt;
-    }
 
-    // Update subtitle track with parsed VTT
-    function updateSubtitleTrack(srtContent) {
-        if (videoPreview.src) {
-            const vtt = parseSrtToVtt(srtContent);
-            const blob = new Blob([vtt], { type: 'text/vtt' });
-            const url = URL.createObjectURL(blob);
-            subtitleTrack.src = url;
-        }
-    }
-
-    // SRT file change
-    if (fileInput) {
-        fileInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                const fileName = this.files[0].name;
-                fileNameSpan.textContent = fileName;
-
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    textArea.value = e.target.result;
-                    updateSubtitleTrack(e.target.result);
-                };
-                reader.readAsText(this.files[0]);
-            } else {
-                fileNameSpan.textContent = 'No file chosen';
-            }
-        });
-    }
-
-    // Video file change
-    if (videoInput) {
-        videoInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                const fileName = this.files[0].name;
-                videoNameSpan.textContent = fileName;
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    // Create a Blob with a video MIME type and then a URL for playback
-                    const blob = new Blob([e.target.result], { type: 'video/mp4' });
+            // Update subtitle track with parsed VTT
+            function updateSubtitleTrack(srtContent) {
+                if (videoPreview.src) {
+                    const vtt = parseSrtToVtt(srtContent);
+                    const blob = new Blob([vtt], { type: 'text/vtt' });
                     const url = URL.createObjectURL(blob);
-                    videoPreview.src = url;
-                    videoPreview.style.display = 'block';
-                    videoPreview.play();
-                };
-                reader.readAsArrayBuffer(this.files[0]);
-            } else {
-                videoNameSpan.textContent = 'No video chosen';
-                videoPreview.style.display = 'none';
-                videoPreview.src = '';
-                videoPreview.pause();
-                // Revoke the blob URL to free memory
-                if (videoPreview.src.startsWith('blob:')) {
-                    const blobUrl = videoPreview.src;
-                    URL.revokeObjectURL(blobUrl);
+                    subtitleTrack.src = url;
                 }
             }
+
+            // SRT file change handler
+            if (fileInput) {
+                fileInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const fileName = this.files[0].name;
+                        fileNameSpan.textContent = fileName;
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            textArea.value = e.target.result;
+                            updateSubtitleTrack(e.target.result);
+                        };
+                        reader.readAsText(this.files[0]);
+                    } else {
+                        fileNameSpan.textContent = 'No file chosen';
+                    }
+                });
+            }
+
+            // Video file change handler
+            if (videoInput) {
+                videoInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const fileName = this.files[0].name;
+                        videoNameSpan.textContent = fileName;
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            // Create a Blob with a video MIME type and then a URL for playback
+                            const blob = new Blob([e.target.result], { type: 'video/mp4' });
+                            const url = URL.createObjectURL(blob);
+                            videoPreview.src = url;
+                            videoPreview.style.display = 'block';
+                            videoPreview.play();
+                        };
+                        reader.readAsArrayBuffer(this.files[0]);
+                    } else {
+                        videoNameSpan.textContent = 'No video chosen';
+                        videoPreview.style.display = 'none';
+                        videoPreview.src = '';
+                        videoPreview.pause();
+                        // Revoke the blob URL to free memory
+                        if (videoPreview.src.startsWith('blob:')) {
+                            URL.revokeObjectURL(videoPreview.src);
+                        }
+                    }
+                });
+            }
+
+            // Time calculator
+            const timestamp1Input = document.getElementById('timestamp1_input');
+            const timestamp2Input = document.getElementById('timestamp2_input');
+            const durationInput = document.getElementById('duration_seconds_input');
+
+            function parseTimestampToSeconds(timestamp) {
+                const nums = timestamp.match(/\d+/g);
+                if (!nums) return 0;
+                const hours = parseInt(nums[0], 10);
+                const minutes = parseInt(nums[1] || '0', 10);
+                const seconds = parseInt(nums[2] || '0', 10);
+                const milliseconds = nums[3] ? parseInt(nums[3], 10) : 0;
+                return hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
+            }
+
+            function updateDuration() {
+                const t1 = parseTimestampToSeconds(timestamp1Input.value);
+                const t2 = parseTimestampToSeconds(timestamp2Input.value);
+                const diff = Math.abs(t2 - t1);
+                durationInput.value = diff.toFixed(3);
+            }
+
+            timestamp1Input.addEventListener('input', updateDuration);
+            timestamp2Input.addEventListener('input', updateDuration);
+
+            // Initialize
+            updateDuration();
         });
-    }
-});
-</script>
+    </script>
 {% endblock %}
