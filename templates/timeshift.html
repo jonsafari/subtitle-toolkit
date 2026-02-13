@@ -178,14 +178,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 videoNameSpan.textContent = fileName;
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    videoPreview.src = e.target.result;
+                    // Create a Blob with a video MIME type and then a URL for playback
+                    const blob = new Blob([e.target.result], { type: 'video/mp4' });
+                    const url = URL.createObjectURL(blob);
+                    videoPreview.src = url;
                     videoPreview.style.display = 'block';
+                    videoPreview.play();
                 };
                 reader.readAsArrayBuffer(this.files[0]);
             } else {
                 videoNameSpan.textContent = 'No video chosen';
                 videoPreview.style.display = 'none';
                 videoPreview.src = '';
+                videoPreview.pause();
+                // Revoke the blob URL to free memory
+                if (videoPreview.src.startsWith('blob:')) {
+                    const blobUrl = videoPreview.src;
+                    URL.revokeObjectURL(blobUrl);
+                }
             }
         });
     }
