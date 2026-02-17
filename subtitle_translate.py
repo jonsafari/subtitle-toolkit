@@ -42,8 +42,10 @@ def read_file(path: Path) -> str:
 def write_file(path: Path, content: str) -> None:
     """
     Write *content* to *path* using UTF‑8 encoding.
+    Creates parent directories if they don't exist.
     """
     try:
+        path.parent.mkdir(parents=True, exist_ok=True)
         with path.open('w', encoding='utf-8', newline='') as f:
             f.write(content)
     except Exception as e:

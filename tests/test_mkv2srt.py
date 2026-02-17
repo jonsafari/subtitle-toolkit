@@ -219,9 +219,6 @@ class TestFileOperations:
         output_file = tmp_path / "subdir" / "output.srt"
         content = "Test content\n"
 
-        # Create parent directory first
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-
         write_file(output_file, content)
 
         assert output_file.exists()
