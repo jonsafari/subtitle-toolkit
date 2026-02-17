@@ -1,0 +1,17 @@
+# Development dependencies for Subtitle Toolkit
+# Install with: pip install -r requirements-dev.txt
+
+# Testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+
+# FastAPI testing
+httpx>=0.24.0
+
+# Code quality
+flake8>=6.0.0
+black>=23.0.0
+mypy>=1.0.0
+
+# Coverage
+pytest-cov>=4.1.0
