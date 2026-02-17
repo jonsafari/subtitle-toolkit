@@ -17,6 +17,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import json
 
 def extract_subtitles(mkv_file: Path, language: str = None, output_file: Path = None) -> Path:
     """
@@ -46,7 +47,6 @@ def extract_subtitles(mkv_file: Path, language: str = None, output_file: Path = 
         try:
             probe_cmd = ['ffprobe', '-loglevel', 'error', '-v', 'quiet', '-print_format', 'json', '-show_streams', str(mkv_file)]
             result = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
-            import json
             info = json.loads(result.stdout)
             
             # Find subtitle track with matching language
@@ -83,7 +83,7 @@ def extract_subtitles(mkv_file: Path, language: str = None, output_file: Path = 
         return output_file
     except subprocess.CalledProcessError as e:
         print(f"Error extracting subtitles: {e.stderr}")
-        raise SystemExit(1)
+        raise Exception("Error extracting subtitles")
 
 
 def extract_all_subtitles(mkv_file: Path) -> list:
@@ -100,9 +100,8 @@ def extract_all_subtitles(mkv_file: Path) -> list:
     cmd = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_streams', str(mkv_file)]
     
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         import json
-        info = json.loads(result.stdout)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         
         srt_files = []
         subtitle_tracks = []
