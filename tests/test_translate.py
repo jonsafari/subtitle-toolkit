@@ -226,8 +226,8 @@ class TestFileOperations:
         assert b'\r\n' in written_bytes
 
 
-class TestIntegration:
-    """Integration tests for subtitle_translate.py."""
+class TestTranslationWorkflow:
+    """Tests for the translation workflow with mocked API."""
 
     def test_full_translation_workflow(self, tmp_path, sample_srt_content, mock_api_response):
         """Test the full translation workflow with mocked API."""
@@ -336,3 +336,55 @@ Héllo Wörld! 你好世界! 🎬
         assert "Héllo Wörld!" in read_content
         assert "你好世界!" in read_content
         assert "🎬" in read_content
+
+    def test_srt_with_malformed_entries(self, tmp_path):
+        """Test SRT file with malformed entries."""
+        from subtitle_translate import split_into_units, read_file
+
+        content = """1
+00:00:01,000 --> 00:00:04,000
+Normal entry
+
+2
+malformed-timestamp --> 00:00:08,000
+This has a malformed timestamp
+
+3
+00:00:09,000 --> 00:00:12,000
+Back to normal
+"""
+        input_file = tmp_path / "malformed.srt"
+        input_file.write_text(content, encoding='utf-8')
+
+        content = read_file(input_file)
+        units = split_into_units(content, '\n')
+
+        # Should have 3 units (malformed timestamp is still a unit)
+        assert len(units) == 3
+
+    def test_srt_with_multiple_blank_lines(self, tmp_path):
+        """Test SRT file with multiple blank lines between entries."""
+        from subtitle_translate import split_into_units
+
+        content = """1
+00:00:01,000 --> 00:00:04,000
+First entry
+
+
+2
+00:00:05,000 --> 00:00:08,000
+Second entry
+
+
+3
+00:00:09,000 --> 00:00:12,000
+Third entry
+"""
+        input_file = tmp_path / "multiple_blanks.srt"
+        input_file.write_text(content, encoding='utf-8')
+
+        content = input_file.read_text(encoding='utf-8')
+        units = split_into_units(content, '\n')
+
+        # Should have 3 units despite multiple blank lines
+        assert len(units) == 3

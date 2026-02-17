@@ -17,7 +17,7 @@ This is a test subtitle file.
 We can shift timestamps or translate them.
 """
 
-SAMPLE_SRT_WITH_ASS_TAGS = """1
+SAMPLE_SRT_WITH_ASS_TAGS = r"""1
 00:00:01,000 --> 00:00:04,000
 {\an7}Centered text{\r}
 
@@ -67,3 +67,9 @@ def mock_api_response():
             }
         ]
     }
+
+
+# Register pytest-asyncio marker
+def pytest_configure(config):
+    """Register custom pytest markers."""
+    config.addinivalue_line("markers", "asyncio: mark test as async")
