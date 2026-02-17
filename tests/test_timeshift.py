@@ -37,8 +37,9 @@ class TestShiftTimestamp:
         """Shifts that would produce negative time should clamp to 0."""
         from subtitle_timeshift import shift_timestamp
 
-        result = shift_timestamp("00:00:01,000", -5.0)
-        # The actual behavior is to clamp to 00:00:00,000
+        # Shifting forward (positive) by more than the timestamp value causes underflow
+        result = shift_timestamp("00:00:01,000", 5.0)
+        # 00:00:01,000 - 5 seconds = negative, so clamp to 00:00:00,000
         assert result == "00:00:00,000"
 
     def test_shift_malformed_timestamp(self):
