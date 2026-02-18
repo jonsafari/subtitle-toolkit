@@ -9,7 +9,7 @@ The tools are deliberately lightweight, command‑line‑first, and can be combi
 | `subtitle_timeshift_gui.sh` | Small Zenity‑based GUI wrapper around `subtitle_timeshift.py`. | Users who prefer a point‑and‑click workflow on Linux. |
 | `subtitle_mkv2srt.py` | Extracts subtitles from MKV files and converts them to SRT format. | Extract subtitles from MKV files for use with video players. |
 | `subtitle_translate.py` | Translates a subtitle (SRT/SubRip) file, using a *translation‑instruction* file and an OpenAI‑compatible endpoint and writes the translated output to a new SRT file. | Translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
-| instructions/`subtitle_translate_*.txt` | Example instruction files that tell the LLM how to translate (show/movie context, keep formatting, don’t add extra text, etc.). | Supply to `subtitle_translate.py` via `--instructions`. |
+| translation_instruction_prompts/`subtitle_translate_*.txt` | Example instruction files that tell the LLM how to translate (show/movie context, keep formatting, don’t add extra text, etc.). | Supply to `subtitle_translate.py` via `--instructions`. |
 
 ---
 
@@ -40,7 +40,7 @@ The tools are deliberately lightweight, command‑line‑first, and can be combi
 |-------------|--------------------------|
 | **Python** | 3.8+ (tested on 3.10, 3.11) |
 | **pip** | To install the Python dependencies |
-| **OpenAI Python SDK** *(only needed for translation)*| `openai>=1.0` – used by `subtitle_translate.py`. You can use a local LLM. |
+| **OpenAI Python SDK** *(only needed for translation)*| `openai>=1.0, tqdm>=4.0.0` – used by `subtitle_translate.py`. You can use a local LLM. |
 | **Zenity** *(optional, for the GUI script)* | `zenity` must be in `$PATH`. Available in most Linux distros (`sudo apt install zenity` on Debian/Ubuntu). |
 | **A working OpenAI‑compatible endpoint** | Can be the official `api.openai.com`, a self‑hosted model (e.g. Llama.cpp, Ollama, vLLM) or any server that implements the OpenAI chat completion API. |
 | **FFmpeg** | Required for subtitle extraction. Install via your system's package manager. |
@@ -60,16 +60,8 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 # Install Python dependencies
-pip install -r requirements.txt   # (see below)
+pip install -r requirements.txt
 ```
-
-**`requirements.txt`** (included in the repo)
-
-```
-openai>=1.0
-```
-
-If you only need the time‑shifting utilities you can skip the `openai` dependency.
 
 Make the scripts executable:
 
@@ -118,12 +110,12 @@ The GUI dialogue will:
 ### <a name="translating-a-subtitle-file"></a>Translating a subtitle file  
 
 ```bash
-# Basic call – uses the default instruction file `subtitle_translate.txt`
+# Basic call – uses the default instruction file `translation_instruction_prompts/subtitle_translate_-_en-es_-_default.txt`
 ./subtitle_translate.py path/to/english.srt
 
 # Custom instruction file, chunk size, output SRT file and API endpoint
 ./subtitle_translate.py path/to/english.srt \
-    --instructions instructions/subtitle_translate_-_en-es_-_Gavin_and_Stacey.txt \
+    --instructions translation_instruction_prompts/subtitle_translate_-_en-es_-_Gavin_and_Stacey.txt \
     --output path/to/spanish.srt \
     --api-base http://localhost:8080/v1 \
     --model-id llama3:8b \
@@ -140,7 +132,7 @@ The GUI dialogue will:
 | Option | Description |
 |--------|-------------|
 | `-s`, `--shift-seconds <float>` | Shift every timestamp by the given number of seconds. Positive values move subtitles **earlier** (i.e. they appear sooner). |
-| `-f`, `--first-entry-starts-at <HH:MM:SS,mmm>` | Compute the required shift so that the **first** subtitle starts at the supplied time. The script reads the first timestamp it encounters, calculates the difference, and then applies that shift to the whole file. |
+| `-f`, `--first-entry-starts-at <HH:MM:SS[,.mmm]>` | Compute the required shift so that the **first** subtitle starts at the supplied time (sub‑seconds optional). The script reads the first timestamp it encounters, calculates the difference, and then applies that shift to the whole file. |
 | *Input* | The script reads **STDIN**. Pipe a file (`cat file.srt \| …`) or redirect (`./subtitle_timeshift.py -s 1.2 < file.srt`). |
 | *Output* | Printed to **STDOUT** – redirect to a new file. |
 
@@ -225,7 +217,7 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
 | Option | Default | Description |
 |--------|---------|-------------|
 | `input_file` | – | Path to the source `.srt`. |
-| `--instructions` | `subtitle_translate.txt` | Path to the instruction file that tells the model how to translate. |
+| `--instructions` | `translation_instruction_prompts/subtitle_translate_-_en-es_-_default.txt` | Path to the instruction file that tells the model how to translate. |
 | `--chunk-size` | `30` | Number of subtitle units per API request. |
 | `--output` | `<input>_translated.srt` | Output translated SRT file name. |
 | `--api-base` | `http://localhost:8080` | Base URL of the OpenAI‑compatible server. |
@@ -236,7 +228,7 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
 
 ```bash
 ./subtitle_translate.py season01.srt \
-    --instructions instructions/subtitle_translate_-_en-es_-_Schitts_Creek.txt \
+    --instructions translation_instruction_prompts/subtitle_translate_-_en-es_-_Schitts_Creek.txt \
     --output path/to/spanish.srt \
     --api-base http://localhost:8080/v1 \
     --model-id llama3:8b \
