@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang if lang else 'en' }}">
 <head>
     <script>
         // Apply saved theme before rendering to prevent flash
@@ -9,7 +9,7 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Subtitle Toolkit{% endblock %}</title>
+    <title>{% block title %}{{ translations.subtitle_toolkit if translations else 'Subtitle Toolkit' }}{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -73,7 +73,6 @@
         .dark .text-gray-500 {
             color: #94a3b8;
         }
-        /* Make text in form inputs darker in dark mode */
         .dark .form-input {
             color: #7ba5b1 !important;
         }
@@ -83,7 +82,6 @@
         .dark .form-input:active {
             color: #7ba5b1 !important;
         }
-        /* Ensure placeholder text is also readable in dark mode */
         .dark .form-input::placeholder {
             color: #94a3b8 !important;
         }
@@ -114,7 +112,6 @@
         .dark .text-gray-100 {
             color: #f1f5f9;
         }
-        /* Ensure text in content areas is readable in dark mode */
         .dark .bg-gray-50 .text-sm,
         .dark .bg-gray-50 pre,
         .dark .bg-gray-50 {
@@ -132,7 +129,6 @@
         .file-upload-label:hover {
             background-color: #2563eb;
         }
-        /* Make sure the save button is always visible */
         .save-button {
             background-color: #22c55e !important;
             color: white !important;
@@ -141,7 +137,6 @@
         .save-button:hover {
             background-color: #16a34a !important;
         }
-        /* Ensure save button works in dark mode */
         .dark .save-button {
             background-color: #22c55e !important;
             color: white !important;
@@ -164,9 +159,34 @@
         .dark .theme-toggle {
             background-color: #334155;
         }
-        /* Scrollable content styling */
+        .language-selector {
+            position: relative;
+            display: inline-block;
+        }
+        .language-selector select {
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            border: 1px solid #e2e8f0;
+            background-color: white;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        .dark .language-selector select {
+            border-color: #334155;
+            background-color: #1e293b;
+            color: #f1f5f9;
+        }
+        .language-selector select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .dark .language-selector select:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
         .scrollable-content {
-            max-height: 384px; /* 96 * 4px for line height */
+            max-height: 384px;
             overflow-y: auto;
             border: 1px solid #e2e8f0;
             border-radius: 0.375rem;
@@ -183,22 +203,30 @@
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-300 flex items-center" style="cursor: pointer;">
                     <a href="/" class="text-inherit hover:text-gray-500 flex items-center">
                         <i class="fas fa-popcorn mr-3 text-yellow-500 fa-lg"></i>
-                        Subtitle Toolkit 🍿
+                        {{ translations.subtitle_toolkit_popcorn if translations else 'Subtitle Toolkit 🍿' }}
                     </a>
                 </h1>
                 <div class="flex items-center space-x-4">
                     <a href="/" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium dark:text-gray-300 dark:hover:text-blue-400">
-                        Home
+                        {{ translations.home if translations else 'Home' }}
                     </a>
                     <a href="/timeshift" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium dark:text-gray-300 dark:hover:text-blue-400">
-                        Time Shift
+                        {{ translations.time_shift if translations else 'Time Shift' }}
                     </a>
                     <a href="/mkv2srt" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium dark:text-gray-300 dark:hover:text-blue-400">
-                        MKV to SRT
+                        {{ translations.mkv_to_srt if translations else 'MKV to SRT' }}
                     </a>
                     <a href="/translate" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium dark:text-gray-300 dark:hover:text-blue-400">
-                        Translate
+                        {{ translations.translate if translations else 'Translate' }}
                     </a>
+                    <div class="language-selector">
+                        <form id="language-form" method="post" action="/set-language" style="display: inline;">
+                            <select name="lang" onchange="this.form.submit()" class="language-selector-select">
+                                <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
+                                <option value="es" {% if lang == 'es' %}selected{% endif %}>Español</option>
+                            </select>
+                        </form>
+                    </div>
                     <button id="theme-toggle" class="theme-toggle text-gray-500 dark:text-gray-300">
                         <i class="fas fa-moon"></i>
                     </button>
@@ -214,8 +242,8 @@
     <footer class="bg-white border-t mt-12 dark:bg-slate-800 dark:border-slate-700">
         <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
             <p class="text-center text-gray-500 text-sm dark:text-gray-400">
-			Subtitle Toolkit Web Interface<br>
-			<a href="https://github.com/jonsafari/subtitle-toolkit">Project Page</a>
+                {{ translations.subtitle_toolkit_web if translations else 'Subtitle Toolkit Web Interface' }}<br>
+                <a href="https://github.com/jonsafari/subtitle-toolkit">{{ translations.project_page if translations else 'Project Page' }}</a>
             </p>
         </div>
     </footer>

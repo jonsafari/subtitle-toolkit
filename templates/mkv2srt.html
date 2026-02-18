@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}MKV to SRT Tool{% endblock %}
+{% block title %}{{ translations.mkv_to_srt_tool if translations else 'MKV to SRT Tool' }}{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto">
     <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800">
-        <h1 class="text-2xl font-bold text-gray-900 mb-2 dark:text-white">MKV to SRT Tool</h1>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2 dark:text-white">{{ translations.mkv_to_srt_tool if translations else 'MKV to SRT Tool' }}</h1>
         <p class="text-gray-600 dark:text-gray-300">
-            Extract subtitles from MKV files and convert them to SRT format.
+            {{ translations.mkv_to_srt_desc if translations else 'Extract subtitles from MKV files and convert them to SRT format.' }}
         </p>
         <a href="/" class="inline-flex items-center text-blue-600 hover:text-blue-800 mt-2 dark:text-blue-400 dark:hover:text-blue-300">
-            <i class="fas fa-arrow-left mr-1"></i> Back to Home
+            <i class="fas fa-arrow-left mr-1"></i> {{ translations.back_to_home if translations else 'Back to Home' }}
         </a>
     </div>
 
@@ -32,21 +32,21 @@
     <form method="post" enctype="multipart/form-data" class="bg-white rounded-lg shadow-md p-6 dark:bg-slate-800">
         <div class="mb-6">
             <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="mkv_file">
-                Upload MKV File
+                {{ translations.upload_srt_file if translations else 'Upload SRT File' }}
             </label>
             <div class="flex items-center">
                 <label for="mkv_file_upload" class="file-upload-label">
-                    <i class="fas fa-upload mr-2"></i> Choose File
+                    <i class="fas fa-upload mr-2"></i> {{ translations.choose_file if translations else 'Choose File' }}
                 </label>
                 <input type="file" id="mkv_file_upload" name="mkv_file" class="file-upload-input" accept=".mkv">
-                <span id="file-name" class="ml-4 text-gray-500 dark:text-gray-400">No file chosen</span>
+                <span id="file-name" class="ml-4 text-gray-500 dark:text-gray-400">{{ translations.no_file_chosen if translations else 'No file chosen' }}</span>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="language">
-                    Language Code
+                    {{ translations.language_code if translations else 'Language Code' }}
                 </label>
                 <input
                     type="text"
@@ -55,12 +55,12 @@
                     class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                     placeholder="e.g., en, es"
                 >
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Filter subtitles by language code (optional)</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.language_code_desc if translations else 'Filter subtitles by language code (optional)' }}</p>
             </div>
 
             <div>
                 <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="output_file">
-                    Output File Name
+                    {{ translations.output_file_name if translations else 'Output File Name' }}
                 </label>
                 <input
                     type="text"
@@ -69,7 +69,7 @@
                     class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                     placeholder="e.g., subtitles.srt"
                 >
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Output filename (optional)</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.output_file_name_desc if translations else 'Output filename (optional)' }}</p>
             </div>
         </div>
 
@@ -78,17 +78,17 @@
                 type="submit"
                 class="btn-primary text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition duration-200"
             >
-                Extract Subtitles
+                {{ translations.extract_subtitles if translations else 'Extract Subtitles' }}
             </button>
         </div>
     </form>
 
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6 dark:bg-blue-900/20 dark:border-blue-700">
-        <h3 class="text-lg font-medium text-blue-800 mb-2 dark:text-blue-300">Usage Examples</h3>
+        <h3 class="text-lg font-medium text-blue-800 mb-2 dark:text-blue-300">{{ translations.usage_examples if translations else 'Usage Examples' }}</h3>
         <ul class="list-disc pl-5 text-blue-700 space-y-1 dark:text-blue-300">
-            <li>Extract all subtitles: <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">subtitle_mkv2srt.py --input video.mkv</code></li>
-            <li>Extract English subtitles: <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">subtitle_mkv2srt.py --input video.mkv --language en</code></li>
-            <li>Extract to specific file: <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">subtitle_mkv2srt.py --input video.mkv --output subtitles.srt</code></li>
+            <li>{{ translations.extract_all if translations else 'Extract all subtitles' }}: <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">subtitle_mkv2srt.py --input video.mkv</code></li>
+            <li>{{ translations.extract_by_language if translations else 'Extract English subtitles' }}: <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">subtitle_mkv2srt.py --input video.mkv --language en</code></li>
+            <li>{{ translations.extract_to_file if translations else 'Extract to specific file' }}: <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">subtitle_mkv2srt.py --input video.mkv --output subtitles.srt</code></li>
         </ul>
     </div>
 </div>

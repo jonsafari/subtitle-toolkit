@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Subtitle Toolkit - Home{% endblock %}
+{% block title %}{{ translations.subtitle_toolkit if translations else 'Subtitle Toolkit' }} - Home{% endblock %}
 
 {% block content %}
 <div class="text-center mb-12">
-    <h1 class="text-4xl font-bold text-gray-900 mb-4 dark:text-white">Subtitle Toolkit</h1>
+    <h1 class="text-4xl font-bold text-gray-900 mb-4 dark:text-white">{{ translations.subtitle_toolkit if translations else 'Subtitle Toolkit' }}</h1>
     <p class="text-xl text-gray-600 max-w-3xl mx-auto dark:text-gray-300">
-        A modern, simple, fast, and secure web interface for subtitle manipulation and translation tools.
+        {{ translations.subtitle_manipulation if translations else 'A modern, simple, fast, and secure web interface for subtitle manipulation and translation tools.' }}
     </p>
 </div>
 
@@ -17,9 +17,9 @@
                 🕐
             </div>
         </div>
-        <h3 class="text-xl font-semibold text-gray-900 mb-2 dark:text-white">Time Shift</h3>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2 dark:text-white">{{ translations.time_shift_tool if translations else 'Time Shift Tool' }}</h3>
         <p class="text-gray-600 dark:text-gray-300">
-            Shift timestamps in subtitle files to fix synchronization issues with videos.
+            {{ translations.time_shift_desc if translations else 'Shift timestamps in subtitle files to fix synchronization issues with videos.' }}
         </p>
     </a>
 
@@ -29,9 +29,9 @@
                 🎬
             </div>
         </div>
-        <h3 class="text-xl font-semibold text-gray-900 mb-2 dark:text-white">MKV to SRT</h3>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2 dark:text-white">{{ translations.mkv_to_srt_tool if translations else 'MKV to SRT Tool' }}</h3>
         <p class="text-gray-600 dark:text-gray-300">
-            Extract subtitles from MKV files and convert them to SRT format.
+            {{ translations.mkv_to_srt_desc if translations else 'Extract subtitles from MKV files and convert them to SRT format.' }}
         </p>
     </a>
 
@@ -41,15 +41,15 @@
                 🌐
             </div>
         </div>
-        <h3 class="text-xl font-semibold text-gray-900 mb-2 dark:text-white">Translate</h3>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2 dark:text-white">{{ translations.translate_tool if translations else 'Subtitle Translation Tool' }}</h3>
         <p class="text-gray-600 dark:text-gray-300">
-            Translate subtitle files using AI models with customizable instructions.
+            {{ translations.translate_desc if translations else 'Translate subtitle files using AI models with customizable instructions.' }}
         </p>
     </a>
 </div>
 
 <div class="bg-white rounded-lg shadow-md p-6 dark:bg-slate-800">
-    <h2 class="text-2xl font-bold text-gray-900 mb-4 dark:text-white">How to Use</h2>
+    <h2 class="text-2xl font-bold text-gray-900 mb-4 dark:text-white">{{ translations.select_tool if translations else 'How to Use' }}</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="flex items-start">
             <div class="flex-shrink-0">
@@ -58,8 +58,8 @@
                 </div>
             </div>
             <div class="ml-4">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Select Tool</h3>
-                <p class="mt-2 text-gray-600 dark:text-gray-300">Choose the subtitle tool you want to use from the navigation menu or cards above.</p>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ translations.select_tool if translations else 'Select Tool' }}</h3>
+                <p class="mt-2 text-gray-600 dark:text-gray-300">{{ translations.select_tool_desc if translations else 'Choose the subtitle tool you want to use from the navigation menu or cards above.' }}</p>
             </div>
         </div>
         <div class="flex items-start">
@@ -69,8 +69,8 @@
                 </div>
             </div>
             <div class="ml-4">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Upload File</h3>
-                <p class="mt-2 text-gray-600 dark:text-gray-300">Upload your subtitle or video file and configure the tool settings.</p>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ translations.upload_file if translations else 'Upload File' }}</h3>
+                <p class="mt-2 text-gray-600 dark:text-gray-300">{{ translations.upload_file_desc if translations else 'Upload your subtitle or video file and configure the tool settings.' }}</p>
             </div>
         </div>
         <div class="flex items-start">
@@ -80,8 +80,8 @@
                 </div>
             </div>
             <div class="ml-4">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Get Results</h3>
-                <p class="mt-2 text-gray-600 dark:text-gray-300">Download your processed subtitle file with the results.</p>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ translations.get_results if translations else 'Get Results' }}</h3>
+                <p class="mt-2 text-gray-600 dark:text-gray-300">{{ translations.get_results_desc if translations else 'Download your processed subtitle file with the results.' }}</p>
             </div>
         </div>
     </div>
