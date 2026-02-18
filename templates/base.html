@@ -220,7 +220,7 @@
                         {{ translations.translate if translations else 'Translate' }}
                     </a>
                     <div class="language-selector" title="Language">
-                        <span class="text-2xl mr-2">🌍</span>
+                        <span class="text-xl mr-1">🌍</span>
                         <form id="language-form" method="post" action="/set-language" style="display: inline;">
                             <select name="lang" onchange="this.form.submit()" class="language-selector-select">
                                 <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
