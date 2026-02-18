@@ -11,6 +11,7 @@ The tools are deliberately lightweight, command‑line‑first, and can be combi
 | `subtitle_translate.py` | Translates a subtitle (SRT/SubRip) file, using a *translation‑instruction* file and an OpenAI‑compatible endpoint and writes the translated output to a new SRT file. | Translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
 | translation_instruction_prompts/`subtitle_translate_*.txt` | Example instruction files that tell the LLM how to translate (show/movie context, keep formatting, don’t add extra text, etc.). | Supply to `subtitle_translate.py` via `--instructions`. |
 
+Web UI: FastAPI web interface (run `python app.py`).
 ---
 
 ## Table of Contents  
@@ -44,6 +45,7 @@ The tools are deliberately lightweight, command‑line‑first, and can be combi
 | **Zenity** *(optional, for the GUI script)* | `zenity` must be in `$PATH`. Available in most Linux distros (`sudo apt install zenity` on Debian/Ubuntu). |
 | **A working OpenAI‑compatible endpoint** | Can be the official `api.openai.com`, a self‑hosted model (e.g. Llama.cpp, Ollama, vLLM) or any server that implements the OpenAI chat completion API. |
 | **FFmpeg** | Required for subtitle extraction. Install via your system's package manager. |
+| **FastAPI web UI** *(optional)* | `fastapi`, `uvicorn`, `jinja2`, `python-multipart` – see `requirements-web.txt`. |
 
 ---
 
@@ -240,6 +242,17 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
 * **Instruction file** – This file is important and provides useful context about the show/movie that you're translating. I recommend copying the Synopsis section of the Wikipedia article for the show/movie that you're translating.  The file must be plain text.
 * **API limits** – Adjust `--chunk-size` if you hit token‑limit errors. Smaller chunks = more requests, larger chunks = fewer requests but higher token usage.  
 * **Model behaviour** – The provided instruction files explicitly ask the model **not** to add extra text, to keep the original formatting, and to translate only the dialogue. If you notice stray commentary, tweak the instruction file accordingly.
+
+### <a name="web-interface"></a>Web interface
+Run the FastAPI web UI:
+
+```bash
+python app.py
+```
+
+Open http://localhost:8000 in a browser.
+
+---
 
 ---
 
