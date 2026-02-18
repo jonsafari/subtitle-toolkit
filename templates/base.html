@@ -219,7 +219,8 @@
                     <a href="/translate" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium dark:text-gray-300 dark:hover:text-blue-400">
                         {{ translations.translate if translations else 'Translate' }}
                     </a>
-                    <div class="language-selector">
+                    <div class="language-selector" title="Language">
+                        <span class="text-2xl mr-2">🌍</span>
                         <form id="language-form" method="post" action="/set-language" style="display: inline;">
                             <select name="lang" onchange="this.form.submit()" class="language-selector-select">
                                 <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
