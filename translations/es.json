@@ -88,8 +88,5 @@
   "unexpected_error": "Error inesperado",
   "language_selector": "Idioma",
   "dark_mode": "Modo Oscuro",
-  "light_mode": "Modo Claro",
-  "return_code": "código de retorno",
-  "stdout": "salida estándar",
-  "type": "tipo"
+  "light_mode": "Modo Claro"
 }
