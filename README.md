@@ -11,7 +11,6 @@ The tools are deliberately lightweight, command‑line‑first, and can be combi
 | `subtitle_translate.py` | Translates a subtitle (SRT/SubRip) file, using a *translation‑instruction* file and an OpenAI‑compatible endpoint and writes the translated output to a new SRT file. | Translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
 | translation_instruction_prompts/`subtitle_translate_*.txt` | Example instruction files that tell the LLM how to translate (show/movie context, keep formatting, don’t add extra text, etc.). | Supply to `subtitle_translate.py` via `--instructions`. |
 
-Web UI: FastAPI web interface (run `python app.py`).
 ---
 
 ## Table of Contents  
