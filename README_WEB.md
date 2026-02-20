@@ -29,7 +29,7 @@ pip install -r requirements.txt
 ## Running the Application
 
 ```bash
-python app.py
+python web/app.py
 ```
 
 The web interface will be available at `http://localhost:8000`
