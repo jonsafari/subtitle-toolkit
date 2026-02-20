@@ -15,4 +15,4 @@ if ! python -c "import fastapi" &> /dev/null; then
 fi
 
 # Run the web interface
-python app.py
+python web/app.py

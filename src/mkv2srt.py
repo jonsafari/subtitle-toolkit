@@ -102,6 +102,7 @@ def extract_all_subtitles(mkv_file: Path) -> list:
     try:
         import json
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        info = json.loads(result.stdout)
         
         srt_files = []
         subtitle_tracks = []

@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 # Add the project root to the path so we can import the module
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from app import app
+from web.app import app
 
 
 # Create a test client
@@ -326,7 +326,7 @@ class TestI18n:
 
     def test_load_translations_en(self):
         """Test loading English translations."""
-        from app import load_translations
+        from web.app import load_translations
         translations = load_translations("en")
         assert translations is not None
         assert "subtitle_toolkit" in translations
@@ -334,7 +334,7 @@ class TestI18n:
 
     def test_load_translations_es(self):
         """Test loading Spanish translations."""
-        from app import load_translations
+        from web.app import load_translations
         translations = load_translations("es")
         assert translations is not None
         assert "subtitle_toolkit" in translations
@@ -342,13 +342,13 @@ class TestI18n:
 
     def test_load_translations_invalid(self):
         """Test loading invalid language returns empty dict."""
-        from app import load_translations
+        from web.app import load_translations
         translations = load_translations("invalid")
         assert translations == {}
 
     def test_get_language_from_request_default(self):
         """Test getting language from request with default."""
-        from app import get_language_from_request
+        from web.app import get_language_from_request
         from fastapi import Request
         from starlette.datastructures import URL, Headers
         from starlette.requests import Request as StarletteRequest
@@ -365,7 +365,7 @@ class TestI18n:
 
     def test_get_language_from_request_query(self):
         """Test getting language from request query param."""
-        from app import get_language_from_request
+        from web.app import get_language_from_request
         
         class MockRequest:
             def __init__(self):
@@ -378,7 +378,7 @@ class TestI18n:
 
     def test_get_language_from_request_cookie(self):
         """Test getting language from request cookie."""
-        from app import get_language_from_request
+        from web.app import get_language_from_request
         
         class MockRequest:
             def __init__(self):
@@ -391,7 +391,7 @@ class TestI18n:
 
     def test_invalid_language_fallback(self):
         """Test that invalid language falls back to default."""
-        from app import get_language_from_request
+        from web.app import get_language_from_request
         
         class MockRequest:
             def __init__(self):

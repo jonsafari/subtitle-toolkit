@@ -32,22 +32,22 @@ def get_script_dir() -> Path:
 
 
 def run_translate(args: list) -> int:
-    """Run the subtitle_translate.py script."""
-    script_path = get_script_dir() / "subtitle_translate.py"
+    """Run the translate.py script."""
+    script_path = get_script_dir() / "translate.py"
     cmd = [sys.executable, str(script_path)] + args
     return subprocess.run(cmd).returncode
 
 
 def run_timeshift(args: list) -> int:
-    """Run the subtitle_timeshift.py script."""
-    script_path = get_script_dir() / "subtitle_timeshift.py"
+    """Run the timeshift.py script."""
+    script_path = get_script_dir() / "timeshift.py"
     cmd = [sys.executable, str(script_path)] + args
     return subprocess.run(cmd).returncode
 
 
 def run_mkv2srt(args: list) -> int:
-    """Run the subtitle_mkv2srt.py script."""
-    script_path = get_script_dir() / "subtitle_mkv2srt.py"
+    """Run the mkv2srt.py script."""
+    script_path = get_script_dir() / "mkv2srt.py"
     cmd = [sys.executable, str(script_path)] + args
     return subprocess.run(cmd).returncode
 

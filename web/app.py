@@ -13,12 +13,18 @@ from pathlib import Path
 import shutil
 import json
 
-app = FastAPI(title="Subtitle Toolkit Web Interface")
-templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Get the project root (parent of web directory)
+PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 
-# Translation directory
-TRANSLATIONS_DIR = Path("translations")
+# Get the app directory (parent of web directory)
+APP_DIR = PROJECT_ROOT
+
+app = FastAPI(title="Subtitle Toolkit Web Interface")
+templates = Jinja2Templates(directory=PROJECT_ROOT / "templates")
+app.mount("/static", StaticFiles(directory=PROJECT_ROOT / "static"), name="static")
+
+# Translation directory (relative to project root)
+TRANSLATIONS_DIR = PROJECT_ROOT / "translations"
 
 # Available languages
 AVAILABLE_LANGUAGES = ["en", "es", "de", "fr"]
@@ -43,12 +49,12 @@ def get_language_from_request(request: Request) -> str:
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
-    return FileResponse("static/favicon.ico")
+    return FileResponse(PROJECT_ROOT / "static" / "favicon.ico")
 
-# Tool paths
-TIMESHIFT_SCRIPT = "./subtitle_timeshift.py"
-MKV2SRT_SCRIPT = "./subtitle_mkv2srt.py"
-TRANSLATE_SCRIPT = "./subtitle_translate.py"
+# Tool paths (relative to project root)
+TIMESHIFT_SCRIPT = PROJECT_ROOT / "src/timeshift.py"
+MKV2SRT_SCRIPT = PROJECT_ROOT / "src/mkv2srt.py"
+TRANSLATE_SCRIPT = PROJECT_ROOT / "src/translate.py"
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
@@ -251,9 +257,9 @@ async def mkv2srt_submit(
 @app.get("/translate", response_class=HTMLResponse)
 async def translate_page(request: Request):
     lang = get_language_from_request(request)
-    # Get available instruction files
+    # Get available instruction files (relative to app.py location)
     instruction_files = []
-    instruction_dir = Path("translation_instruction_prompts")
+    instruction_dir = APP_DIR / "translation_instruction_prompts"
     if instruction_dir.exists():
         instruction_files = [f for f in instruction_dir.iterdir() if f.is_file()]
 

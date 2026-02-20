@@ -1,4 +1,4 @@
-"""Tests for subtitle_mkv2srt.py."""
+"""Tests for mkv2srt.py."""
 import json
 import subprocess
 import sys
@@ -16,7 +16,7 @@ class TestCleanSrtContent:
 
     def test_remove_ass_ssa_tags(self, sample_srt_with_ass_tags):
         """Test removing ASS/SSA formatting tags."""
-        from subtitle_mkv2srt import clean_srt_content
+        from src.mkv2srt import clean_srt_content
 
         result = clean_srt_content(sample_srt_with_ass_tags)
 
@@ -30,7 +30,7 @@ class TestCleanSrtContent:
 
     def test_preserve_srt_structure(self, sample_srt_with_ass_tags):
         """Test that SRT structure is preserved after cleaning."""
-        from subtitle_mkv2srt import clean_srt_content
+        from src.mkv2srt import clean_srt_content
 
         result = clean_srt_content(sample_srt_with_ass_tags)
 
@@ -42,7 +42,7 @@ class TestCleanSrtContent:
 
     def test_handle_empty_blocks(self):
         """Test handling of empty blocks in SRT content."""
-        from subtitle_mkv2srt import clean_srt_content
+        from src.mkv2srt import clean_srt_content
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -61,7 +61,7 @@ More text
 
     def test_remove_backslash_escape_sequences(self):
         """Test removing backslash escape sequences."""
-        from subtitle_mkv2srt import clean_srt_content
+        from src.mkv2srt import clean_srt_content
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -78,7 +78,7 @@ Normal text
 
     def test_clean_srt_with_multiple_blocks(self):
         """Test cleaning SRT with multiple blocks."""
-        from subtitle_mkv2srt import clean_srt_content
+        from src.mkv2srt import clean_srt_content
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -102,7 +102,7 @@ Normal text
 
     def test_clean_srt_preserves_index_numbers(self):
         """Test that index numbers are preserved after cleaning."""
-        from subtitle_mkv2srt import clean_srt_content
+        from src.mkv2srt import clean_srt_content
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -131,7 +131,7 @@ class TestSplitIntoUnits:
 
     def test_split_basic_srt(self):
         """Test splitting basic SRT into units."""
-        from subtitle_translate import split_into_units
+        from src.translate import split_into_units
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -149,7 +149,7 @@ Second subtitle
 
     def test_remove_empty_strings(self):
         """Test that empty strings are removed from the result."""
-        from subtitle_translate import split_into_units
+        from src.translate import split_into_units
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -168,7 +168,7 @@ class TestChunkUnits:
 
     def test_chunk_basic_list(self):
         """Test chunking a list into groups."""
-        from subtitle_translate import chunk_units
+        from src.translate import chunk_units
 
         units = ['u1', 'u2', 'u3', 'u4', 'u5']
         chunks = chunk_units(units, 2)
@@ -180,7 +180,7 @@ class TestChunkUnits:
 
     def test_chunk_exact_fit(self):
         """Test chunking when list size divides evenly."""
-        from subtitle_translate import chunk_units
+        from src.translate import chunk_units
 
         units = ['u1', 'u2', 'u3', 'u4']
         chunks = chunk_units(units, 2)
@@ -191,7 +191,7 @@ class TestChunkUnits:
 
     def test_chunk_empty_list(self):
         """Test chunking an empty list."""
-        from subtitle_translate import chunk_units
+        from src.translate import chunk_units
 
         chunks = chunk_units([], 3)
 
@@ -199,7 +199,7 @@ class TestChunkUnits:
 
     def test_chunk_larger_than_chunk_size(self):
         """Test chunking when list is smaller than chunk size."""
-        from subtitle_translate import chunk_units
+        from src.translate import chunk_units
 
         units = ['u1', 'u2']
         chunks = chunk_units(units, 5)
@@ -213,7 +213,7 @@ class TestDetectLineEnding:
 
     def test_detect_unix_line_endings(self):
         """Test detecting Unix line endings."""
-        from subtitle_translate import detect_line_ending
+        from src.translate import detect_line_ending
 
         content = "line1\nline2\nline3\n"
         result = detect_line_ending(content)
@@ -222,7 +222,7 @@ class TestDetectLineEnding:
 
     def test_detect_windows_line_endings(self, sample_srt_windows_line_endings):
         """Test detecting Windows line endings."""
-        from subtitle_translate import detect_line_ending
+        from src.translate import detect_line_ending
 
         result = detect_line_ending(sample_srt_windows_line_endings)
 
@@ -230,7 +230,7 @@ class TestDetectLineEnding:
 
     def test_detect_mixed_line_endings(self):
         """Test that CRLF takes precedence over LF."""
-        from subtitle_translate import detect_line_ending
+        from src.translate import detect_line_ending
 
         content = "line1\r\nline2\nline3\r\n"
         result = detect_line_ending(content)
@@ -243,7 +243,7 @@ class TestFileOperations:
 
     def test_read_file(self, temp_srt_file):
         """Test reading a file."""
-        from subtitle_translate import read_file
+        from src.translate import read_file
 
         content = read_file(temp_srt_file)
 
@@ -251,7 +251,7 @@ class TestFileOperations:
 
     def test_write_file(self, tmp_path):
         """Test writing a file."""
-        from subtitle_translate import write_file
+        from src.translate import write_file
 
         output_file = tmp_path / "output.srt"
         content = "Test content\n"
@@ -263,7 +263,7 @@ class TestFileOperations:
 
     def test_write_file_creates_directory(self, tmp_path):
         """Test that writing creates parent directories if needed."""
-        from subtitle_translate import write_file
+        from src.translate import write_file
 
         output_file = tmp_path / "subdir" / "output.srt"
         content = "Test content\n"
@@ -279,7 +279,7 @@ class TestIntegration:
 
     def test_check_ffmpeg(self):
         """Test that ffmpeg check works (may fail if ffmpeg not installed)."""
-        from subtitle_mkv2srt import check_ffmpeg
+        from src.mkv2srt import check_ffmpeg
 
         # This will raise SystemExit if ffmpeg is not found
         try:
@@ -290,7 +290,7 @@ class TestIntegration:
 
     def test_extract_subtitles_command(self, tmp_path):
         """Test building the ffmpeg extraction command."""
-        from subtitle_mkv2srt import extract_subtitles
+        from src.mkv2srt import extract_subtitles
 
         # Create a mock MKV file
         mkv_file = tmp_path / "test.mkv"
@@ -302,7 +302,7 @@ class TestIntegration:
 
     def test_extract_all_subtitles_no_subtitles(self, tmp_path):
         """Test extracting subtitles from a file with no subtitle tracks."""
-        from subtitle_mkv2srt import extract_all_subtitles
+        from src.mkv2srt import extract_all_subtitles
 
         # Create a mock MKV file
         mkv_file = tmp_path / "test.mkv"
@@ -314,7 +314,7 @@ class TestIntegration:
 
     def test_clean_srt_content_with_special_characters(self, tmp_path):
         """Test cleaning SRT content with special characters."""
-        from subtitle_mkv2srt import clean_srt_content
+        from src.mkv2srt import clean_srt_content
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -332,7 +332,7 @@ Unicode: Héllo Wörld! 你好世界!
 
     def test_clean_srt_content_empty_input(self):
         """Test cleaning empty SRT content."""
-        from subtitle_mkv2srt import clean_srt_content
+        from src.mkv2srt import clean_srt_content
 
         result = clean_srt_content("")
 
@@ -340,7 +340,7 @@ Unicode: Héllo Wörld! 你好世界!
 
     def test_clean_srt_content_no_tags(self):
         """Test cleaning SRT content without any tags."""
-        from subtitle_mkv2srt import clean_srt_content
+        from src.mkv2srt import clean_srt_content
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -362,7 +362,7 @@ class TestEdgeCases:
 
     def test_clean_srt_with_trailing_newlines(self):
         """Test cleaning SRT content with trailing newlines."""
-        from subtitle_mkv2srt import clean_srt_content
+        from src.mkv2srt import clean_srt_content
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -376,7 +376,7 @@ class TestEdgeCases:
 
     def test_clean_srt_with_multiple_consecutive_tags(self):
         """Test cleaning SRT content with multiple consecutive tags."""
-        from subtitle_mkv2srt import clean_srt_content
+        from src.mkv2srt import clean_srt_content
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -395,7 +395,7 @@ Normal text
 
     def test_clean_srt_with_nested_braces(self):
         """Test cleaning SRT content with nested braces in text."""
-        from subtitle_mkv2srt import clean_srt_content
+        from src.mkv2srt import clean_srt_content
 
         content = """1
 00:00:01,000 --> 00:00:04,000

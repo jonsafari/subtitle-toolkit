@@ -14,7 +14,7 @@ class TestDetectLineEnding:
 
     def test_detect_unix_line_endings(self):
         """Test detecting Unix line endings."""
-        from subtitle_translate import detect_line_ending
+        from src.translate import detect_line_ending
 
         content = "line1\nline2\nline3\n"
         result = detect_line_ending(content)
@@ -23,7 +23,7 @@ class TestDetectLineEnding:
 
     def test_detect_windows_line_endings(self, sample_srt_windows_line_endings):
         """Test detecting Windows line endings."""
-        from subtitle_translate import detect_line_ending
+        from src.translate import detect_line_ending
 
         result = detect_line_ending(sample_srt_windows_line_endings)
 
@@ -31,7 +31,7 @@ class TestDetectLineEnding:
 
     def test_detect_mixed_line_endings(self):
         """Test that CRLF takes precedence over LF."""
-        from subtitle_translate import detect_line_ending
+        from src.translate import detect_line_ending
 
         content = "line1\r\nline2\nline3\r\n"
         result = detect_line_ending(content)
@@ -40,7 +40,7 @@ class TestDetectLineEnding:
 
     def test_detect_empty_content(self):
         """Test detecting line endings in empty content."""
-        from subtitle_translate import detect_line_ending
+        from src.translate import detect_line_ending
 
         result = detect_line_ending("")
 
@@ -53,7 +53,7 @@ class TestSplitIntoUnits:
 
     def test_split_basic_srt(self):
         """Test splitting basic SRT into units."""
-        from subtitle_translate import split_into_units
+        from src.translate import split_into_units
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -71,7 +71,7 @@ Second subtitle
 
     def test_split_with_windows_line_endings(self, sample_srt_windows_line_endings):
         """Test splitting with Windows line endings."""
-        from subtitle_translate import split_into_units
+        from src.translate import split_into_units
 
         units = split_into_units(sample_srt_windows_line_endings, '\r\n')
 
@@ -80,7 +80,7 @@ Second subtitle
 
     def test_remove_empty_strings(self):
         """Test that empty strings are removed from the result."""
-        from subtitle_translate import split_into_units
+        from src.translate import split_into_units
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -95,7 +95,7 @@ Text
 
     def test_split_multiple_blank_lines(self):
         """Test splitting when there are multiple blank lines between units."""
-        from subtitle_translate import split_into_units
+        from src.translate import split_into_units
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -116,7 +116,7 @@ class TestChunkUnits:
 
     def test_chunk_basic_list(self):
         """Test chunking a list into groups."""
-        from subtitle_translate import chunk_units
+        from src.translate import chunk_units
 
         units = ['u1', 'u2', 'u3', 'u4', 'u5']
         chunks = chunk_units(units, 2)
@@ -128,7 +128,7 @@ class TestChunkUnits:
 
     def test_chunk_exact_fit(self):
         """Test chunking when list size divides evenly."""
-        from subtitle_translate import chunk_units
+        from src.translate import chunk_units
 
         units = ['u1', 'u2', 'u3', 'u4']
         chunks = chunk_units(units, 2)
@@ -139,7 +139,7 @@ class TestChunkUnits:
 
     def test_chunk_empty_list(self):
         """Test chunking an empty list."""
-        from subtitle_translate import chunk_units
+        from src.translate import chunk_units
 
         chunks = chunk_units([], 3)
 
@@ -147,7 +147,7 @@ class TestChunkUnits:
 
     def test_chunk_larger_than_chunk_size(self):
         """Test chunking when list is smaller than chunk size."""
-        from subtitle_translate import chunk_units
+        from src.translate import chunk_units
 
         units = ['u1', 'u2']
         chunks = chunk_units(units, 5)
@@ -157,7 +157,7 @@ class TestChunkUnits:
 
     def test_chunk_with_single_unit(self):
         """Test chunking with a single unit."""
-        from subtitle_translate import chunk_units
+        from src.translate import chunk_units
 
         units = ['u1']
         chunks = chunk_units(units, 3)
@@ -171,7 +171,7 @@ class TestFileOperations:
 
     def test_read_file(self, temp_srt_file):
         """Test reading a file."""
-        from subtitle_translate import read_file
+        from src.translate import read_file
 
         content = read_file(temp_srt_file)
 
@@ -179,7 +179,7 @@ class TestFileOperations:
 
     def test_read_file_not_found(self, tmp_path):
         """Test reading a non-existent file."""
-        from subtitle_translate import read_file
+        from src.translate import read_file
 
         non_existent = tmp_path / "non_existent.srt"
 
@@ -190,7 +190,7 @@ class TestFileOperations:
 
     def test_write_file(self, tmp_path):
         """Test writing a file."""
-        from subtitle_translate import write_file
+        from src.translate import write_file
 
         output_file = tmp_path / "output.srt"
         content = "Test content\n"
@@ -202,7 +202,7 @@ class TestFileOperations:
 
     def test_write_file_creates_directory(self, tmp_path):
         """Test that writing creates parent directories if needed."""
-        from subtitle_translate import write_file
+        from src.translate import write_file
 
         output_file = tmp_path / "subdir" / "output.srt"
         content = "Test content\n"
@@ -214,7 +214,7 @@ class TestFileOperations:
 
     def test_write_file_preserves_line_endings(self, tmp_path):
         """Test that writing preserves the correct line endings."""
-        from subtitle_translate import write_file
+        from src.translate import write_file
 
         output_file = tmp_path / "output.srt"
         content = "line1\r\nline2\r\n"
@@ -231,7 +231,7 @@ class TestTranslationWorkflow:
 
     def test_full_translation_workflow(self, tmp_path, sample_srt_content, mock_api_response):
         """Test the full translation workflow with mocked API."""
-        from subtitle_translate import (
+        from src.translate import (
             chunk_units,
             detect_line_ending,
             read_file,
@@ -257,13 +257,13 @@ class TestTranslationWorkflow:
 
     def test_output_filename_derivation(self, tmp_path, sample_srt_content):
         """Test that output filename is derived correctly from input."""
-        from subtitle_translate import main
+        from src.translate import main
 
         input_file = tmp_path / "test_video.srt"
         input_file.write_text(sample_srt_content, encoding='utf-8')
 
         # Mock the OpenAI client to avoid actual API calls
-        with mock.patch('subtitle_translate.OpenAI') as mock_client:
+        with mock.patch('openai.OpenAI') as mock_client:
             mock_instance = mock.MagicMock()
             mock_client.return_value = mock_instance
 
@@ -289,7 +289,7 @@ class TestEdgeCases:
 
     def test_empty_srt_file(self, tmp_path):
         """Test processing an empty SRT file."""
-        from subtitle_translate import split_into_units
+        from src.translate import split_into_units
 
         empty_file = tmp_path / "empty.srt"
         empty_file.write_text("", encoding='utf-8')
@@ -301,7 +301,7 @@ class TestEdgeCases:
 
     def test_srt_with_only_timestamps(self, tmp_path):
         """Test SRT file with only timestamps and no text."""
-        from subtitle_translate import split_into_units, read_file
+        from src.translate import split_into_units, read_file
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -321,7 +321,7 @@ class TestEdgeCases:
 
     def test_srt_with_unicode_content(self, tmp_path):
         """Test SRT file with Unicode characters."""
-        from subtitle_translate import read_file, write_file
+        from src.translate import read_file, write_file
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -339,7 +339,7 @@ Héllo Wörld! 你好世界! 🎬
 
     def test_srt_with_malformed_entries(self, tmp_path):
         """Test SRT file with malformed entries."""
-        from subtitle_translate import split_into_units, read_file
+        from src.translate import split_into_units, read_file
 
         content = """1
 00:00:01,000 --> 00:00:04,000
@@ -364,7 +364,7 @@ Back to normal
 
     def test_srt_with_multiple_blank_lines(self, tmp_path):
         """Test SRT file with multiple blank lines between entries."""
-        from subtitle_translate import split_into_units
+        from src.translate import split_into_units
 
         content = """1
 00:00:01,000 --> 00:00:04,000
