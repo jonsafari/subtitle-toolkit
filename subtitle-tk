@@ -1,0 +1,3 @@
+#!/bin/bash
+# subtitle-tk - alias for src/cli.py
+exec python3 "$(dirname "$0")/src/cli.py" "$@"
