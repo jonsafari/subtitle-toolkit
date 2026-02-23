@@ -1,7 +1,7 @@
 # Subtitle Toolkit  🍿
 
-A small collection of utilities for **fixing** (time‑shifting) and **translating** SRT subtitle files.
-The tools are deliberately lightweight, command‑line‑first, and can be combined with any LLM that speaks the OpenAI API (including local models).
+A small collection of utilities for **fixing** (time‑shifting) and **translating** SRT subtitle files. There's command-line tools as well as a web interface.
+The tools are deliberately lightweight and can be combined with any LLM that speaks the OpenAI API (including local models).
 
 | Script | What it does | Typical use‑case |
 |--------|--------------|------------------|
@@ -52,6 +52,9 @@ The tools are deliberately lightweight, command‑line‑first, and can be combi
 ## 2. Installation
 
 ```bash
+brew install ffmpeg   # macOS; only needed for subtitle extraction
+# apt install ffmpeg  # Ubuntu/Debian; only needed for subtitle extraction
+
 # Clone the repository
 git clone https://github.com/jonsafari/subtitle‑toolkit.git
 cd subtitle‑toolkit
@@ -62,12 +65,6 @@ source .venv/bin/activate
 
 # Install Python dependencies
 pip install -r requirements.txt
-```
-
-Make the scripts executable:
-
-```bash
-chmod +x src/timeshift.py subtitle_timeshift_gui.sh src/mkv2srt.py src/translate.py
 ```
 
 ---
