@@ -52,8 +52,9 @@ The tools are deliberately lightweight and can be combined with any LLM that spe
 ## 2. Installation
 
 ```bash
-brew install ffmpeg   # macOS; only needed for subtitle extraction
-# apt install ffmpeg  # Ubuntu/Debian; only needed for subtitle extraction
+# Install ffmpeg if you want subtitle extraction
+brew install ffmpeg   # macOS
+# apt install ffmpeg  # Ubuntu/Debian/Mint
 
 # Clone the repository
 git clone https://github.com/jonsafari/subtitle‑toolkit.git
