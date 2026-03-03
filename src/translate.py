@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 from typing import List
 from tqdm import tqdm
-from openai import OpenAI
+import litellm
 
 
 def detect_line_ending(text: str) -> str:
@@ -101,22 +101,26 @@ def main() -> None:
         '--api-base',
         type=str,
         default='http://localhost:8080',
-        help='OpenAI-API base URL. Default: %(default)s'
+        help='LLM base URL. Default: %(default)s'
     )
     parser.add_argument(
         '--model-id',
         type=str,
         default='local-model',
-        help='OpenAI-API model ID. Default: %(default)s'
+        help='LLM model ID. Default: %(default)s'
     )
     parser.add_argument(
         '--api-key',
         type=str,
         default='dummy-key',
-        help='OpenAI-API key. Default: %(default)s'
+        help='LLM API key. Default: %(default)s'
     )
 
     args = parser.parse_args()
+
+    # Set API key if provided (otherwise litellm uses environment variables)
+    if args.api_key and args.api_key != 'dummy-key':
+        os.environ['LLM_API_KEY'] = args.api_key
 
     # Validate input paths
     if not args.input_file.is_file():
@@ -136,11 +140,7 @@ def main() -> None:
     # Ensure output directory exists
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Connect to OpenAI-API endpoint
-    client = OpenAI(
-        base_url=args.api_base,
-        api_key=args.api_key,
-    )
+
 
     # Read files
     srt_text = read_file(args.input_file)
@@ -165,15 +165,16 @@ def main() -> None:
     for idx, chunk in enumerate(tqdm(chunks, desc="Translating chunks"), start=1):
         source_text_chunk = separator.join(chunk) + line_ending
 
-        chat_completion = client.chat.completions.create(
+        response = litellm.completion(
             model=args.model_id,
             messages=[
                 {"role": "system", "content": instructions_text.rstrip()},
                 {"role": "user", "content": source_text_chunk},
             ],
+            api_base=args.api_base if args.api_base else None,
         )
 
-        translation = chat_completion.choices[0].message.content + separator
+        translation = response.choices[0].message.content + separator
 
         # Write translation directly to output file
         with open(output_path, 'a', encoding='utf-8') as f:

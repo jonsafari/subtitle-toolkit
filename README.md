@@ -1,14 +1,14 @@
 # Subtitle Toolkit  🍿
 
 A small collection of utilities for **fixing** (time‑shifting) and **translating** SRT subtitle files.
-The tools are deliberately lightweight, command‑line‑first, and can be combined with any LLM that speaks the OpenAI API (including local models).
+The tools are deliberately lightweight, command‑line‑first, and work with any LLM provider via litellm (OpenAI, Anthropic, Gemini, Databricks, and local models).
 
 | Script | What it does | Typical use‑case |
 |--------|--------------|------------------|
 | `src/timeshift.py` | Shifts every timestamp in an SRT stream by a fixed amount **or** aligns the first subtitle to a user‑provided start time. | Fix subtitles that are out of sync with the video. |
 | `subtitle_timeshift_gui.sh` | Small Zenity‑based GUI wrapper around `src/timeshift.py`. | Users who prefer a point‑and‑click workflow on Linux. |
 | `src/mkv2srt.py` | Extracts subtitles from MKV files and converts them to SRT format. | Extract subtitles from MKV files for use with video players. |
-| `src/translate.py` | Translates a subtitle (SRT/SubRip) file, using a *translation‑instruction* file and an OpenAI‑compatible endpoint and writes the translated output to a new SRT file. | Translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
+| `src/translate.py` | Translates a subtitle (SRT/SubRip) file, using a *translation‑instruction* file and an LLM endpoint via litellm. | Translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
 | translation_instruction_prompts/`subtitle_translate_*.txt` | Example instruction files that tell the LLM how to translate (show/movie context, keep formatting, don’t add extra text, etc.). | Supply to `src/translate.py` via `--instructions`. |
 
 ---
@@ -40,9 +40,9 @@ The tools are deliberately lightweight, command‑line‑first, and can be combi
 |-------------|--------------------------|
 | **Python** | 3.8+ (tested on 3.10, 3.11) |
 | **pip** | To install the Python dependencies |
-| **OpenAI Python SDK** *(only needed for translation)*| `openai>=1.0, tqdm>=4.0.0` – used by `src/translate.py`. You can use a local LLM. |
+| **litellm** *(only needed for translation)*| `litellm>=1.0, tqdm>=4.0.0` – used by `src/translate.py`. Supports OpenAI, Anthropic, Gemini, Databricks, and more. |
 | **Zenity** *(optional, for the GUI script)* | `zenity` must be in `$PATH`. Available in most Linux distros (`sudo apt install zenity` on Debian/Ubuntu). |
-| **A working OpenAI‑compatible endpoint** | Can be the official `api.openai.com`, a self‑hosted model (e.g. Llama.cpp, Ollama, vLLM) or any server that implements the OpenAI chat completion API. |
+| **A working LLM endpoint** | Can be OpenAI, Anthropic, Gemini, Databricks, or any self‑hosted model (e.g. Llama.cpp, Ollama, vLLM). See litellm documentation for supported providers. |
 | **FFmpeg** | Required for subtitle extraction. Install via your system's package manager. |
 | **FastAPI web UI** *(optional)* | `fastapi`, `uvicorn`, `jinja2`, `python-multipart` – see `requirements-web.txt`. |
 
@@ -121,6 +121,16 @@ The GUI dialogue will:
     --api-base http://localhost:8080/v1 \
     --model-id llama3:8b \
     --api-key dummy-key
+
+# Using Anthropic Claude
+./src/translate.py path/to/english.srt \
+    --model-id anthropic/claude-4-6-sonnet \
+    --api-key $ANTHROPIC_API_KEY
+
+# Using Google Gemini
+./src/translate.py path/to/english.srt \
+    --model-id gemini/gemini-3-flash \
+    --api-key $GEMINI_API_KEY
 ```
 
 ---
@@ -209,8 +219,8 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
 
 1. **Splits** the file into *units* (the classic SRT block: index, timestamps, text, blank line).
 2. **Chunks** a configurable number of units together (default 30).
-3. **Prepends** a user‑provided instruction file (e.g. “You are an expert translator …”).
-4. Sends each chunk to an OpenAI‑compatible chat endpoint.
+3. **Prepends** a user‑provided instruction file (e.g. "You are an expert translator …").
+4. Sends each chunk to an LLM endpoint via litellm.
 5. Writes the translated output to a new `.srt` file.
 
 #### Command‑line options
@@ -221,19 +231,30 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
 | `--instructions` | `translation_instruction_prompts/subtitle_translate_-_en-es_-_default.txt` | Path to the instruction file that tells the model how to translate. |
 | `--chunk-size` | `30` | Number of subtitle units per API request. |
 | `--output` | `<input>_translated.srt` | Output translated SRT file name. |
-| `--api-base` | `http://localhost:8080` | Base URL of the OpenAI‑compatible server. |
-| `--model-id` | `local-model` | Model identifier used in the request. |
+| `--api-base` | `http://localhost:8080` | Base URL of the LLM server (for self-hosted endpoints). |
+| `--model-id` | `local-model` | Model identifier (e.g., `llama3:8b`, `anthropic/claude-4-6-sonnet`, `gemini/gemini-3-flash`). |
 | `--api-key` | `dummy-key` | API key (some servers require a non‑empty value). |
 
 #### Example workflow
 
 ```bash
+# Self-hosted OpenAI-compatible endpoint
 ./src/translate.py season01.srt \
     --instructions translation_instruction_prompts/subtitle_translate_-_en-es_-_Schitts_Creek.txt \
     --output path/to/spanish.srt \
     --api-base http://localhost:8080/v1 \
     --model-id llama3:8b \
     --api-key dummy-key
+
+# Anthropic Claude
+./src/translate.py season01.srt \
+    --model-id anthropic/claude-4-6-sonnet \
+    --api-key $ANTHROPIC_API_KEY
+
+# Google Gemini
+./src/translate.py season01.srt \
+    --model-id gemini/gemini-3-flash \
+    --api-key $GEMINI_API_KEY
 ```
 
 #### Important notes
@@ -260,8 +281,9 @@ Open http://localhost:8000 in a browser.
 
 | Variable | Effect | Example |
 |----------|--------|---------|
-| `OPENAI_API_BASE` | Overrides `--api-base` if set. | `export OPENAI_API_BASE=http://localhost:11434/v1` |
-| `OPENAI_API_KEY` | Overrides `--api-key` if set. | `export OPENAI_API_KEY=sk-xxxx` |
+| `LLM_API_KEY` | API key for the LLM provider. | `export LLM_API_KEY=sk-xxxx` |
+| `ANTHROPIC_API_KEY` | API key for Anthropic models. | `export ANTHROPIC_API_KEY=sk-ant-xxxx` |
+| `GEMINI_API_KEY` | API key for Google Gemini models. | `export GEMINI_API_KEY=AIzaSyxxxx` |
 | `PYTHONIOENCODING` | Forces UTF‑8 for stdin/stdout (useful on Windows). | `export PYTHONIOENCODING=utf-8` |
 
 The command‑line arguments always take precedence over environment variables.
@@ -274,11 +296,11 @@ The command‑line arguments always take precedence over environment variables.
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | `ValueError: time data ... does not match format` from `src/timeshift.py` | Wrong timestamp format in the SRT (e.g., missing commas). | Verify the source file follows the `HH:MM:SS,mmm` pattern. The script will leave un‑parseable lines untouched. |
-| No output file created, script exits with “Input file does not exist” | Wrong path or missing file permissions. | Use an absolute path or `ls` to confirm the file exists. |
-| `ImportError: No module named openai` | `openai` Python package not installed. | `pip install -r requirements.txt` (or `pip install openai`). |
-| API returns 429 / “rate limit exceeded” | Chunk size too large or server limits. | Reduce `--chunk-size` or add a short `sleep` between requests (modify script). |
-| GUI script crashes with “zenity: command not found” | `zenity` not installed. | Install via package manager (`sudo apt install zenity` on Debian/Ubuntu, `brew install zenity` on macOS via Homebrew). |
-| Translated subtitles lose numbering or timestamps | The instruction file asked the model to “maintain format” but the model ignored it. | Tighten the instruction (e.g., add “**Do not modify the index numbers or timestamps**”). |
+| No output file created, script exits with "Input file does not exist" | Wrong path or missing file permissions. | Use an absolute path or `ls` to confirm the file exists. |
+| `ImportError: No module named litellm` | `litellm` Python package not installed. | `pip install -r requirements.txt` (or `pip install litellm`). |
+| API returns 429 / "rate limit exceeded" | Chunk size too large or server limits. | Reduce `--chunk-size` or add a short `sleep` between requests (modify script). |
+| GUI script crashes with "zenity: command not found" | `zenity` not installed. | Install via package manager (`sudo apt install zenity` on Debian/Ubuntu, `brew install zenity` on macOS via Homebrew). |
+| Translated subtitles lose numbering or timestamps | The instruction file asked the model to "maintain format" but the model ignored it. | Tighten the instruction (e.g., add “**Do not modify the index numbers or timestamps**”). |
 | Output file contains Windows line endings on Linux (or vice‑versa) | Mixed line endings in the source file. | The script preserves the original style; if you need a specific style, run `dos2unix` or `unix2dos` after translation. |
 | `Error: ffmpeg is required but not found` | FFmpeg not installed. | Install FFmpeg using your system's package manager. |
 
