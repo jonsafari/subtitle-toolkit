@@ -262,20 +262,13 @@ class TestTranslationWorkflow:
         input_file = tmp_path / "test_video.srt"
         input_file.write_text(sample_srt_content, encoding='utf-8')
 
-        # Mock the OpenAI client to avoid actual API calls
-        with mock.patch('openai.OpenAI') as mock_client:
-            mock_instance = mock.MagicMock()
-            mock_client.return_value = mock_instance
-
-            # Mock the chat completion response
-            mock_instance.chat.completions.create.return_value = mock.MagicMock()
-            mock_instance.chat.completions.create.return_value.choices = [
-                mock.MagicMock()
-            ]
-            mock_instance.chat.completions.create.return_value.choices[0].message = mock.MagicMock()
-            mock_instance.chat.completions.create.return_value.choices[0].message.content = (
-                sample_srt_content
-            )
+        # Mock litellm.completion to avoid actual API calls
+        with mock.patch('litellm.completion') as mock_completion:
+            mock_response = mock.MagicMock()
+            mock_response.choices = [mock.MagicMock()]
+            mock_response.choices[0].message = mock.MagicMock()
+            mock_response.choices[0].message.content = sample_srt_content
+            mock_completion.return_value = mock_response
 
             # This would normally call the main function, but we'll test the logic
             stem = input_file.stem
