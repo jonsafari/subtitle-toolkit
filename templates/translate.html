@@ -98,7 +98,27 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 items-center">
+            <div>
+                <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="provider">
+                    {{ translations.get('provider', 'Model Provider') if translations else 'Model Provider' }}
+                </label>
+                <select
+                    id="provider"
+                    name="provider"
+                    class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                    onchange="updateModelDefaults()"
+                >
+                    <option value="local">Local (OpenAI-compatible)</option>
+                    <option value="openai">OpenAI</option>
+                    <option value="anthropic">Anthropic</option>
+                    <option value="gemini">Google Gemini</option>
+                    <option value="databricks">Databricks</option>
+                    <option value="other">Other (custom)</option>
+                </select>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.get('provider_desc', 'Select your LLM provider') if translations else 'Select your LLM provider' }}</p>
+            </div>
+
             <div>
                 <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="api_base">
                     {{ translations.api_base_url if translations else 'API Base URL' }}
@@ -110,7 +130,7 @@
                     value="http://localhost:8080"
                     class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                 >
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.api_base_url_desc if translations else 'OpenAI-compatible API base URL' }}</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.api_base_url_desc if translations else 'API base URL (for self-hosted endpoints)' }}</p>
             </div>
 
             <div>
@@ -124,9 +144,11 @@
                     value="local-model"
                     class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                 >
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.model_id_desc if translations else 'Model identifier for the API' }}</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.model_id_desc if translations else 'Model identifier (e.g., gpt-4, claude-3-5-sonnet)' }}</p>
             </div>
+        </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
             <div>
                 <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="api_key">
                     {{ translations.api_key if translations else 'API Key' }}
@@ -143,7 +165,7 @@
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.api_key_desc if translations else 'API key for authentication' }}</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.api_key_desc if translations else 'API key for authentication (use dummy-key for local)' }}</p>
             </div>
         </div>
 
@@ -225,5 +247,28 @@
         apiKeyInput.setAttribute('type', type);
         this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
     });
+
+    // Update model defaults based on provider selection
+    function updateModelDefaults() {
+        const provider = document.getElementById('provider').value;
+        const apiBase = document.getElementById('api_base');
+        const modelId = document.getElementById('model_id');
+        const apiKey = document.getElementById('api_key');
+
+        const defaults = {
+            'local': { api_base: 'http://localhost:8080', model_id: 'local-model', api_key: 'dummy-key' },
+            'openai': { api_base: '', model_id: 'gpt-4o-mini', api_key: '' },
+            'anthropic': { api_base: '', model_id: 'claude-3-5-sonnet-20240620', api_key: '' },
+            'gemini': { api_base: '', model_id: 'gemini/gemini-1.5-flash', api_key: '' },
+            'databricks': { api_base: '', model_id: 'databricks/databricks-meta-llama-3-1-405b-instruct', api_key: '' },
+            'other': { api_base: '', model_id: '', api_key: '' }
+        };
+
+        if (defaults[provider]) {
+            apiBase.value = defaults[provider].api_base;
+            modelId.value = defaults[provider].model_id;
+            apiKey.value = defaults[provider].api_key;
+        }
+    }
 </script>
 {% endblock %}

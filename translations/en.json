@@ -57,6 +57,8 @@
   "chunk_size_desc": "Number of subtitle units per API request",
   "api_base_url": "API Base URL",
   "api_base_url_desc": "OpenAI-compatible API base URL",
+  "provider": "Model Provider",
+  "provider_desc": "Select your LLM provider",
   "model_id": "Model ID",
   "model_id_desc": "Model identifier for the API",
   "api_key": "API Key",
