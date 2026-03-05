@@ -60,7 +60,7 @@
   "provider": "Model Provider",
   "provider_desc": "Select your LLM provider",
   "model_id": "Model ID",
-  "model_id_desc": "Model identifier for the API",
+  "model_id_desc": "Model identifier for the API (use LiteLLM formatting)",
   "api_key": "API Key",
   "api_key_desc": "API key for authentication",
   "show_api_key": "Show",

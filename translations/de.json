@@ -60,7 +60,7 @@
   "provider": "Modellanbieter",
   "provider_desc": "Wählen Sie Ihren LLM-Anbieter",
   "model_id": "Modell-ID",
-  "model_id_desc": "Modellbezeichner für die API",
+  "model_id_desc": "Modellbezeichner für die API (LiteLLM-Formatierung verwenden)",
   "api_key": "API-Schlüssel",
   "api_key_desc": "API-Schlüssel für Authentifizierung",
   "show_api_key": "Anzeigen",

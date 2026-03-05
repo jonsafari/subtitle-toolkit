@@ -107,7 +107,7 @@ def main() -> None:
         '--model-id',
         type=str,
         default='local-model',
-        help='LLM model ID. Default: %(default)s'
+        help='LLM model ID (use LiteLLM formatting). Default: %(default)s'
     )
     parser.add_argument(
         '--api-key',
