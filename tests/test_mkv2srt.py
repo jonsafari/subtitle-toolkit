@@ -21,9 +21,9 @@ class TestCleanSrtContent:
         result = clean_srt_content(sample_srt_with_ass_tags)
 
         # Tags should be removed but structure preserved
-        assert "{\an7}" not in result
-        assert "{\b1}" not in result
-        assert "{\i1}" not in result
+        assert r"{\an7}" not in result
+        assert r"{\b1}" not in result
+        assert r"{\i1}" not in result
         assert "Centered text" in result
         assert "Bold text" in result
         assert "Italic text" in result
@@ -80,7 +80,7 @@ Normal text
         """Test cleaning SRT with multiple blocks."""
         from src.mkv2srt import clean_srt_content
 
-        content = """1
+        content = r"""1
 00:00:01,000 --> 00:00:04,000
 {\b1}Bold text{\r}
 
@@ -97,8 +97,8 @@ Normal text
         assert "Bold text" in result
         assert "Italic text" in result
         assert "Normal text" in result
-        assert "{\b1}" not in result
-        assert "{\i1}" not in result
+        assert r"{\b1}" not in result
+        assert r"{\i1}" not in result
 
     def test_clean_srt_preserves_index_numbers(self):
         """Test that index numbers are preserved after cleaning."""
