@@ -31,6 +31,11 @@ classifiers = [
 ]
 keywords = ["subtitle", "srt", "translation", "timeshift", "mkv", "video"]
 
+[project.urls]
+Homepage = "https://github.com/jonsafari/subtitle-toolkit"
+Repository = "https://github.com/jonsafari/subtitle-toolkit"
+Documentation = "https://github.com/jonsafari/subtitle-toolkit#readme"
+
 [project.optional-dependencies]
 web = [
     "fastapi>=0.100.0",
@@ -43,7 +48,8 @@ web = [
 subtitle-tk = "src.cli:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = ["src*"]
 
 [tool.setuptools.package-data]
-subtitle_toolkit = ["py.typed"]
+src = ["py.typed"]
