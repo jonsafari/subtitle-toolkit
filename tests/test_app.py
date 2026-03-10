@@ -288,7 +288,9 @@ class TestI18n:
 
     def test_spanish_language_cookie(self):
         """Test Spanish language via cookie."""
-        response = client.get("/", cookies={"language": "es"})
+        # Create a client instance with cookies set
+        cookie_client = TestClient(app, cookies={"language": "es"})
+        response = cookie_client.get("/")
         assert response.status_code == 200
         # Should contain Spanish text
         assert "Desplazamiento de Tiempo" in response.text
