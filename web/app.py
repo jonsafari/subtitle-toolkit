@@ -59,8 +59,7 @@ TRANSLATE_SCRIPT = PROJECT_ROOT / "src/translate.py"
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     lang = get_language_from_request(request)
-    return templates.TemplateResponse("index.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "index.html", {
         "lang": lang,
         "translations": load_translations(lang)
     })
@@ -68,8 +67,7 @@ async def read_root(request: Request):
 @app.get("/timeshift", response_class=HTMLResponse)
 async def timeshift_page(request: Request):
     lang = get_language_from_request(request)
-    return templates.TemplateResponse("timeshift.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "timeshift.html", {
         "lang": lang,
         "translations": load_translations(lang)
     })
@@ -86,8 +84,7 @@ async def timeshift_submit(
     
     # Validate inputs
     if not srt_file:
-        return templates.TemplateResponse("timeshift.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "timeshift.html", {
             "lang": lang,
             "translations": translations,
             "error": translations.get("please_upload_srt", "Please upload an SRT file")
@@ -107,8 +104,7 @@ async def timeshift_submit(
         elif first_entry_starts_at:
             cmd.extend(["--first-entry-starts-at", first_entry_starts_at])
         else:
-            return templates.TemplateResponse("timeshift.html", {
-                "request": request,
+            return templates.TemplateResponse(request, "timeshift.html", {
                 "lang": lang,
                 "translations": translations,
                 "error": translations.get("error_processing_file", "Please provide either shift seconds or start time")
@@ -126,23 +122,20 @@ async def timeshift_submit(
         # Clean up
         os.unlink(tmp_input_path)
 
-        return templates.TemplateResponse("timeshift_result.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "timeshift_result.html", {
             "lang": lang,
             "translations": translations,
             "output": result.stdout
         })
 
     except subprocess.CalledProcessError as e:
-        return templates.TemplateResponse("timeshift.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "timeshift.html", {
             "lang": lang,
             "translations": translations,
             "error": f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr}"
         })
     except Exception as e:
-        return templates.TemplateResponse("timeshift.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "timeshift.html", {
             "lang": lang,
             "translations": translations,
             "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}"
@@ -152,7 +145,7 @@ async def timeshift_submit(
 async def timeshift_download(request: Request, output: str = Form(None)):
     if not output:
         # If no output provided, redirect to timeshift page
-        return templates.TemplateResponse("timeshift.html", {"request": request})
+        return templates.TemplateResponse(request, "timeshift.html", {})
 
     # Create a temporary file with the output content
     tmp_file_path = None
@@ -176,8 +169,7 @@ async def timeshift_download(request: Request, output: str = Form(None)):
 @app.get("/mkv2srt", response_class=HTMLResponse)
 async def mkv2srt_page(request: Request):
     lang = get_language_from_request(request)
-    return templates.TemplateResponse("mkv2srt.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "mkv2srt.html", {
         "lang": lang,
         "translations": load_translations(lang)
     })
@@ -194,8 +186,7 @@ async def mkv2srt_submit(
     
     # Validate inputs
     if not mkv_file or mkv_file.filename is None or mkv_file.filename == "":
-        return templates.TemplateResponse("mkv2srt.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "mkv2srt.html", {
             "lang": lang,
             "translations": translations,
             "error": translations.get("please_upload_mkv", "Please upload an MKV file")
@@ -228,8 +219,7 @@ async def mkv2srt_submit(
         # Clean up
         os.unlink(tmp_input_path)
 
-        return templates.TemplateResponse("mkv2srt_result.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "mkv2srt_result.html", {
             "lang": lang,
             "translations": translations,
             "output": result.stdout
@@ -240,15 +230,13 @@ async def mkv2srt_submit(
         error_msg = f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr} ({translations.get('return_code', 'return code')}: {e.returncode})"
         if e.stdout:
             error_msg += f" | {translations.get('stdout', 'stdout')}: {e.stdout[:200]}..."
-        return templates.TemplateResponse("mkv2srt.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "mkv2srt.html", {
             "lang": lang,
             "translations": translations,
             "error": error_msg
         })
     except Exception as e:
-        return templates.TemplateResponse("mkv2srt.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "mkv2srt.html", {
             "lang": lang,
             "translations": translations,
             "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)} ({translations.get('type', 'type')}: {type(e).__name__})"
@@ -263,8 +251,7 @@ async def translate_page(request: Request):
     if instruction_dir.exists():
         instruction_files = [f for f in instruction_dir.iterdir() if f.is_file()]
 
-    return templates.TemplateResponse("translate.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "translate.html", {
         "lang": lang,
         "translations": load_translations(lang),
         "instruction_files": instruction_files
@@ -286,8 +273,7 @@ async def translate_submit(
     
     # Validate inputs
     if not srt_file:
-        return templates.TemplateResponse("translate.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "translate.html", {
             "lang": lang,
             "translations": translations,
             "error": translations.get("please_upload_srt", "Please upload an SRT file")
@@ -334,23 +320,20 @@ async def translate_submit(
         if instruction_path and instruction_path.name.startswith('tmp'):
             os.unlink(instruction_path)
 
-        return templates.TemplateResponse("translate_result.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "translate_result.html", {
             "lang": lang,
             "translations": translations,
             "output": result.stdout
         })
 
     except subprocess.CalledProcessError as e:
-        return templates.TemplateResponse("translate.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "translate.html", {
             "lang": lang,
             "translations": translations,
             "error": f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr}"
         })
     except Exception as e:
-        return templates.TemplateResponse("translate.html", {
-            "request": request,
+        return templates.TemplateResponse(request, "translate.html", {
             "lang": lang,
             "translations": translations,
             "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}"
