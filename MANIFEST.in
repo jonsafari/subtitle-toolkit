@@ -1,0 +1,47 @@
+# Include files
+include README.md
+include LICENSE
+include pyproject.toml
+
+# Include source files
+recursive-include src *.py
+
+# Include templates
+recursive-include templates *.html
+
+# Include translations
+recursive-include translations *.json
+
+# Include translation instruction prompts
+recursive-include translation_instruction_prompts *.txt
+
+# Include static files
+recursive-include static *
+
+# Exclude test files
+prune tests
+
+# Exclude build artifacts
+global-exclude __pycache__
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.egg-info
+global-exclude .pytest_cache
+global-exclude .coverage
+global-exclude .git
+global-exclude .gitignore
+global-exclude dist
+global-exclude build
+
+# Exclude media files
+global-exclude *.mp3
+global-exclude *.mp4
+global-exclude *.mkv
+global-exclude *.srt
+
+# Exclude other non-essential files
+global-exclude *.desktop
+global-exclude *.sh
+global-exclude Dockerfile
+global-exclude requirements*.txt
+global-exclude pytest.ini
