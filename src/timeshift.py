@@ -9,6 +9,7 @@ Public API:
 import sys
 from datetime import datetime, timedelta
 import argparse
+from typing import Optional
 
 __all__ = ["shift_timestamp", "timestamp_to_seconds"]
 
@@ -82,11 +83,11 @@ def main() -> None:
     args = parse_args()
 
     # If the user gave a concrete shift we can use it straight away.
-    shift_seconds = args.shift_seconds
+    shift_seconds: Optional[float] = args.shift_seconds
 
     # When the user gave a target start time we have to compute the shift
     # from the first timestamp we encounter.
-    desired_start_seconds = None
+    desired_start_seconds: Optional[float] = None
     if args.first_entry_starts_at:
         try:
             desired_start_seconds = timestamp_to_seconds(args.first_entry_starts_at)

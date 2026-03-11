@@ -12,7 +12,7 @@ import tempfile
 from pathlib import Path
 import shutil
 import json
-from typing import Dict, Any
+from typing import Dict, Any, Optional, List
 
 # Get the project root (parent of web directory)
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
@@ -49,7 +49,7 @@ def get_language_from_request(request: Request) -> str:
     return lang
 
 @app.get("/favicon.ico", include_in_schema=False)
-async def favicon():
+async def favicon() -> FileResponse:
     return FileResponse(PROJECT_ROOT / "static" / "favicon.ico")
 
 # Tool paths (relative to project root)
@@ -58,7 +58,7 @@ MKV2SRT_SCRIPT = PROJECT_ROOT / "src/mkv2srt.py"
 TRANSLATE_SCRIPT = PROJECT_ROOT / "src/translate.py"
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
+async def read_root(request: Request) -> HTMLResponse:
     lang = get_language_from_request(request)
     return templates.TemplateResponse(request, "index.html", {
         "lang": lang,
@@ -66,7 +66,7 @@ async def read_root(request: Request):
     })
 
 @app.get("/timeshift", response_class=HTMLResponse)
-async def timeshift_page(request: Request):
+async def timeshift_page(request: Request) -> HTMLResponse:
     lang = get_language_from_request(request)
     return templates.TemplateResponse(request, "timeshift.html", {
         "lang": lang,
@@ -76,10 +76,10 @@ async def timeshift_page(request: Request):
 @app.post("/timeshift", response_class=HTMLResponse)
 async def timeshift_submit(
     request: Request,
-    shift_seconds: float = Form(None),
-    first_entry_starts_at: str = Form(None),
-    srt_file: str = Form(None)
-):
+    shift_seconds: Optional[float] = Form(None),
+    first_entry_starts_at: Optional[str] = Form(None),
+    srt_file: Optional[str] = Form(None)
+) -> HTMLResponse:
     lang = get_language_from_request(request)
     translations = load_translations(lang)
     
@@ -143,7 +143,7 @@ async def timeshift_submit(
         })
 
 @app.post("/timeshift/download", response_class=HTMLResponse)
-async def timeshift_download(request: Request, output: str = Form(None)):
+async def timeshift_download(request: Request, output: Optional[str] = Form(None)) -> HTMLResponse:
     if not output:
         # If no output provided, redirect to timeshift page
         return templates.TemplateResponse(request, "timeshift.html", {})
@@ -168,7 +168,7 @@ async def timeshift_download(request: Request, output: str = Form(None)):
         raise
 
 @app.get("/mkv2srt", response_class=HTMLResponse)
-async def mkv2srt_page(request: Request):
+async def mkv2srt_page(request: Request) -> HTMLResponse:
     lang = get_language_from_request(request)
     return templates.TemplateResponse(request, "mkv2srt.html", {
         "lang": lang,
@@ -178,10 +178,10 @@ async def mkv2srt_page(request: Request):
 @app.post("/mkv2srt", response_class=HTMLResponse)
 async def mkv2srt_submit(
     request: Request,
-    mkv_file: UploadFile = Form(None),
-    language: str = Form(None),
-    output_file: str = Form(None)
-):
+    mkv_file: Optional[UploadFile] = Form(None),
+    language: Optional[str] = Form(None),
+    output_file: Optional[str] = Form(None)
+) -> HTMLResponse:
     lang = get_language_from_request(request)
     translations = load_translations(lang)
     
@@ -244,10 +244,10 @@ async def mkv2srt_submit(
         })
 
 @app.get("/translate", response_class=HTMLResponse)
-async def translate_page(request: Request):
+async def translate_page(request: Request) -> HTMLResponse:
     lang = get_language_from_request(request)
     # Get available instruction files (relative to app.py location)
-    instruction_files = []
+    instruction_files: List[Path] = []
     instruction_dir = APP_DIR / "translation_instruction_prompts"
     if instruction_dir.exists():
         instruction_files = [f for f in instruction_dir.iterdir() if f.is_file()]
@@ -261,14 +261,14 @@ async def translate_page(request: Request):
 @app.post("/translate", response_class=HTMLResponse)
 async def translate_submit(
     request: Request,
-    srt_file: str = Form(None),
-    instructions_file: str = Form(None),
+    srt_file: Optional[str] = Form(None),
+    instructions_file: Optional[str] = Form(None),
     chunk_size: int = Form(30),
     api_base: str = Form("http://localhost:8080"),
     model_id: str = Form("local-model"),
     api_key: str = Form("dummy-key"),
-    output_file: str = Form(None)
-):
+    output_file: Optional[str] = Form(None)
+) -> HTMLResponse:
     lang = get_language_from_request(request)
     translations = load_translations(lang)
     
@@ -341,7 +341,7 @@ async def translate_submit(
         })
 
 @app.post("/set-language")
-async def set_language(request: Request, lang: str = Form(...)):
+async def set_language(request: Request, lang: str = Form(...)) -> RedirectResponse:
     """Set the language preference."""
     if lang not in AVAILABLE_LANGUAGES:
         lang = DEFAULT_LANGUAGE

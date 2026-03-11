@@ -12,14 +12,14 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import json
 
 __all__ = ["extract_subtitles", "extract_all_subtitles", "clean_srt_content"]
 
 
-def extract_subtitles(mkv_file: Path, language: str = None, output_file: Path = None) -> Path:
+def extract_subtitles(mkv_file: Path, language: Optional[str] = None, output_file: Optional[Path] = None) -> Path:
     """
     Extract subtitles from an MKV file using ffmpeg.
     
