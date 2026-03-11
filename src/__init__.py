@@ -2,7 +2,7 @@
 Subtitle Toolkit - A toolkit for fixing and translating SRT subtitle files.
 
 This package provides utilities for:
-    - Time-shifting subtitle timestamps
+    - Time‑shifting subtitle timestamps
     - Translating subtitles using AI models
     - Extracting subtitles from MKV files
 
@@ -11,6 +11,9 @@ Example usage:
     from src.translate import split_into_units, chunk_units
     from src.mkv2srt import extract_subtitles, clean_srt_content
 """
+
+# Package version – kept in sync with pyproject.toml
+__version__: str = "0.9.0"
 
 __all__ = [
     # Timeshift functions
@@ -26,6 +29,8 @@ __all__ = [
     "extract_subtitles",
     "extract_all_subtitles",
     "clean_srt_content",
+    # Version
+    "__version__",
 ]
 
 # Import public API from submodules
