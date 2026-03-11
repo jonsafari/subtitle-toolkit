@@ -36,7 +36,7 @@ def load_translations(language: str) -> Dict[str, Any]:
     translation_file = TRANSLATIONS_DIR / f"{language}.json"
     if translation_file.exists():
         with open(translation_file, "r", encoding="utf-8") as f:
-            return json.load(f)
+            return json.load(f)  # type: ignore[no-any-return]
     return {}
 
 def get_language_from_request(request: Request) -> str:
@@ -143,7 +143,7 @@ async def timeshift_submit(
         })
 
 @app.post("/timeshift/download")
-async def timeshift_download(request: Request, output: Optional[str] = Form(None)):
+async def timeshift_download(request: Request, output: Optional[str] = Form(None)):  # type: ignore[no-untyped-def]
     if not output:
         # If no output provided, redirect to timeshift page
         return templates.TemplateResponse(request, "timeshift.html", {})
