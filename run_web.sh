@@ -14,5 +14,5 @@ if ! python -c "import fastapi" &> /dev/null; then
     exit 1
 fi
 
-# Run the web interface
-python web/app.py
+# Run the web interface using the CLI
+subtitle-tk web "$@"

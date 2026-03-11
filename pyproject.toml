@@ -49,7 +49,7 @@ subtitle-tk = "src.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["src*"]
+include = ["src*", "src.web*"]
 
 [tool.setuptools.package-data]
-src = ["py.typed"]
+src = ["py.typed", "templates/*", "templates/**/*.html", "static/*", "static/**/*", "translations/*.json", "translation_instruction_prompts/*"]

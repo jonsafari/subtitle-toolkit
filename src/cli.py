@@ -43,7 +43,7 @@ def run_mkv2srt(args: List[str]) -> int:
 
 def run_web(args: List[str]) -> int:
     """Run the web interface."""
-    script_path = get_script_dir().parent / "web" / "app.py"
+    script_path = get_script_dir() / "web" / "app.py"
     cmd = [sys.executable, str(script_path)] + args
     return subprocess.run(cmd).returncode
 
