@@ -52,10 +52,10 @@ def get_language_from_request(request: Request) -> str:
 async def favicon() -> FileResponse:
     return FileResponse(PROJECT_ROOT / "static" / "favicon.ico")
 
-# Tool paths (relative to project root)
-TIMESHIFT_SCRIPT = PROJECT_ROOT / "src/timeshift.py"
-MKV2SRT_SCRIPT = PROJECT_ROOT / "src/mkv2srt.py"
-TRANSLATE_SCRIPT = PROJECT_ROOT / "src/translate.py"
+# Tool paths (relative to src directory)
+TIMESHIFT_SCRIPT = PROJECT_ROOT / "timeshift.py"
+MKV2SRT_SCRIPT = PROJECT_ROOT / "mkv2srt.py"
+TRANSLATE_SCRIPT = PROJECT_ROOT / "translate.py"
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request) -> HTMLResponse:
