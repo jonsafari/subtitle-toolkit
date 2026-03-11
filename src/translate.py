@@ -13,7 +13,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from tqdm import tqdm
 import litellm
 

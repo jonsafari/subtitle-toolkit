@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import List
 
 import json
 
@@ -85,7 +86,7 @@ def extract_subtitles(mkv_file: Path, language: str = None, output_file: Path = 
         raise Exception("Error extracting subtitles")
 
 
-def extract_all_subtitles(mkv_file: Path) -> list:
+def extract_all_subtitles(mkv_file: Path) -> List[Path]:
     """
     Extract all subtitle tracks from MKV file and save each to a separate SRT file.
     
@@ -208,7 +209,7 @@ def clean_srt_content(content: str) -> str:
     return result
 
 
-def process_srt_files(srt_files: list) -> None:
+def process_srt_files(srt_files: List[Path]) -> None:
     """
     Process SRT files to clean up formatting tags.
     
@@ -234,7 +235,7 @@ def process_srt_files(srt_files: list) -> None:
             print(f"Error processing {srt_file}: {e}")
 
 
-def check_ffmpeg():
+def check_ffmpeg() -> bool:
     """Check if ffmpeg is installed and provide helpful error messages if not."""
     try:
         subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True)
@@ -265,7 +266,7 @@ def check_ffmpeg():
         sys.exit(f"Error: ffmpeg is required but not found. {install_msg}")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Extract subtitles from MKV files and convert to SRT format"
     )

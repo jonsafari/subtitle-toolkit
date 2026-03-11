@@ -7,7 +7,7 @@ Public API:
     - timestamp_to_seconds: Convert a timestamp string to seconds
 """
 import sys
-import datetime
+from datetime import datetime, timedelta
 import argparse
 
 __all__ = ["shift_timestamp", "timestamp_to_seconds"]
@@ -17,11 +17,11 @@ def shift_timestamp(timestamp: str, shift_seconds: float) -> str:
     """Shift a timestamp string by *shift_seconds* (positive → earlier, negative → later)."""
     try:
         # SRT timestamps are always in the same day, so we can use any date.
-        time_obj = datetime.datetime.strptime(timestamp, "%H:%M:%S,%f")
-        new_time = time_obj - datetime.timedelta(seconds=shift_seconds)
+        time_obj = datetime.strptime(timestamp, "%H:%M:%S,%f")
+        new_time = time_obj - timedelta(seconds=shift_seconds)
 
         # Guard against under‑flow – SRT cannot represent negative times.
-        if new_time < datetime.datetime(1900, 1, 1):
+        if new_time < datetime(1900, 1, 1):
             return "00:00:00,000"
 
         # ``%f`` gives microseconds; we need only three digits (milliseconds).
@@ -35,10 +35,10 @@ def timestamp_to_seconds(timestamp: str) -> float:
     """Convert an ``HH:MM:SS`` or ``HH:MM:SS,mmm`` timestamp to a float number of seconds."""
     if ',' in timestamp:
         # Include fractional part
-        t = datetime.datetime.strptime(timestamp, "%H:%M:%S,%f")
+        t = datetime.strptime(timestamp, "%H:%M:%S,%f")
     else:
         # No fractional part
-        t = datetime.datetime.strptime(timestamp, "%H:%M:%S")
+        t = datetime.strptime(timestamp, "%H:%M:%S")
     return (
         t.hour * 3600
         + t.minute * 60
@@ -47,7 +47,7 @@ def timestamp_to_seconds(timestamp: str) -> float:
     )
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     """Parse command‑line arguments – exactly one of the two options must be supplied."""
     parser = argparse.ArgumentParser(
         description=(
@@ -78,7 +78,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
+def main() -> None:
     args = parse_args()
 
     # If the user gave a concrete shift we can use it straight away.

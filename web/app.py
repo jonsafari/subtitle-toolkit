@@ -12,6 +12,7 @@ import tempfile
 from pathlib import Path
 import shutil
 import json
+from typing import Dict, Any
 
 # Get the project root (parent of web directory)
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
@@ -30,7 +31,7 @@ TRANSLATIONS_DIR = PROJECT_ROOT / "translations"
 AVAILABLE_LANGUAGES = ["en", "es", "de", "fr"]
 DEFAULT_LANGUAGE = "en"
 
-def load_translations(language: str) -> dict:
+def load_translations(language: str) -> Dict[str, Any]:
     """Load translations for a specific language."""
     translation_file = TRANSLATIONS_DIR / f"{language}.json"
     if translation_file.exists():

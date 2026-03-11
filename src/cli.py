@@ -10,6 +10,7 @@ import subprocess
 import sys
 import os
 from pathlib import Path
+from typing import List
 
 __all__ = ["main"]
 
@@ -19,28 +20,28 @@ def get_script_dir() -> Path:
     return Path(__file__).parent.resolve()
 
 
-def run_translate(args: list) -> int:
+def run_translate(args: List[str]) -> int:
     """Run the translate.py script."""
     script_path = get_script_dir() / "translate.py"
     cmd = [sys.executable, str(script_path)] + args
     return subprocess.run(cmd).returncode
 
 
-def run_timeshift(args: list) -> int:
+def run_timeshift(args: List[str]) -> int:
     """Run the timeshift.py script."""
     script_path = get_script_dir() / "timeshift.py"
     cmd = [sys.executable, str(script_path)] + args
     return subprocess.run(cmd).returncode
 
 
-def run_mkv2srt(args: list) -> int:
+def run_mkv2srt(args: List[str]) -> int:
     """Run the mkv2srt.py script."""
     script_path = get_script_dir() / "mkv2srt.py"
     cmd = [sys.executable, str(script_path)] + args
     return subprocess.run(cmd).returncode
 
 
-def main():
+def main() -> None:
     if len(sys.argv) < 2:
         parser = argparse.ArgumentParser(
             prog="subtitle-tk",
