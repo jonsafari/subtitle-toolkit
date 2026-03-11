@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 """
-subtitle_mkv2srt.py
+MKV to SRT conversion module for extracting subtitles from video files.
 
-Extracts subtitles from MKV files and converts them to SRT format.
-By default, extracts all subtitles and saves them to individual files.
-
-Usage:
-    python subtitle_mkv2srt.py --input input.mkv
-    python subtitle_mkv2srt.py --input input.mkv --output output.srt
-    python subtitle_mkv2srt.py --input input.mkv --language en
+Public API:
+    - extract_subtitles: Extract subtitles from an MKV file to SRT format
+    - extract_all_subtitles: Extract all subtitle tracks from an MKV file
+    - clean_srt_content: Remove ASS/SSA formatting tags from SRT content
 """
-
 import argparse
 import os
 import subprocess
@@ -18,6 +14,9 @@ import sys
 from pathlib import Path
 
 import json
+
+__all__ = ["extract_subtitles", "extract_all_subtitles", "clean_srt_content"]
+
 
 def extract_subtitles(mkv_file: Path, language: str = None, output_file: Path = None) -> Path:
     """

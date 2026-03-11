@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
+"""
+Timeshift module for adjusting subtitle timestamps.
+
+Public API:
+    - shift_timestamp: Shift a single timestamp by a given number of seconds
+    - timestamp_to_seconds: Convert a timestamp string to seconds
+"""
 import sys
 import datetime
 import argparse
+
+__all__ = ["shift_timestamp", "timestamp_to_seconds"]
 
 
 def shift_timestamp(timestamp: str, shift_seconds: float) -> str:

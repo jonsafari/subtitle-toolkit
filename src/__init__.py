@@ -1,3 +1,40 @@
 """
-Subtitle Toolkit - Core modules
+Subtitle Toolkit - A toolkit for fixing and translating SRT subtitle files.
+
+This package provides utilities for:
+    - Time-shifting subtitle timestamps
+    - Translating subtitles using AI models
+    - Extracting subtitles from MKV files
+
+Example usage:
+    from src.timeshift import shift_timestamp, timestamp_to_seconds
+    from src.translate import split_into_units, chunk_units
+    from src.mkv2srt import extract_subtitles, clean_srt_content
 """
+
+__all__ = [
+    # Timeshift functions
+    "shift_timestamp",
+    "timestamp_to_seconds",
+    # Translate functions
+    "detect_line_ending",
+    "read_file",
+    "write_file",
+    "split_into_units",
+    "chunk_units",
+    # MKV2SRT functions
+    "extract_subtitles",
+    "extract_all_subtitles",
+    "clean_srt_content",
+]
+
+# Import public API from submodules
+from .timeshift import shift_timestamp, timestamp_to_seconds
+from .translate import (
+    detect_line_ending,
+    read_file,
+    write_file,
+    split_into_units,
+    chunk_units,
+)
+from .mkv2srt import extract_subtitles, extract_all_subtitles, clean_srt_content

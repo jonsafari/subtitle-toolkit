@@ -1,29 +1,17 @@
 #!/usr/bin/env python3
 """
-subtitle-tk - A unified command-line interface for the Subtitle Toolkit
+CLI module - Unified command-line interface for the Subtitle Toolkit.
 
-Usage:
-    subtitle-tk <command> [options]
-
-Commands:
-    translate   Translate subtitles using AI
-    timeshift   Shift timestamps in SRT files
-    mkv2srt     Extract subtitles from MKV files
-
-Options:
-    -h, --help  Show this help message
-
-Examples:
-    subtitle-tk translate input.srt --instructions instructions.txt
-    subtitle-tk timeshift --shift-seconds 2.5 < input.srt > output.srt
-    subtitle-tk mkv2srt --input video.mkv --language en
+Public API:
+    - main: Entry point for the subtitle-tk command
 """
-
 import argparse
 import subprocess
 import sys
 import os
 from pathlib import Path
+
+__all__ = ["main"]
 
 
 def get_script_dir() -> Path:

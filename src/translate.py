@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 """
-subtitle_translate.py
+Translate module for translating subtitle files using AI models.
 
-Translates subtitle units from an SRT file using an AI model.
-Outputs a translated SRT file.
-
-Usage:
-    python subtitle_translate.py input.srt
-    python subtitle_translate.py input.srt --instructions my_instructions.txt
-    python subtitle_translate.py input.srt --chunk-size 30 --output translated.srt
+Public API:
+    - detect_line_ending: Detect line ending style in text
+    - read_file: Read a file with UTF-8 encoding
+    - write_file: Write content to a file with UTF-8 encoding
+    - split_into_units: Split SRT content into subtitle units
+    - chunk_units: Group units into chunks for batch processing
 """
-
 import argparse
 import os
 import sys
@@ -18,6 +16,14 @@ from pathlib import Path
 from typing import List
 from tqdm import tqdm
 import litellm
+
+__all__ = [
+    "detect_line_ending",
+    "read_file",
+    "write_file",
+    "split_into_units",
+    "chunk_units",
+]
 
 
 def detect_line_ending(text: str) -> str:
