@@ -76,7 +76,7 @@ Examples:
     if command in ["-h", "--help"]:
         parser = argparse.ArgumentParser(
             prog="subtitle-tk",
-            description="Subtitle Toolkit - A unified CLI for subtitle operations",
+            description="Subtitle Toolkit - A collection of utilities for working with subtitle files",
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog="""
 Commands:
@@ -98,7 +98,7 @@ Examples:
     if command not in ["translate", "timeshift", "mkv2srt", "web"]:
         parser = argparse.ArgumentParser(
             prog="subtitle-tk",
-            description="Subtitle Toolkit - A unified CLI for subtitle operations"
+            description="Subtitle Toolkit - A collection of utilities for working with subtitle files"
         )
         parser.add_argument("command", nargs="?", choices=["translate", "timeshift", "mkv2srt", "web"])
         parser.print_help()
