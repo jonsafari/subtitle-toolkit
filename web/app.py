@@ -99,7 +99,7 @@ async def timeshift_submit(
             tmp_input_path = tmp_input.name
 
         # Build command
-        cmd = ["python3", TIMESHIFT_SCRIPT]
+        cmd: List[str] = ["python3", str(TIMESHIFT_SCRIPT)]
         if shift_seconds is not None:
             cmd.extend(["--shift-seconds", str(shift_seconds)])
         elif first_entry_starts_at:
@@ -142,8 +142,8 @@ async def timeshift_submit(
             "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}"
         })
 
-@app.post("/timeshift/download", response_class=HTMLResponse)
-async def timeshift_download(request: Request, output: Optional[str] = Form(None)) -> HTMLResponse:
+@app.post("/timeshift/download")
+async def timeshift_download(request: Request, output: Optional[str] = Form(None)):
     if not output:
         # If no output provided, redirect to timeshift page
         return templates.TemplateResponse(request, "timeshift.html", {})
@@ -203,7 +203,7 @@ async def mkv2srt_submit(
             tmp_input_path = tmp_input.name
 
         # Build command
-        cmd = ["python3", MKV2SRT_SCRIPT, "--input", tmp_input_path]
+        cmd: List[str] = ["python3", str(MKV2SRT_SCRIPT), "--input", str(tmp_input_path)]
         if language:
             cmd.extend(["--language", language])
         if output_file:
@@ -298,7 +298,7 @@ async def translate_submit(
                     instruction_path = Path(tmp_inst.name)
 
         # Build command
-        cmd = ["python3", TRANSLATE_SCRIPT, tmp_input_path]
+        cmd: List[str] = ["python3", str(TRANSLATE_SCRIPT), str(tmp_input_path)]
         if instruction_path:
             cmd.extend(["--instructions", str(instruction_path)])
         cmd.extend(["--chunk-size", str(chunk_size)])

@@ -108,6 +108,9 @@ def main() -> None:
             # ``first-entry-starts-at`` mode) compute it from the first entry.
             if shift_seconds is None:
                 actual_start_seconds = timestamp_to_seconds(start_raw)
+                # At this point, desired_start_seconds is guaranteed to be set
+                # because we're in first-entry-starts-at mode (shift_seconds is None)
+                assert desired_start_seconds is not None
                 shift_seconds = actual_start_seconds - desired_start_seconds
                 # ``shift_seconds`` is now a concrete float and will be reused.
 
