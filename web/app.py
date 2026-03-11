@@ -82,7 +82,7 @@ async def timeshift_submit(
 ) -> HTMLResponse:
     lang = get_language_from_request(request)
     translations = load_translations(lang)
-    
+
     # Validate inputs
     if not srt_file:
         return templates.TemplateResponse(request, "timeshift.html", {
@@ -184,7 +184,7 @@ async def mkv2srt_submit(
 ) -> HTMLResponse:
     lang = get_language_from_request(request)
     translations = load_translations(lang)
-    
+
     # Validate inputs
     if not mkv_file or mkv_file.filename is None or mkv_file.filename == "":
         return templates.TemplateResponse(request, "mkv2srt.html", {
@@ -271,7 +271,7 @@ async def translate_submit(
 ) -> HTMLResponse:
     lang = get_language_from_request(request)
     translations = load_translations(lang)
-    
+
     # Validate inputs
     if not srt_file:
         return templates.TemplateResponse(request, "translate.html", {
@@ -345,11 +345,18 @@ async def set_language(request: Request, lang: str = Form(...)) -> RedirectRespo
     """Set the language preference."""
     if lang not in AVAILABLE_LANGUAGES:
         lang = DEFAULT_LANGUAGE
-    
+
     response = RedirectResponse(url=request.headers.get("referer", "/"), status_code=303)
     response.set_cookie("language", lang, max_age=30*24*60*60)  # 30 days
     return response
 
 if __name__ == "__main__":
+    import argparse
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    parser = argparse.ArgumentParser(description="Subtitle Toolkit Web Interface")
+    parser.add_argument("--host", default="0.0.0.0", help="Host to bind to (default: 0.0.0.0)")
+    parser.add_argument("--port", type=int, default=8000, help="Port to bind to (default: 8000)")
+    args = parser.parse_args()
+
+    uvicorn.run(app, host=args.host, port=args.port)

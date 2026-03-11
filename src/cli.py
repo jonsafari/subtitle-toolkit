@@ -41,22 +41,31 @@ def run_mkv2srt(args: List[str]) -> int:
     return subprocess.run(cmd).returncode
 
 
+def run_web(args: List[str]) -> int:
+    """Run the web interface."""
+    script_path = get_script_dir().parent / "web" / "app.py"
+    cmd = [sys.executable, str(script_path)] + args
+    return subprocess.run(cmd).returncode
+
+
 def main() -> None:
     if len(sys.argv) < 2:
         parser = argparse.ArgumentParser(
             prog="subtitle-tk",
-            description="Subtitle Toolkit - A unified CLI for subtitle operations",
+            description="Subtitle Toolkit - A collection of utilities for working with subtitle files",
             formatter_class=argparse.RawDescriptionHelpFormatter,
             epilog="""
 Commands:
     translate   Translate subtitles using AI
     timeshift   Shift timestamps in SRT files
     mkv2srt     Extract subtitles from MKV files
+    web         Start the web interface
 
 Examples:
     subtitle-tk translate input.srt --instructions instructions.txt
     subtitle-tk timeshift --shift-seconds 2.5 < input.srt > output.srt
     subtitle-tk mkv2srt --input video.mkv --language en
+    subtitle-tk web --host 0.0.0.0 --port 8000
         """
         )
         parser.print_help()
@@ -74,22 +83,24 @@ Commands:
     translate   Translate subtitles using AI
     timeshift   Shift timestamps in SRT files
     mkv2srt     Extract subtitles from MKV files
+    web         Start the web interface
 
 Examples:
     subtitle-tk translate input.srt --instructions instructions.txt
     subtitle-tk timeshift --shift-seconds 2.5 < input.srt > output.srt
     subtitle-tk mkv2srt --input video.mkv --language en
+    subtitle-tk web --host 0.0.0.0 --port 8000
         """
         )
         parser.print_help()
         sys.exit(0)
     
-    if command not in ["translate", "timeshift", "mkv2srt"]:
+    if command not in ["translate", "timeshift", "mkv2srt", "web"]:
         parser = argparse.ArgumentParser(
             prog="subtitle-tk",
             description="Subtitle Toolkit - A unified CLI for subtitle operations"
         )
-        parser.add_argument("command", nargs="?", choices=["translate", "timeshift", "mkv2srt"])
+        parser.add_argument("command", nargs="?", choices=["translate", "timeshift", "mkv2srt", "web"])
         parser.print_help()
         sys.exit(1)
     
@@ -101,6 +112,8 @@ Examples:
         sys.exit(run_timeshift(remaining_args))
     elif command == "mkv2srt":
         sys.exit(run_mkv2srt(remaining_args))
+    elif command == "web":
+        sys.exit(run_web(remaining_args))
 
 
 if __name__ == "__main__":
