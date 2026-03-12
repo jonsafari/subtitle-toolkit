@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "subtitle-toolkit"
 version = "0.9.2"
-description = "A toolkit for fixing and translating SRT subtitle files"
+description = "Subtitle Toolkit - A collection of utilities for working with subtitle files"
 readme = "README.md"
 license = {text = "GPL-3.0"}
 requires-python = ">=3.8"

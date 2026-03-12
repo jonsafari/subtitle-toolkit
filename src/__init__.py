@@ -1,5 +1,5 @@
 """
-Subtitle Toolkit - A toolkit for fixing and translating SRT subtitle files.
+Subtitle Toolkit - A collection of utilities for working with subtitle files.
 
 This package provides utilities for:
     - Time‑shifting subtitle timestamps
