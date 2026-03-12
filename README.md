@@ -265,7 +265,7 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
 Run the FastAPI web UI:
 
 ```bash
-python web/app.py
+python src/web/app.py
 ```
 
 Open http://localhost:8000 in a browser.
