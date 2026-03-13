@@ -5,82 +5,69 @@ The tools are deliberately lightweight, command‑line‑first, and work with an
 
 | Script | What it does | Typical use‑case |
 |--------|--------------|------------------|
-| `src/timeshift.py` | Shifts every timestamp in an SRT stream by a fixed amount **or** aligns the first subtitle to a user‑provided start time. | Fix subtitles that are out of sync with the video. |
-| `subtitle_timeshift_gui.sh` | Small Zenity‑based GUI wrapper around `src/timeshift.py`. | Users who prefer a point‑and‑click workflow on Linux. |
-| `src/mkv2srt.py` | Extracts subtitles from MKV files and converts them to SRT format. | Extract subtitles from MKV files for use with video players. |
-| `src/translate.py` | Translates a subtitle (SRT/SubRip) file, using a *translation‑instruction* file and an LLM endpoint via litellm. | Translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
-| translation_instruction_prompts/`subtitle_translate_*.txt` | Example instruction files that tell the LLM how to translate (show/movie context, keep formatting, don’t add extra text, etc.). | Supply to `src/translate.py` via `--instructions`. |
+| `subtitle-tk timeshift` | Shifts every timestamp in an SRT stream by a fixed amount **or** aligns the first subtitle to a user‑provided start time. | Fix subtitles that are out of sync with the video. |
+| `subtitle_timeshift_gui.sh` | Small Zenity‑based GUI wrapper around `subtitle-tk timeshift`. | Users who prefer a point‑and‑click workflow on Linux. |
+| `subtitle-tk mkv2srt` | Extracts subtitles from MKV files and converts them to SRT format. | Extract subtitles from MKV files for use with video players. |
+| `subtitle-tk translate` | Translates a subtitle (SRT/SubRip) file, using a *translation‑instruction* file and an LLM endpoint via litellm. | Translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
+| translation_instruction_prompts/`subtitle_translate_*.txt` | Example instruction files that tell the LLM how to translate (show/movie context, keep formatting, don’t add extra text, etc.). | Supply to `subtitle-tk translate` via `--instructions`. |
 
 ---
 
-## Table of Contents
-
-1. [Prerequisites](#prerequisites)
-2. [Installation](#installation)
-3. [Quick‑Start](#quick-start)
-   - [Time‑shifting a subtitle file](#time‑shifting-a-subtitle-file)
-   - [Using the GUI wrapper](#using-the-gui-wrapper)
-   - [Translating a subtitle file](#translating-a-subtitle-file)
-4. [Detailed Usage](#detailed-usage)
-   - [`src/timeshift.py`](#subtitle_timeshiftpy)
-   - [`subtitle_timeshift_gui.sh`](#subtitle_timeshift_guish)
-   - [`src/mkv2srt.py`](#subtitle_mkv2srt)
-   - [`src/translate.py`](#subtitle_translatepy)
-5. [Configuration & Environment Variables](#configuration)
-6. [Troubleshooting](#troubleshooting)
-7. [Contributing](#contributing)
-8. [License](#license)
-
----
-
-<a name="prerequisites"></a>
-## 1. Prerequisites
-
-| Requirement | Minimum version / notes |
-|-------------|--------------------------|
-| **Python** | 3.8+ (tested on 3.10, 3.11) |
-| **pip** | To install the Python dependencies |
-| **litellm** *(only needed for translation)*| `litellm>=1.0, tqdm>=4.0.0` – used by `src/translate.py`. Supports OpenAI, Anthropic, Gemini, Databricks, and more. |
-| **Zenity** *(optional, for the GUI script)* | `zenity` must be in `$PATH`. Available in most Linux distros (`sudo apt install zenity` on Debian/Ubuntu). |
-| **A working LLM endpoint** | Can be OpenAI, Anthropic, Gemini, Databricks, or any self‑hosted model (e.g. Llama.cpp, Ollama, vLLM). See litellm documentation for supported providers. |
-| **FFmpeg** | Required for subtitle extraction. Install via your system's package manager. |
-| **FastAPI web UI** *(optional)* | `fastapi`, `uvicorn`, `jinja2`, `python-multipart` – see `requirements-web.txt`. |
-
----
 
 <a name="installation"></a>
-## 2. Installation
+## Installation
 
 ```bash
-# Install ffmpeg if you want subtitle extraction
-brew install ffmpeg   # macOS
-# apt install ffmpeg  # Ubuntu/Debian/Mint
+pip install subtitle-toolkit
+```
 
+---
+
+<a name="system_deps"></a>
+### System Dependencies
+
+```bash
+# Optional install of ffmpeg if you want subtitle extraction
+brew install ffmpeg   # macOS
+# sudo apt install ffmpeg  # Ubuntu/Debian/Mint
+
+# Optional install of Zenity for the GUI script
+brew install zenity   # macOS
+# sudo apt install zenity  # Ubuntu/Debian/Mint
+```
+
+<a name="from_source"></a>
+### From Source
+
+```bash
 # Clone the repository
 git clone https://github.com/jonsafari/subtitle‑toolkit.git
 cd subtitle‑toolkit
 
-# Create a virtual environment (recommended)
+# Create a virtual environment (optional)
 python3 -m venv .venv
 source .venv/bin/activate
 
 # Install Python dependencies
 pip install -r requirements.txt
+
+# Local Pip install
+pip install -e .
 ```
 
 ---
 
 <a name="quick-start"></a>
-## 3. Quick‑Start
+## Quick‑Start
 
 ### <a name="time-shifting-a-subtitle-file"></a>Time‑shifting a subtitle file
 
 ```bash
 # Shift every timestamp 2.5 seconds earlier (positive = earlier)
-cat original.srt | ./src/timeshift.py --shift-seconds 2.5 > shifted.srt
+cat original.srt | subtitle-tk timeshift --shift-seconds 2.5 > shifted.srt
 
 # Or align the first subtitle to a concrete start time
-cat original.srt | ./src/timeshift.py --first-entry-starts-at 00:01:32,945 > aligned.srt
+cat original.srt | subtitle-tk timeshift --first-entry-starts-at 00:01:32,945 > aligned.srt
 ```
 
 ### <a name="using-the-gui-wrapper"></a>Using the GUI wrapper
@@ -102,7 +89,7 @@ The GUI dialogue will:
 1. Prompt you to pick a video (optional – just opens it with the default player).
 2. Ask for the desired start time of the first subtitle (`HH:MM:SS,mmm`).
 3. Let you select the input SRT file and the output filename.
-4. Run `src/timeshift.py` behind the scenes and write the corrected file.
+4. Run `subtitle-tk timeshift` behind the scenes and write the corrected file.
 
 > **Note:** The GUI only works on systems with `zenity` and a graphical environment.
 
@@ -110,10 +97,10 @@ The GUI dialogue will:
 
 ```bash
 # Basic call – uses the default instruction file `translation_instruction_prompts/subtitle_translate_-_en-es_-_default.txt`
-./src/translate.py path/to/english.srt
+subtitle-tk translate path/to/english.srt
 
 # Custom instruction file, chunk size, output SRT file and API endpoint
-./src/translate.py path/to/english.srt \
+subtitle-tk translatey path/to/english.srt \
     --instructions translation_instruction_prompts/subtitle_translate_-_en-es_-_Gavin_and_Stacey.txt \
     --output path/to/spanish.srt \
     --api-base http://localhost:8080/v1 \
@@ -121,12 +108,12 @@ The GUI dialogue will:
     --api-key dummy-key
 
 # Using Anthropic Claude
-./src/translate.py path/to/english.srt \
+subtitle-tk translate path/to/english.srt \
     --model-id anthropic/claude-4-6-sonnet \
     --api-key $ANTHROPIC_API_KEY
 
 # Using Google Gemini
-./src/translate.py path/to/english.srt \
+subtitle-tk translate path/to/english.srt \
     --model-id gemini/gemini-3-flash \
     --api-key $GEMINI_API_KEY
 ```
@@ -134,15 +121,15 @@ The GUI dialogue will:
 ---
 
 <a name="detailed-usage"></a>
-## 4. Detailed Usage
+## Detailed Usage
 
-### <a name="subtitle_timeshiftpy"></a>`src/timeshift.py`
+### <a name="subtitle_timeshiftpy"></a>`subtitle-tk timeshift`
 
 | Option | Description |
 |--------|-------------|
 | `-s`, `--shift-seconds <float>` | Shift every timestamp by the given number of seconds. Positive values move subtitles **earlier** (i.e. they appear sooner). |
 | `-f`, `--first-entry-starts-at <HH:MM:SS[,.mmm]>` | Compute the required shift so that the **first** subtitle starts at the supplied time (sub‑seconds optional). The script reads the first timestamp it encounters, calculates the difference, and then applies that shift to the whole file. |
-| *Input* | The script reads **STDIN**. Pipe a file (`cat file.srt \| …`) or redirect (`./src/timeshift.py -s 1.2 < file.srt`). |
+| *Input* | The script reads **STDIN**. Pipe a file (`cat file.srt \| …`) or redirect (`subtitle-tk timeshift -s 1.2 < file.srt`). |
 | *Output* | Printed to **STDOUT** – redirect to a new file. |
 
 **Behaviour notes**
@@ -162,7 +149,7 @@ A thin wrapper that:
    * Desired start time (`HH:MM:SS,mmm`).
    * Input SRT file.
    * Output filename.
-2. Calls `src/timeshift.py` with `--first-entry-starts-at`.
+2. Calls `subtitle-tk timeshift` with `--first-entry-starts-at`.
 3. Writes the result to the chosen output path.
 
 **Dependencies**
@@ -170,11 +157,11 @@ A thin wrapper that:
 * `zenity` – graphical dialog utility.
 * `open` (macOS) **or** `xdg-open` (Linux) – used to launch the video file.
 
-If you do not need the GUI, just use `src/timeshift.py` directly.
+If you do not need the GUI, just use `subtitle-tk timeshift` directly.
 
 ---
 
-### <a name="subtitle_mkv2srt"></a>`src/mkv2srt.py`
+### <a name="subtitle_mkv2srt"></a>`subtitle-tk mkv2srt`
 
 #### Purpose
 
@@ -192,13 +179,13 @@ Extracts subtitles from MKV files and converts them to SRT (SubRip) format.
 
 ```bash
 # Extract all subtitles from an MKV file
-./src/mkv2srt.py --input video.mkv
+subtitle-tk mkv2srt --input video.mkv
 
 # Extract subtitles in a specific language
-./src/mkv2srt.py --input video.mkv --language en
+subtitle-tk mkv2srt --input video.mkv --language en
 
 # Extract to a specific output file
-./src/mkv2srt.py --input video.mkv --output subtitles.srt
+subtitle-tk mkv2srt --input video.mkv --output subtitles.srt
 ```
 
 #### Important notes
@@ -209,7 +196,7 @@ Extracts subtitles from MKV files and converts them to SRT (SubRip) format.
 
 ---
 
-### <a name="subtitle_translatepy"></a>`src/translate.py`
+### <a name="subtitle_translatepy"></a>`subtitle-tk translate`
 
 #### Purpose
 
@@ -237,7 +224,7 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
 
 ```bash
 # Self-hosted OpenAI-compatible endpoint
-./src/translate.py season01.srt \
+subtitle-tk translate season01.srt \
     --instructions translation_instruction_prompts/subtitle_translate_-_en-es_-_Schitts_Creek.txt \
     --output path/to/spanish.srt \
     --api-base http://localhost:8080/v1 \
@@ -245,12 +232,12 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
     --api-key dummy-key
 
 # Anthropic Claude
-./src/translate.py season01.srt \
+subtitle-tk translate season01.srt \
     --model-id anthropic/claude-4-6-sonnet \
     --api-key $ANTHROPIC_API_KEY
 
 # Google Gemini
-./src/translate.py season01.srt \
+subtitle-tk translate season01.srt \
     --model-id gemini/gemini-3-flash \
     --api-key $GEMINI_API_KEY
 ```
@@ -265,7 +252,7 @@ Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of 
 Run the FastAPI web UI:
 
 ```bash
-python src/web/app.py
+subtitle-tk web
 ```
 
 Open http://localhost:8000 in a browser.
@@ -275,7 +262,7 @@ Open http://localhost:8000 in a browser.
 ---
 
 <a name="configuration"></a>
-## 5. Configuration & Environment Variables
+## Configuration & Environment Variables
 
 | Variable | Effect | Example |
 |----------|--------|---------|
@@ -289,11 +276,11 @@ The command‑line arguments always take precedence over environment variables.
 ---
 
 <a name="troubleshooting"></a>
-## 6. Troubleshooting
+## Troubleshooting
 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
-| `ValueError: time data ... does not match format` from `src/timeshift.py` | Wrong timestamp format in the SRT (e.g., missing commas). | Verify the source file follows the `HH:MM:SS,mmm` pattern. The script will leave un‑parseable lines untouched. |
+| `ValueError: time data ... does not match format` from `subtitle-tk timeshift` | Wrong timestamp format in the SRT (e.g., missing commas). | Verify the source file follows the `HH:MM:SS,mmm` pattern. The script will leave un‑parseable lines untouched. |
 | No output file created, script exits with "Input file does not exist" | Wrong path or missing file permissions. | Use an absolute path or `ls` to confirm the file exists. |
 | `ImportError: No module named litellm` | `litellm` Python package not installed. | `pip install -r requirements.txt` (or `pip install litellm`). |
 | API returns 429 / "rate limit exceeded" | Chunk size too large or server limits. | Reduce `--chunk-size` or add a short `sleep` between requests (modify script). |
@@ -305,7 +292,7 @@ The command‑line arguments always take precedence over environment variables.
 ---
 
 <a name="contributing"></a>
-## 7. Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 
@@ -325,7 +312,7 @@ Contributions are welcome! Please follow these steps:
 ---
 
 <a name="license"></a>
-## 8. License
+## License
 
 This project is released under the **GPLv3 License** – see the `LICENSE` file for details.
 
