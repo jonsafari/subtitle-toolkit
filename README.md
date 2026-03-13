@@ -57,8 +57,18 @@ pip install -e .
 
 ---
 
+### <a name="web-interface"></a>Web interface
+
+```bash
+subtitle-tk web
+```
+
+Open http://localhost:8000 in a browser.
+
+---
+
 <a name="quick-start"></a>
-## Quick‑Start
+## Command-line Intro
 
 ### <a name="time-shifting-a-subtitle-file"></a>Time‑shifting a subtitle file
 
@@ -248,16 +258,6 @@ subtitle-tk translate season01.srt \
 * **API limits** – Adjust `--chunk-size` if you hit token‑limit errors. Smaller chunks = more requests, larger chunks = fewer requests but higher token usage.
 * **Model behaviour** – The provided instruction files explicitly ask the model **not** to add extra text, to keep the original formatting, and to translate only the dialogue. If you notice stray commentary, tweak the instruction file accordingly.
 
-### <a name="web-interface"></a>Web interface
-Run the FastAPI web UI:
-
-```bash
-subtitle-tk web
-```
-
-Open http://localhost:8000 in a browser.
-
----
 
 ---
 
