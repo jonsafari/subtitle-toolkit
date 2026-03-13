@@ -6,16 +6,16 @@ include pyproject.toml
 # Include source files
 recursive-include src *.py
 
-# Include templates (moved to src/templates)
+# Include templates
 recursive-include src/templates *.html
 
-# Include translations (moved to src/translations)
+# Include translations
 recursive-include src/translations *.json
 
-# Include translation instruction prompts (moved to src/translation_instruction_prompts)
+# Include translation instruction prompts
 recursive-include src/translation_instruction_prompts *.txt
 
-# Include static files (moved to src/static)
+# Include static files
 recursive-include src/static *
 
 # Exclude test files

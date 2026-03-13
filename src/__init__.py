@@ -13,7 +13,7 @@ Example usage:
 """
 
 # Package version – kept in sync with pyproject.toml
-__version__: str = "0.9.2.1"
+__version__: str = "0.9.5"
 
 __all__ = [
     # Timeshift functions
