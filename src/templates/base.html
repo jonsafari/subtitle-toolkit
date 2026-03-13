@@ -224,11 +224,15 @@
                         <form id="language-form" method="post" action="/set-language" style="display: inline;">
                             <select name="lang" onchange="this.form.submit()" class="language-selector-select">
                                 <option value="en" {% if lang == 'en' %}selected{% endif %}>English</option>
+                                <option value="ar" {% if lang == 'ar' %}selected{% endif %}>العربية</option>
                                 <option value="de" {% if lang == 'de' %}selected{% endif %}>Deutsch</option>
                                 <option value="es" {% if lang == 'es' %}selected{% endif %}>Español</option>
                                 <option value="fr" {% if lang == 'fr' %}selected{% endif %}>Français</option>
                                 <option value="it" {% if lang == 'it' %}selected{% endif %}>Italiano</option>
+                                <option value="ja" {% if lang == 'ja' %}selected{% endif %}>日本語</option>
+                                <option value="ko" {% if lang == 'ko' %}selected{% endif %}>한국어</option>
                                 <option value="pt" {% if lang == 'pt' %}selected{% endif %}>Português</option>
+                                <option value="zh" {% if lang == 'zh' %}selected{% endif %}>简体中文</option>
                             </select>
                         </form>
                     </div>
