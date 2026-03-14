@@ -28,7 +28,7 @@ app.mount("/static", StaticFiles(directory=PROJECT_ROOT / "static"), name="stati
 TRANSLATIONS_DIR = PROJECT_ROOT / "translations"
 
 # Available languages
-AVAILABLE_LANGUAGES = ["en", "ar", "de", "es", "fr", "id", "it", "ja", "ko", "nl", "pl", "pt", "tr", "uk", "vi", "zh"]
+AVAILABLE_LANGUAGES = ["en", "ar", "de", "es", "fa", "fr", "id", "it", "ja", "ko", "nl", "pl", "pt", "tr", "uk", "vi", "zh"]
 DEFAULT_LANGUAGE = "en"
 
 def load_translations(language: str) -> Dict[str, Any]:
