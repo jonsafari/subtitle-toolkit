@@ -28,7 +28,7 @@
   "choose_video": "Pilih Video",
   "video_timestamp": "Cap Waktu Video",
   "shift_seconds": "Geser Detik",
-  "shift_seconds_desc": "Geser semua cap waktu dengan jumlah detik ini (positif = lebih awal)",
+  "shift_seconds_desc": "Geser semua cap waktu dengan jumlah detik ini (positif = lebih lambat)",
   "first_entry_starts_at": "Waktu Mulai Entri Pertama",
   "first_entry_starts_at_desc": "Sesuaikan subtitle pertama dengan waktu mulai ini",
   "process_subtitles": "Proses Subtitle",

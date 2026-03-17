@@ -28,7 +28,7 @@
   "choose_video": "ビデオを選択",
   "video_timestamp": "ビデオのタイムスタンプ",
   "shift_seconds": "シフト秒数",
-  "shift_seconds_desc": "すべてのタイムスタンプをこの秒数だけシフトします（正の値 = 早く）",
+  "shift_seconds_desc": "すべてのタイムスタンプをこの秒数だけシフトします（正の値 = 遅く）",
   "first_entry_starts_at": "最初のエントリの開始時間",
   "first_entry_starts_at_desc": "最初の字幕をこの開始時間に合わせます",
   "process_subtitles": "字幕を処理",

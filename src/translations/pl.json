@@ -28,7 +28,7 @@
   "choose_video": "Wybierz Wideo",
   "video_timestamp": "Znacznik Czasowy Wideo",
   "shift_seconds": "Przesuń Sekundy",
-  "shift_seconds_desc": "Przesuń wszystkie znaczniki czasowe o tę liczbę sekund (dodatnie = wcześniej)",
+  "shift_seconds_desc": "Przesuń wszystkie znaczniki czasowe o tę liczbę sekund (dodatnie = później)",
   "first_entry_starts_at": "Czas Początku Pierwszego Wpisu",
   "first_entry_starts_at_desc": "Wyrównaj pierwszy napis do tego czasu rozpoczęcia",
   "process_subtitles": "Przetwarzaj Napisy",

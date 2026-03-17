@@ -15,11 +15,11 @@ __all__ = ["shift_timestamp", "timestamp_to_seconds"]
 
 
 def shift_timestamp(timestamp: str, shift_seconds: float) -> str:
-    """Shift a timestamp string by *shift_seconds* (positive → earlier, negative → later)."""
+    """Shift a timestamp string by *shift_seconds* (positive → later, negative → earlier)."""
     try:
         # SRT timestamps are always in the same day, so we can use any date.
         time_obj = datetime.strptime(timestamp, "%H:%M:%S,%f")
-        new_time = time_obj - timedelta(seconds=shift_seconds)
+        new_time = time_obj + timedelta(seconds=shift_seconds)
 
         # Guard against under‑flow – SRT cannot represent negative times.
         if new_time < datetime(1900, 1, 1):
@@ -111,7 +111,7 @@ def main() -> None:
                 # At this point, desired_start_seconds is guaranteed to be set
                 # because we're in first-entry-starts-at mode (shift_seconds is None)
                 assert desired_start_seconds is not None
-                shift_seconds = actual_start_seconds - desired_start_seconds
+                shift_seconds = desired_start_seconds - actual_start_seconds
                 # ``shift_seconds`` is now a concrete float and will be reused.
 
             # Apply the shift to both timestamps.

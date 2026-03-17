@@ -28,7 +28,7 @@
   "choose_video": "Escolher Vídeo",
   "video_timestamp": "Carimbo de Data/Hora do Vídeo",
   "shift_seconds": "Deslocar Segundos",
-  "shift_seconds_desc": "Desloque todos os carimbos de data/hora por este número de segundos (positivo = mais cedo)",
+  "shift_seconds_desc": "Desloque todos os carimbos de data/hora por este número de segundos (positivo = mais tarde)",
   "first_entry_starts_at": "Tempo de Início da Primeira Entrada",
   "first_entry_starts_at_desc": "Alinhe a primeira legenda a este horário de início",
   "process_subtitles": "Processar Legendas",

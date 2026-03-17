@@ -28,7 +28,7 @@
   "choose_video": "비디오 선택",
   "video_timestamp": "비디오 타임스탬프",
   "shift_seconds": "이동 초수",
-  "shift_seconds_desc": "모든 타임스탬프를 이 초수만큼 이동합니다 (양수 = 앞당김)",
+  "shift_seconds_desc": "모든 타임스탬프를 이 초수만큼 이동합니다 (양수 = 늦춤)",
   "first_entry_starts_at": "첫 번째 항목 시작 시간",
   "first_entry_starts_at_desc": "첫 번째 자막을 이 시작 시간에 맞춥니다",
   "process_subtitles": "자막 처리",

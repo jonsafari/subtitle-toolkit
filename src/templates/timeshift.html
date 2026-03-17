@@ -79,7 +79,7 @@
                     class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                     placeholder="e.g., 2.5"
                 >
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.shift_seconds_desc if translations else 'Shift all timestamps by this number of seconds (positive = earlier)' }}</p>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.shift_seconds_desc if translations else 'Shift all timestamps by this number of seconds (positive = later)' }}</p>
             </div>
 
             <div>
@@ -128,7 +128,7 @@
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6 dark:bg-blue-900/20 dark:border-blue-700">
             <h3 class="text-lg font-medium text-blue-800 mb-2 dark:text-blue-300">{{ translations.usage_examples if translations else 'Usage Examples' }}</h3>
             <ul class="list-disc pl-5 text-blue-700 space-y-1 dark:text-blue-300">
-                <li>{{ translations.shift_earlier if translations else 'Shift all subtitles 2.5 seconds earlier' }}: <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">--shift-seconds 2.5</code></li>
+                <li>{{ translations.shift_earlier if translations else 'Shift all subtitles 2.5 seconds earlier' }}: <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">--shift-seconds -2.5</code></li>
                 <li>{{ translations.align_first if translations else 'Align first subtitle to 00:01:32,945' }}: <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">--first-entry-starts-at 00:01:32,945</code></li>
             </ul>
         </div>
@@ -248,7 +248,7 @@
             function updateDuration() {
                 const t1 = parseTimestampToSeconds(timestamp1Input.value);
                 const t2 = parseTimestampToSeconds(timestamp2Input.value);
-                const diff = t1 - t2;
+                const diff = t2 - t1;
                 durationInput.value = diff.toFixed(3);
             }
 

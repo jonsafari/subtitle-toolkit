@@ -28,7 +28,7 @@
   "choose_video": "选择视频",
   "video_timestamp": "视频时间戳",
   "shift_seconds": "偏移秒数",
-  "shift_seconds_desc": "将所有时间戳偏移指定的秒数（正值 = 提前）",
+  "shift_seconds_desc": "将所有时间戳偏移指定的秒数（正值 = 延后）",
   "first_entry_starts_at": "第一条条目开始时间",
   "first_entry_starts_at_desc": "将第一条字幕对齐到此开始时间",
   "process_subtitles": "处理字幕",

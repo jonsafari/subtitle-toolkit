@@ -28,7 +28,7 @@
   "choose_video": "Video Kiezen",
   "video_timestamp": "Video Tijdstempel",
   "shift_seconds": "Seconden Verschuiven",
-  "shift_seconds_desc": "Verschuif alle tijdstempels met dit aantal seconden (positief = eerder)",
+  "shift_seconds_desc": "Verschuif alle tijdstempels met dit aantal seconden (positief = later)",
   "first_entry_starts_at": "Starttijd Eerste Invoer",
   "first_entry_starts_at_desc": "Lijn de eerste ondertitel uit met deze starttijd",
   "process_subtitles": "Ondertitels Verwerken",

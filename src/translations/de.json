@@ -28,7 +28,7 @@
   "choose_video": "Video auswählen",
   "video_timestamp": "Video-Zeitstempel",
   "shift_seconds": "Verschiebungssekunden",
-  "shift_seconds_desc": "Verschieben Sie alle Zeitstempel um diese Anzahl von Sekunden (positiv = früher)",
+  "shift_seconds_desc": "Verschieben Sie alle Zeitstempel um diese Anzahl von Sekunden (positiv = später)",
   "first_entry_starts_at": "Startzeit des ersten Eintrags",
   "first_entry_starts_at_desc": "Richten Sie den ersten Untertitel auf diese Startzeit aus",
   "process_subtitles": "Untertitel verarbeiten",

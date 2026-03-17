@@ -28,7 +28,7 @@
   "choose_video": "Scegli Video",
   "video_timestamp": "Timestamp del Video",
   "shift_seconds": "Sposta Secondi",
-  "shift_seconds_desc": "Sposta tutti i timestamp di questo numero di secondi (positivo = prima)",
+  "shift_seconds_desc": "Sposta tutti i timestamp di questo numero di secondi (positivo = dopo)",
   "first_entry_starts_at": "Orario di Inizio della Prima Voce",
   "first_entry_starts_at_desc": "Allinea il primo sottotitolo a questo orario di inizio",
   "process_subtitles": "Elabora Sottotitoli",

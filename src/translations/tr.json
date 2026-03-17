@@ -28,7 +28,7 @@
   "choose_video": "Video Seç",
   "video_timestamp": "Video Zaman Damgası",
   "shift_seconds": "Saniye Kaydır",
-  "shift_seconds_desc": "Tüm zaman damgalarını bu saniye sayısı kadar kaydırın (pozitif = daha erken)",
+  "shift_seconds_desc": "Tüm zaman damgalarını bu saniye sayısı kadar kaydırın (pozitif = daha geç)",
   "first_entry_starts_at": "İlk Giriş Başlangıç Zamanı",
   "first_entry_starts_at_desc": "İlk altyazıyı bu başlangıç zamanına hizalayın",
   "process_subtitles": "Altyazıları İşle",

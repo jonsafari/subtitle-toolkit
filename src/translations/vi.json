@@ -28,7 +28,7 @@
   "choose_video": "Chọn Video",
   "video_timestamp": "Dấu Thời Gian Video",
   "shift_seconds": "Dịch Số Giây",
-  "shift_seconds_desc": "Dịch tất cả dấu thời gian theo số giây này (dương = sớm hơn)",
+  "shift_seconds_desc": "Dịch tất cả dấu thời gian theo số giây này (dương = muộn hơn)",
   "first_entry_starts_at": "Thời Gian Bắt Đầu Mục Đầu Tiên",
   "first_entry_starts_at_desc": "Căn chỉnh phụ đề đầu tiên với thời gian bắt đầu này",
   "process_subtitles": "Xử Lý Phụ Đề",

@@ -73,7 +73,7 @@ Open http://localhost:8000 in a browser.
 ### <a name="time-shifting-a-subtitle-file"></a>Time‑shifting a subtitle file
 
 ```bash
-# Shift every timestamp 2.5 seconds earlier (positive = earlier)
+# Shift every timestamp 2.5 seconds later (positive = later)
 cat original.srt | subtitle-tk timeshift --shift-seconds 2.5 > shifted.srt
 
 # Or align the first subtitle to a concrete start time
@@ -137,7 +137,7 @@ subtitle-tk translate path/to/english.srt \
 
 | Option | Description |
 |--------|-------------|
-| `-s`, `--shift-seconds <float>` | Shift every timestamp by the given number of seconds. Positive values move subtitles **earlier** (i.e. they appear sooner). |
+| `-s`, `--shift-seconds <float>` | Shift every timestamp by the given number of seconds. Positive values move subtitles **later** (i.e. they appear later). |
 | `-f`, `--first-entry-starts-at <HH:MM:SS[,.mmm]>` | Compute the required shift so that the **first** subtitle starts at the supplied time (sub‑seconds optional). The script reads the first timestamp it encounters, calculates the difference, and then applies that shift to the whole file. |
 | *Input* | The script reads **STDIN**. Pipe a file (`cat file.srt \| …`) or redirect (`subtitle-tk timeshift -s 1.2 < file.srt`). |
 | *Output* | Printed to **STDOUT** – redirect to a new file. |

@@ -28,7 +28,7 @@
   "choose_video": "اختر الفيديو",
   "video_timestamp": "الطابع الزمني للفيديو",
   "shift_seconds": "إزاحة الثواني",
-  "shift_seconds_desc": "قم بإزاحة جميع الطوابع الزمنية بعدد الثواني هذا (موجب = أبكر)",
+  "shift_seconds_desc": "قم بإزاحة جميع الطوابع الزمنية بعدد الثواني هذا (موجب = أحدث)",
   "first_entry_starts_at": "وقت بدء أول إدخال",
   "first_entry_starts_at_desc": "قم بمحاذاة الترجمة الأولى مع هذا وقت البدء",
   "process_subtitles": "معالجة الترجمة",

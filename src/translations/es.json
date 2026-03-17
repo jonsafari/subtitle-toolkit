@@ -28,7 +28,7 @@
   "choose_video": "Elegir Video",
   "video_timestamp": "Marca de Tiempo del Video",
   "shift_seconds": "Desplazar Segundos",
-  "shift_seconds_desc": "Desplace todas las marcas de tiempo por este número de segundos (positivo = antes)",
+  "shift_seconds_desc": "Desplace todas las marcas de tiempo por este número de segundos (positivo = después)",
   "first_entry_starts_at": "Hora de Inicio de la Primera Entrada",
   "first_entry_starts_at_desc": "Alinee el primer subtítulo con esta hora de inicio",
   "process_subtitles": "Procesar Subtítulos",

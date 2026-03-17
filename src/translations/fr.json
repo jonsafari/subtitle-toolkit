@@ -28,7 +28,7 @@
   "choose_video": "Choisir la vidéo",
   "video_timestamp": "Horodatage vidéo",
   "shift_seconds": "Décaler les secondes",
-  "shift_seconds_desc": "Décalez tous les horodatages de ce nombre de secondes (positif = plus tôt)",
+  "shift_seconds_desc": "Décalez tous les horodatages de ce nombre de secondes (positif = plus tard)",
   "first_entry_starts_at": "Heure de début de la première entrée",
   "first_entry_starts_at_desc": "Alignez le premier sous-titre à cette heure de début",
   "process_subtitles": "Traiter les sous-titres",
