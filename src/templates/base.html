@@ -219,6 +219,9 @@
                     <a href="/translate" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium dark:text-gray-300 dark:hover:text-blue-400">
                         {{ translations.translate if translations else 'Translate' }}
                     </a>
+                    <a href="/convert" class="text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium dark:text-gray-300 dark:hover:text-blue-400">
+                        {{ translations.convert if translations else 'Convert' }}
+                    </a>
                     <div class="language-selector" title="Language">
                         <span class="text-xl mr-1">🌍</span>
                         <form id="language-form" method="post" action="/set-language" style="display: inline;">

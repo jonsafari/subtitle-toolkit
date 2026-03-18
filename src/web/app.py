@@ -56,6 +56,7 @@ async def favicon() -> FileResponse:
 TIMESHIFT_SCRIPT = PROJECT_ROOT / "timeshift.py"
 MKV2SRT_SCRIPT = PROJECT_ROOT / "mkv2srt.py"
 TRANSLATE_SCRIPT = PROJECT_ROOT / "translate.py"
+CONVERT_SCRIPT = PROJECT_ROOT / "convert.py"
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request) -> HTMLResponse:
@@ -339,6 +340,132 @@ async def translate_submit(
             "translations": translations,
             "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}"
         })
+
+@app.get("/convert", response_class=HTMLResponse)
+async def convert_page(request: Request) -> HTMLResponse:
+    lang = get_language_from_request(request)
+    return templates.TemplateResponse(request, "convert.html", {
+        "lang": lang,
+        "translations": load_translations(lang)
+    })
+
+@app.post("/convert", response_class=HTMLResponse)
+async def convert_submit(
+    request: Request,
+    subtitle_file: Optional[str] = Form(None),
+    input_format: Optional[str] = Form(None),
+    output_format: Optional[str] = Form(None),
+    preserve_formatting: bool = Form(True)
+) -> HTMLResponse:
+    lang = get_language_from_request(request)
+    translations = load_translations(lang)
+
+    # Validate inputs
+    if not subtitle_file:
+        return templates.TemplateResponse(request, "convert.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": translations.get("please_upload_subtitle", "Please upload a subtitle file")
+        })
+
+    if not output_format:
+        return templates.TemplateResponse(request, "convert.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": translations.get("please_select_output_format", "Please select an output format")
+        })
+
+    # Process the file
+    try:
+        # Build command
+        cmd: List[str] = ["python3", str(CONVERT_SCRIPT)]
+        cmd.extend(["--output-format", output_format])
+        if input_format and input_format != "auto":
+            cmd.extend(["--input-format", input_format])
+        if not preserve_formatting:
+            cmd.append("--normalize-text")
+
+        # Run the command with input from stdin
+        result = subprocess.run(
+            cmd,
+            input=subtitle_file,
+            text=True,
+            capture_output=True,
+            check=True
+        )
+
+        return templates.TemplateResponse(request, "convert_result.html", {
+            "lang": lang,
+            "translations": translations,
+            "output": result.stdout,
+            "output_format": output_format
+        })
+
+    except subprocess.CalledProcessError as e:
+        return templates.TemplateResponse(request, "convert.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr.decode() if isinstance(e.stderr, bytes) else e.stderr}"
+        })
+    except Exception as e:
+        return templates.TemplateResponse(request, "convert.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}"
+        })
+
+@app.post("/convert/download")
+async def convert_download(request: Request, output: Optional[str] = Form(None), output_format: Optional[str] = Form(None)):  # type: ignore[no-untyped-def]
+    if not output:
+        # If no output provided, redirect to convert page
+        return templates.TemplateResponse(request, "convert.html", {})
+
+    # Determine file extension from output format
+    format_to_ext = {
+        "srt": ".srt",
+        "vtt": ".vtt",
+        "ass": ".ass",
+        "ssa": ".ssa",
+        "sub": ".sub",
+        "sbv": ".sbv",
+        "txt": ".txt",
+        "sami": ".sami",
+        "smi": ".smi",
+        "csv": ".csv",
+        "tsv": ".tsv",
+        "json": ".json",
+        "textgrid": ".TextGrid",
+        "gemini": ".json",
+        "ttml": ".ttml",
+        "imsc1": ".ttml",
+        "ebu_tt_d": ".ttml",
+        "avid_ds": "_avid.txt",
+        "fcpxml": ".fcpxml",
+        "premiere_xml": ".xml",
+        "audition_csv": "_audition.csv",
+        "edimarker_csv": "_edimarker.csv",
+    }
+
+    ext = format_to_ext.get(output_format, ".srt")
+
+    # Create a temporary file with the output content
+    tmp_file_path = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', suffix=ext, delete=False, encoding='utf-8') as tmp_file:
+            tmp_file.write(output)
+            tmp_file_path = tmp_file.name
+
+        # Return the file for download
+        return FileResponse(
+            tmp_file_path,
+            media_type="application/octet-stream",
+            filename=f"converted_subtitles{ext}"
+        )
+    except Exception:
+        # Clean up in case of error
+        if tmp_file_path and os.path.exists(tmp_file_path):
+            os.unlink(tmp_file_path)
+        raise
 
 @app.post("/set-language")
 async def set_language(request: Request, lang: str = Form(...)) -> RedirectResponse:

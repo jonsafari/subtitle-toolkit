@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}{{ translations.convert_result if translations else 'Conversion Result' }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800 dark:text-white">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2 dark:text-white">{{ translations.convert_result if translations else 'Conversion Result' }}</h1>
+        <p class="text-gray-600 dark:text-gray-300">
+            {{ translations.convert_success if translations else 'Your subtitle file has been converted successfully.' }}
+        </p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800 dark:text-white">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4 dark:text-white">{{ translations.converted_subtitles if translations else 'Converted Subtitle Content' }}</h2>
+        <div class="bg-gray-50 rounded-lg p-4 dark:bg-slate-700 dark:text-gray-100 max-h-96 overflow-y-auto">
+            <pre class="whitespace-pre-wrap text-sm">{{ output }}</pre>
+        </div>
+    </div>
+
+    <div class="flex justify-center space-x-4">
+        <a href="/convert" class="btn-primary text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition duration-200">
+            {{ translations.convert_another if translations else 'Convert Another File' }}
+        </a>
+        <a href="/" class="text-gray-700 px-6 py-2 border border-gray-300 rounded-md font-medium hover:bg-gray-50 transition duration-200 dark:text-gray-300 dark:border-slate-600 dark:hover:bg-slate-700">
+            {{ translations.back_to_home if translations else 'Back to Home' }}
+        </a>
+        <form action="/convert/download" method="post" style="display: inline;">
+            <input type="hidden" name="output" value="{{ output }}">
+            <input type="hidden" name="output_format" value="{{ output_format }}">
+            <button type="submit" class="save-button px-6 py-2 rounded-md font-medium transition duration-200">
+                {{ translations.save_to_file if translations else 'Save to File' }}
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
