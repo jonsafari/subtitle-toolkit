@@ -1,15 +1,16 @@
 # Subtitle Toolkit  🍿
 
-A small collection of utilities for **fixing** (time‑shifting) and **translating** SRT subtitle files. There's command-line tools as well as a web interface.
-The tools are deliberately lightweight, command‑line‑first, and work with any LLM provider via litellm (OpenAI, Anthropic, Gemini, Databricks, and local models).
+A small collection of utilities for **fixing** (time-shifting) and **translating** SRT subtitle files. There's command-line tools as well as a web interface.
+The tools are deliberately lightweight, command-line-first, and work with any LLM provider via litellm (OpenAI, Anthropic, Gemini, Databricks, and local models).
 
-| Script | What it does | Typical use‑case |
+| Script | What it does | Typical use-case |
 |--------|--------------|------------------|
-| `subtitle-tk timeshift` | Shifts every timestamp in an SRT stream by a fixed amount **or** aligns the first subtitle to a user‑provided start time. | Fix subtitles that are out of sync with the video. |
-| `subtitle_timeshift_gui.sh` | Small Zenity‑based GUI wrapper around `subtitle-tk timeshift`. | Users who prefer a point‑and‑click workflow on Linux. |
+| `subtitle-tk timeshift` | Shifts every timestamp in an SRT stream by a fixed amount **or** aligns the first subtitle to a user-provided start time. | Fix subtitles that are out of sync with the video. |
+| `subtitle_timeshift_gui.sh` | Small Zenity-based GUI wrapper around `subtitle-tk timeshift`. | Users who prefer a point-and-click workflow on Linux. |
 | `subtitle-tk mkv2srt` | Extracts subtitles from MKV files and converts them to SRT format. | Extract subtitles from MKV files for use with video players. |
 | `subtitle-tk translate` | Translates a subtitle (SRT/SubRip) file, using a *translation‑instruction* file and an LLM endpoint via litellm. | Translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
-| translation_instruction_prompts/`subtitle_translate_*.txt` | Example instruction files that tell the LLM how to translate (show/movie context, keep formatting, don’t add extra text, etc.). | Supply to `subtitle-tk translate` via `--instructions`. |
+| `subtitle-tk convert` | Converts subtitle files between different formats (SRT, VTT, ASS, TTML, etc.). | Convert subtitles to a format compatible with your video player or editing software. |
+| translation_instruction_prompts/`subtitle_translate_*.txt` | Example instruction files that tell the LLM how to translate (show/movie context, keep formatting, don't add extra text, etc.). | Supply to `subtitle-tk translate` via `--instructions`. |
 
 ---
 
@@ -41,8 +42,8 @@ brew install zenity   # macOS
 
 ```bash
 # Clone the repository
-git clone https://github.com/jonsafari/subtitle‑toolkit.git
-cd subtitle‑toolkit
+git clone https://github.com/jonsafari/subtitle-toolkit.git
+cd subtitle-toolkit
 
 # Create a virtual environment (optional)
 python3 -m venv .venv
@@ -70,7 +71,7 @@ Open http://localhost:8000 in a browser.
 <a name="quick-start"></a>
 ## Command-line Intro
 
-### <a name="time-shifting-a-subtitle-file"></a>Time‑shifting a subtitle file
+### <a name="time-shifting-a-subtitle-file"></a>Time-shifting a subtitle file
 
 ```bash
 # Shift every timestamp 2.5 seconds later (positive = later)
@@ -96,7 +97,7 @@ cp Subtitle_Timeshift.desktop ~/Desktop/
 
 The GUI dialogue will:
 
-1. Prompt you to pick a video (optional – just opens it with the default player).
+1. Prompt you to pick a video (optional - just opens it with the default player).
 2. Ask for the desired start time of the first subtitle (`HH:MM:SS,mmm`).
 3. Let you select the input SRT file and the output filename.
 4. Run `subtitle-tk timeshift` behind the scenes and write the corrected file.
@@ -106,7 +107,7 @@ The GUI dialogue will:
 ### <a name="translating-a-subtitle-file"></a>Translating a subtitle file
 
 ```bash
-# Basic call – uses the default instruction file `translation_instruction_prompts/subtitle_translate_-_en-es_-_default.txt`
+# Basic call - uses the default instruction file `translation_instruction_prompts/subtitle_translate_-_en-es_-_default.txt`
 subtitle-tk translate path/to/english.srt
 
 # Custom instruction file, chunk size, output SRT file and API endpoint
@@ -138,13 +139,13 @@ subtitle-tk translate path/to/english.srt \
 | Option | Description |
 |--------|-------------|
 | `-s`, `--shift-seconds <float>` | Shift every timestamp by the given number of seconds. Positive values move subtitles **later** (i.e. they appear later). |
-| `-f`, `--first-entry-starts-at <HH:MM:SS[,.mmm]>` | Compute the required shift so that the **first** subtitle starts at the supplied time (sub‑seconds optional). The script reads the first timestamp it encounters, calculates the difference, and then applies that shift to the whole file. |
-| *Input* | The script reads **STDIN**. Pipe a file (`cat file.srt \| …`) or redirect (`subtitle-tk timeshift -s 1.2 < file.srt`). |
-| *Output* | Printed to **STDOUT** – redirect to a new file. |
+| `-f`, `--first-entry-starts-at <HH:MM:SS[,.mmm]>` | Compute the required shift so that the **first** subtitle starts at the supplied time (sub-seconds optional). The script reads the first timestamp it encounters, calculates the difference, and then applies that shift to the whole file. |
+| *Input* | The script reads **STDIN**. Pipe a file (`cat file.srt \| ...`) or redirect (`subtitle-tk timeshift -s 1.2 < file.srt`). |
+| *Output* | Printed to **STDOUT** - redirect to a new file. |
 
 **Behaviour notes**
 
-* The script tolerates malformed timestamp lines – they are passed through unchanged.
+* The script tolerates malformed timestamp lines - they are passed through unchanged.
 * If a shift would produce a negative time, the timestamp is clamped to `00:00:00,000`.
 * The script keeps the original line endings (`\n` or `\r\n`).
 
@@ -155,7 +156,7 @@ subtitle-tk translate path/to/english.srt \
 A thin wrapper that:
 
 1. Uses `zenity` dialogs to collect:
-   * (optional) a video file – opened with the system’s default player (`open` on macOS, `xdg-open` on Linux).
+   * (optional) a video file - opened with the system's default player (`open` on macOS, `xdg-open` on Linux).
    * Desired start time (`HH:MM:SS,mmm`).
    * Input SRT file.
    * Output filename.
@@ -164,8 +165,8 @@ A thin wrapper that:
 
 **Dependencies**
 
-* `zenity` – graphical dialog utility.
-* `open` (macOS) **or** `xdg-open` (Linux) – used to launch the video file.
+* `zenity` - graphical dialog utility.
+* `open` (macOS) **or** `xdg-open` (Linux) - used to launch the video file.
 
 If you do not need the GUI, just use `subtitle-tk timeshift` directly.
 
@@ -177,13 +178,13 @@ If you do not need the GUI, just use `subtitle-tk timeshift` directly.
 
 Extracts subtitles from MKV files and converts them to SRT (SubRip) format.
 
-#### Command‑line options
+#### Command-line options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `--input` or `-i` | – | Path to the input MKV file (required). |
-| `--output` or `-o` | – | Output SRT file path (optional). If not specified, extracts all subtitles to individual files. |
-| `--language` or `-l` | – | Language code to filter subtitles (e.g., "en", "es"). |
+| `--input` or `-i` | - | Path to the input MKV file (required). |
+| `--output` or `-o` | - | Output SRT file path (optional). If not specified, extracts all subtitles to individual files. |
+| `--language` or `-l` | - | Language code to filter subtitles (e.g., "en", "es"). |
 
 #### Examples
 
@@ -210,25 +211,25 @@ subtitle-tk mkv2srt --input video.mkv --output subtitles.srt
 
 #### Purpose
 
-Large subtitle files (e.g. full‑season SRTs) often exceed the token limits of LLM APIs. This script:
+Large subtitle files (e.g. full-season SRTs) often exceed the token limits of LLM APIs. This script:
 
 1. **Splits** the file into *units* (the classic SRT block: index, timestamps, text, blank line).
 2. **Chunks** a configurable number of units together (default 30).
-3. **Prepends** a user‑provided instruction file (e.g. "You are an expert translator …").
+3. **Prepends** a user-provided instruction file (e.g. "You are an expert translator ...").
 4. Sends each chunk to an LLM endpoint via litellm.
 5. Writes the translated output to a new `.srt` file.
 
-#### Command‑line options
+#### Command-line options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `input_file` | – | Path to the source `.srt`. |
+| `input_file` | - | Path to the source `.srt`. |
 | `--instructions` | `translation_instruction_prompts/subtitle_translate_-_en-es_-_default.txt` | Path to the instruction file that tells the model how to translate. |
 | `--chunk-size` | `30` | Number of subtitle units per API request. |
 | `--output` | `<input>_translated.srt` | Output translated SRT file name. |
 | `--api-base` | `http://localhost:8080` | Base URL of the LLM server (for self-hosted endpoints). |
 | `--model-id` | `local-model` | Model identifier (e.g., `llama3:8b`, `anthropic/claude-4-6-sonnet`, `gemini/gemini-3-flash`). |
-| `--api-key` | `dummy-key` | API key (some servers require a non‑empty value). |
+| `--api-key` | `dummy-key` | API key (some servers require a non-empty value). |
 
 #### Example workflow
 
@@ -254,10 +255,35 @@ subtitle-tk translate season01.srt \
 
 #### Important notes
 
-* **Instruction file** – This file is important and provides useful context about the show/movie that you're translating. I recommend copying the Synopsis section of the Wikipedia article for the show/movie that you're translating.  The file must be plain text.
-* **API limits** – Adjust `--chunk-size` if you hit token‑limit errors. Smaller chunks = more requests, larger chunks = fewer requests but higher token usage.
-* **Model behaviour** – The provided instruction files explicitly ask the model **not** to add extra text, to keep the original formatting, and to translate only the dialogue. If you notice stray commentary, tweak the instruction file accordingly.
+* **Instruction file** - This file is important and provides useful context about the show/movie that you're translating. I recommend copying the Synopsis section of the Wikipedia article for the show/movie that you're translating.  The file must be plain text.
+* **API limits** - Adjust `--chunk-size` if you hit token-limit errors. Smaller chunks = more requests, larger chunks = fewer requests but higher token usage.
+* **Model behaviour** - The provided instruction files explicitly ask the model **not** to add extra text, to keep the original formatting, and to translate only the dialogue. If you notice stray commentary, tweak the instruction file accordingly.
 
+### <a name="subtitle_convertpy"></a>`subtitle-tk convert`
+
+Convert subtitle files between different formats (SRT, VTT, ASS, TTML, etc.). Powered by [lattifai-captions](https://github.com/lattifai/captions).
+
+```bash
+# Convert SRT to VTT
+subtitle-tk convert input.srt --output-format vtt -o output.vtt
+
+# Convert ASS to SRT
+subtitle-tk convert input.ass --output-format srt -o output.srt
+
+# Read from stdin, write to stdout
+cat input.srt | subtitle-tk convert --input-format srt --output-format vtt
+
+# Normalize text (remove HTML tags, collapse whitespace)
+subtitle-tk convert input.srt --output-format sbv -o output.sbv --normalize-text
+```
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--input-format` | `auto` | Input format (srt, vtt, ass, etc.) |
+| `--output-format` | *(required)* | Output format (srt, vtt, ass, ttml, etc.) |
+| `-o, --output` | *(stdout)* | Output file path |
+| `--preserve-formatting` | *(default)* | Keep original text formatting |
+| `--normalize-text` | | Normalize text (remove HTML tags, collapse whitespace) |
 
 ---
 
@@ -269,9 +295,9 @@ subtitle-tk translate season01.srt \
 | `LLM_API_KEY` | API key for the LLM provider. | `export LLM_API_KEY=sk-xxxx` |
 | `ANTHROPIC_API_KEY` | API key for Anthropic models. | `export ANTHROPIC_API_KEY=sk-ant-xxxx` |
 | `GEMINI_API_KEY` | API key for Google Gemini models. | `export GEMINI_API_KEY=AIzaSyxxxx` |
-| `PYTHONIOENCODING` | Forces UTF‑8 for stdin/stdout (useful on Windows). | `export PYTHONIOENCODING=utf-8` |
+| `PYTHONIOENCODING` | Forces UTF-8 for stdin/stdout (useful on Windows). | `export PYTHONIOENCODING=utf-8` |
 
-The command‑line arguments always take precedence over environment variables.
+The command-line arguments always take precedence over environment variables.
 
 ---
 
@@ -280,13 +306,13 @@ The command‑line arguments always take precedence over environment variables.
 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
-| `ValueError: time data ... does not match format` from `subtitle-tk timeshift` | Wrong timestamp format in the SRT (e.g., missing commas). | Verify the source file follows the `HH:MM:SS,mmm` pattern. The script will leave un‑parseable lines untouched. |
+| `ValueError: time data ... does not match format` from `subtitle-tk timeshift` | Wrong timestamp format in the SRT (e.g., missing commas). | Verify the source file follows the `HH:MM:SS,mmm` pattern. The script will leave un-parseable lines untouched. |
 | No output file created, script exits with "Input file does not exist" | Wrong path or missing file permissions. | Use an absolute path or `ls` to confirm the file exists. |
 | `ImportError: No module named litellm` | `litellm` Python package not installed. | `pip install -r requirements.txt` (or `pip install litellm`). |
 | API returns 429 / "rate limit exceeded" | Chunk size too large or server limits. | Reduce `--chunk-size` or add a short `sleep` between requests (modify script). |
 | GUI script crashes with "zenity: command not found" | `zenity` not installed. | Install via package manager (`sudo apt install zenity` on Debian/Ubuntu, `brew install zenity` on macOS via Homebrew). |
-| Translated subtitles lose numbering or timestamps | The instruction file asked the model to "maintain format" but the model ignored it. | Tighten the instruction (e.g., add “**Do not modify the index numbers or timestamps**”). |
-| Output file contains Windows line endings on Linux (or vice‑versa) | Mixed line endings in the source file. | The script preserves the original style; if you need a specific style, run `dos2unix` or `unix2dos` after translation. |
+| Translated subtitles lose numbering or timestamps | The instruction file asked the model to "maintain format" but the model ignored it. | Tighten the instruction (e.g., add "**Do not modify the index numbers or timestamps**"). |
+| Output file contains Windows line endings on Linux (or vice-versa) | Mixed line endings in the source file. | The script preserves the original style; if you need a specific style, run `dos2unix` or `unix2dos` after translation. |
 | `Error: ffmpeg is required but not found` | FFmpeg not installed. | Install FFmpeg using your system's package manager. |
 
 ---
@@ -297,16 +323,16 @@ The command‑line arguments always take precedence over environment variables.
 Contributions are welcome! Please follow these steps:
 
 1. Fork the repository.
-2. Create a feature branch (`git checkout -b my‑feature`).
+2. Create a feature branch (`git checkout -b my-feature`).
 3. Make your changes, add tests if applicable.
-4. Ensure the code follows the existing style (PEP 8, docstrings).
+4. Ensure the code follows the existing style (PEP 8, docstrings).
 5. Open a Pull Request with a clear description of the change.
 
 **Areas where help is especially appreciated**
 
 * Adding support for Windows GUI (e.g., PowerShell + `Out-GridView`).
 * Improving error handling for malformed SRT files.
-* Providing ready‑made instruction templates for other language pairs.
+* Providing ready-made instruction templates for other language pairs.
 * Any other subtitle tools or ideas.
 
 ---
@@ -314,7 +340,7 @@ Contributions are welcome! Please follow these steps:
 <a name="license"></a>
 ## License
 
-This project is released under the **GPLv3 License** – see the `LICENSE` file for details.
+This project is released under the **GPLv3 License** - see the `LICENSE` file for details.
 
 ---
 
