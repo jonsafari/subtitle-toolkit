@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2 dark:text-white">{{ translations.autosync_tool if translations else 'Auto-Sync Tool' }}</h1>
+        <p class="text-gray-600 dark:text-gray-300 mb-4">
+            {{ translations.autosync_desc if translations else 'Fix subtitle drift by applying time-varying offset correction. Use this when subtitles start in sync but gradually drift out of sync over time (e.g., due to frame rate differences).' }}
+        </p>
+        <a href="/" class="inline-flex items-center text-blue-600 hover:text-blue-800 mt-2 dark:text-blue-400 dark:hover:text-blue-300">
+            <i class="fas fa-arrow-left mr-1"></i> {{ translations.back_to_home if translations else 'Back to Home' }}
+        </a>
+
+    {% if error %}
+    <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 dark:bg-red-900/20 dark:border-red-700">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-circle text-red-400 dark:text-red-500"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-red-700 dark:text-red-300">
+                    {{ error }}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="POST">
+        <div class="mb-6">
+            <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="srt_file_upload">
+                {{ translations.upload_srt_file if translations else 'Upload SRT File' }}
+            </label>
+            <div class="flex items-center">
+                <label for="srt_file_upload" class="file-upload-label">
+                    <i class="fas fa-upload mr-2"></i> {{ translations.choose_file if translations else 'Choose File' }}
+                </label>
+                <input type="file" id="srt_file_upload" name="srt_file_upload" class="file-upload-input" accept=".srt">
+                <span id="file-name" class="ml-4 text-gray-500 dark:text-gray-400">{{ translations.no_file_chosen if translations else 'No file chosen' }}</span>
+            </div>
+            <textarea
+                id="srt_file"
+                name="srt_file"
+                rows="8"
+                class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                placeholder="{{ translations.paste_srt_content if translations else 'Paste your SRT content here or upload a file...' }}"
+                required
+            ></textarea>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="video_file_upload">
+                {{ translations.optionally_view_video if translations else 'Optionally View Video - to help you determine timestamps' }}
+            </label>
+            <div class="flex items-center">
+                <label for="video_file_upload" class="file-upload-label">
+                    <i class="fas fa-video mr-2"></i> {{ translations.choose_video if translations else 'Choose Video' }}
+                </label>
+                <input type="file" id="video_file_upload" name="video_file_upload" class="file-upload-input" accept="video/*">
+            </div>
+            <span id="video-file-name" class="ml-4 text-gray-500 dark:text-gray-400"></span>
+        </div>
+
+        <div class="mb-6">
+            <video id="video-preview" controls class="w-full rounded-md border border-slate-300 dark:border-slate-300 dark:bg-slate-800/20" style="max-height: 300px; display: none;"></video>
+        </div>
+
+        <!-- Mode Selection -->
+        <div class="mb-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4 dark:text-white">{{ translations.correction_mode if translations else 'Correction Mode' }}</h3>
+            
+            <div class="space-y-4">
+                <!-- Two-Point Mode -->
+                <div class="bg-gray-50 rounded-lg p-4 dark:bg-slate-700">
+                    <h4 class="font-medium text-gray-800 mb-3 dark:text-gray-200">
+                        <i class="fas fa-ruler-combined mr-2"></i>
+                        {{ translations.two_point_mode if translations else 'Two-Point Correction' }}
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-4 dark:text-gray-300">
+                        {{ translations.two_point_desc if translations else 'Specify two points: where subtitles are correct and where they have a known offset.' }}
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300" for="correct_at">
+                                {{ translations.correct_at if translations else 'Correct At (Time)' }}
+                            </label>
+                            <input
+                                type="text"
+                                id="correct_at"
+                                name="correct_at"
+                                class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                                placeholder="00:00:30"
+                            >
+                            <p class="text-xs text-gray-500 mt-1 dark:text-gray-400">{{ translations.correct_at_desc if translations else 'Time where subtitles are correct' }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300" for="offset_at">
+                                {{ translations.offset_at if translations else 'Offset At (Time)' }}
+                            </label>
+                            <input
+                                type="text"
+                                id="offset_at"
+                                name="offset_at"
+                                class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                                placeholder="00:10:00"
+                            >
+                            <p class="text-xs text-gray-500 mt-1 dark:text-gray-400">{{ translations.offset_at_desc if translations else 'Time where you know the offset' }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300" for="offset_seconds">
+                                {{ translations.offset_seconds if translations else 'Offset (Seconds)' }}
+                            </label>
+                            <input
+                                type="number"
+                                id="offset_seconds"
+                                name="offset_seconds"
+                                step="0.01"
+                                class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                                placeholder="5.0"
+                            >
+                            <p class="text-xs text-gray-500 mt-1 dark:text-gray-400">{{ translations.offset_seconds_desc if translations else 'Positive = subtitles are late' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multi-Point Mode -->
+                <div class="bg-gray-50 rounded-lg p-4 dark:bg-slate-700">
+                    <h4 class="font-medium text-gray-800 mb-3 dark:text-gray-200">
+                        <i class="fas fa-project-diagram mr-2"></i>
+                        {{ translations.multi_point_mode if translations else 'Multi-Point Correction' }}
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-4 dark:text-gray-300">
+                        {{ translations.multi_point_desc if translations else 'Specify multiple sync points for complex drift patterns.' }}
+                    </p>
+                    
+                    <div id="sync-points-container" class="space-y-2">
+                        <div class="sync-point flex gap-2">
+                            <input
+                                type="text"
+                                name="sync_point_time"
+                                class="form-input flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                                placeholder="00:00:30"
+                            >
+                            <input
+                                type="number"
+                                name="sync_point_offset"
+                                step="0.01"
+                                class="form-input w-24 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                                placeholder="0"
+                            >
+                            <button type="button" class="remove-point text-red-500 hover:text-red-700 px-2">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="sync-point flex gap-2">
+                            <input
+                                type="text"
+                                name="sync_point_time"
+                                class="form-input flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                                placeholder="00:10:00"
+                            >
+                            <input
+                                type="number"
+                                name="sync_point_offset"
+                                step="0.01"
+                                class="form-input w-24 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                                placeholder="5"
+                            >
+                            <button type="button" class="remove-point text-red-500 hover:text-red-700 px-2">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" id="add-point" class="mt-2 text-blue-600 hover:text-blue-800 text-sm dark:text-blue-400 dark:hover:text-blue-300">
+                        <i class="fas fa-plus mr-1"></i> {{ translations.add_point if translations else 'Add Sync Point' }}
+                    </button>
+                </div>
+
+                <!-- Known Drift Rate Mode -->
+                <div class="bg-gray-50 rounded-lg p-4 dark:bg-slate-700">
+                    <h4 class="font-medium text-gray-800 mb-3 dark:text-gray-200">
+                        <i class="fas fa-cogs mr-2"></i>
+                        {{ translations.known_drift_rate if translations else 'Known Drift Rate' }}
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-4 dark:text-gray-300">
+                        {{ translations.known_drift_desc if translations else 'Apply a known drift rate from common frame rate conversions.' }}
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300" for="drift_rate">
+                                {{ translations.drift_rate if translations else 'Drift Rate' }}
+                            </label>
+                            <select
+                                id="drift_rate"
+                                name="drift_rate"
+                                class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                            >
+                                <option value="">-- {{ translations.select_rate if translations else 'Select Rate' }} --</option>
+                                <option value="23.976_to_24">23.976 fps → 24 fps (+0.1%)</option>
+                                <option value="24_to_23.976">24 fps → 23.976 fps (-0.1%)</option>
+                                <option value="29.97_to_30">29.97 fps → 30 fps (+0.1%)</option>
+                                <option value="30_to_29.97">30 fps → 29.97 fps (-0.1%)</option>
+                                <option value="25_to_23.976">25 fps → 23.976 fps (-4.2%)</option>
+                                <option value="23.976_to_25">23.976 fps → 25 fps (+4.2%)</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300" for="reference_time">
+                                {{ translations.reference_time if translations else 'Reference Time' }}
+                            </label>
+                            <input
+                                type="text"
+                                id="reference_time"
+                                name="reference_time"
+                                class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                                placeholder="00:00:00"
+                                value="00:00:00"
+                            >
+                            <p class="text-xs text-gray-500 mt-1 dark:text-gray-400">{{ translations.reference_time_desc if translations else 'Time where offset is zero' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end">
+            <button
+                type="submit"
+                class="btn-primary text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition duration-200"
+            >
+                {{ translations.apply_correction if translations else 'Apply Correction' }}
+            </button>
+        </div>
+    </form>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6 dark:bg-blue-900/20 dark:border-blue-700">
+        <h3 class="text-lg font-medium text-blue-800 mb-2 dark:text-blue-300">{{ translations.usage_examples if translations else 'Usage Examples' }}</h3>
+        <ul class="list-disc pl-5 text-blue-700 space-y-1 dark:text-blue-300">
+            <li>{{ translations.example_drift if translations else 'Subtitles correct at 0:30, 5 seconds late at 10:00' }}: 
+                <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">correct_at=00:00:30, offset_at=00:10:00, offset=5.0</code>
+            </li>
+            <li>{{ translations.example_multi if translations else 'Multiple sync points for complex drift' }}: 
+                <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">00:00:30:0, 00:05:00:2.5, 00:10:00:5.0</code>
+            </li>
+            <li>{{ translations.example_framerate if translations else 'Frame rate conversion (23.976→24 fps)' }}: 
+                <code class="bg-blue-100 px-1 rounded dark:bg-blue-800/30">drift_rate=23.976_to_24</code>
+            </li>
+        </ul>
+    </div>
+
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-4 dark:bg-yellow-900/20 dark:border-yellow-700">
+        <h3 class="text-lg font-medium text-yellow-800 mb-2 dark:text-yellow-300">
+            <i class="fas fa-lightbulb mr-2"></i>
+            {{ translations.tips if translations else 'Tips' }}
+        </h3>
+        <ul class="list-disc pl-5 text-yellow-700 space-y-1 dark:text-yellow-300">
+            <li>{{ translations.tip_drift if translations else 'Drift is common when video and subtitles have different frame rates' }}</li>
+            <li>{{ translations.tip_watch if translations else 'Watch the video and note timestamps where subtitles are correct vs. wrong' }}</li>
+            <li>{{ translations.tip_positive if translations else 'Positive offset means subtitles appear LATE (after the audio)' }}</li>
+            <li>{{ translations.tip_negative if translations else 'Negative offset means subtitles appear EARLY (before the audio)' }}</li>
+        </ul>
+    </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // File upload handler
+            const fileInput = document.getElementById('srt_file_upload');
+            const fileNameSpan = document.getElementById('file-name');
+            const textArea = document.getElementById('srt_file');
+
+            if (fileInput) {
+                fileInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const fileName = this.files[0].name;
+                        fileNameSpan.textContent = fileName;
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            textArea.value = e.target.result;
+                        };
+                        reader.readAsText(this.files[0]);
+                    } else {
+                        fileNameSpan.textContent = 'No file chosen';
+                    }
+                });
+            }
+
+            // Video file handler
+            const videoInput = document.getElementById('video_file_upload');
+            const videoNameSpan = document.getElementById('video-file-name');
+            const videoPreview = document.getElementById('video-preview');
+
+            if (videoInput) {
+                videoInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const fileName = this.files[0].name;
+                        videoNameSpan.textContent = fileName;
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const blob = new Blob([e.target.result], { type: 'video/mp4' });
+                            const url = URL.createObjectURL(blob);
+                            videoPreview.src = url;
+                            videoPreview.style.display = 'block';
+                            videoPreview.play();
+                        };
+                        reader.readAsArrayBuffer(this.files[0]);
+                    }
+                });
+            }
+
+            // Add/remove sync points
+            const addPointBtn = document.getElementById('add-point');
+            const syncPointsContainer = document.getElementById('sync-points-container');
+
+            if (addPointBtn) {
+                addPointBtn.addEventListener('click', function() {
+                    const newPoint = document.createElement('div');
+                    newPoint.className = 'sync-point flex gap-2';
+                    newPoint.innerHTML = `
+                        <input
+                            type="text"
+                            name="sync_point_time"
+                            class="form-input flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                            placeholder="HH:MM:SS"
+                        >
+                        <input
+                            type="number"
+                            name="sync_point_offset"
+                            step="0.01"
+                            class="form-input w-24 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-600 dark:border-slate-500 dark:text-white"
+                            placeholder="0"
+                        >
+                        <button type="button" class="remove-point text-red-500 hover:text-red-700 px-2">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    syncPointsContainer.appendChild(newPoint);
+                });
+            }
+
+            // Remove point buttons
+            syncPointsContainer.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-point')) {
+                    const point = e.target.closest('.sync-point');
+                    if (syncPointsContainer.children.length > 1) {
+                        point.remove();
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

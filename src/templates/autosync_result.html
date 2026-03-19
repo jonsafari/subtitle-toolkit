@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800">
+        <h1 class="text-2xl font-bold text-gray-900 mb-4 dark:text-white">
+            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+            {{ translations.correction_applied if translations else 'Correction Applied' }}
+        </h1>
+
+        <div class="mb-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-2 dark:text-white">{{ translations.corrected_subtitles if translations else 'Corrected Subtitles' }}</h3>
+            <div class="scrollable-content bg-gray-50 p-4 rounded-md dark:bg-slate-700">
+                <pre class="text-sm overflow-x-auto dark:text-gray-100">{{ output }}</pre>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center mb-6">
+            <a href="/autosync" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                <i class="fas fa-redo mr-1"></i> {{ translations.process_another if translations else 'Process Another File' }}
+            </a>
+            
+            <form method="POST" action="/autosync/download" class="inline">
+                <input type="hidden" name="output" value="{{ output }}">
+                <button type="submit" class="save-button text-white px-6 py-2 rounded-md font-medium hover:bg-green-700 transition duration-200">
+                    <i class="fas fa-download mr-2"></i> {{ translations.download_srt if translations else 'Download SRT' }}
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 dark:bg-green-900/20 dark:border-green-700">
+            <h3 class="text-lg font-medium text-green-800 mb-2 dark:text-green-300">
+                <i class="fas fa-info-circle mr-2"></i>
+                {{ translations.next_steps if translations else 'Next Steps' }}
+            </h3>
+            <ul class="list-disc pl-5 text-green-700 space-y-1 dark:text-green-300">
+                <li>{{ translations.download_file if translations else 'Download the corrected SRT file above' }}</li>
+                <li>{{ translations.rename_file if translations else 'Rename it to match your video file name' }}</li>
+                <li>{{ translations.play_video if translations else 'Place it in the same folder as your video and play' }}</li>
+                <li>{{ translations.test_sync if translations else 'Test the sync - if still off, adjust the parameters and try again' }}</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

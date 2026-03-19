@@ -1,11 +1,12 @@
 # Subtitle Toolkit  🍿
 
-A small collection of utilities for **fixing** (time-shifting) and **translating** SRT subtitle files. There's command-line tools as well as a web interface.
+A small collection of utilities for **fixing** (time-shifting, drift correction) and **translating** SRT subtitle files. There's command-line tools as well as a web interface.
 The tools are deliberately lightweight, command-line-first, and work with any LLM provider via litellm (OpenAI, Anthropic, Gemini, Databricks, and local models).
 
 | Script | What it does | Typical use-case |
 |--------|--------------|------------------|
-| `subtitle-tk timeshift` | Shifts every timestamp in an SRT stream by a fixed amount **or** aligns the first subtitle to a user-provided start time. | Fix subtitles that are out of sync with the video. |
+| `subtitle-tk timeshift` | Shifts every timestamp in an SRT stream by a fixed amount **or** aligns the first subtitle to a user-provided start time. | Fix subtitles that are uniformly out of sync with the video. |
+| `subtitle-tk autosync` | Applies **drift correction** to SRT files using two-point, multi-point, or known drift rate methods. | Fix subtitles that gradually drift out of sync (e.g., due to frame rate differences like 23.976fps vs 24fps). |
 | `subtitle_timeshift_gui.sh` | Small Zenity-based GUI wrapper around `subtitle-tk timeshift`. | Users who prefer a point-and-click workflow on Linux. |
 | `subtitle-tk mkv2srt` | Extracts subtitles from MKV files and converts them to SRT format. | Extract subtitles from MKV files for use with video players. |
 | `subtitle-tk translate` | Translates a subtitle (SRT/SubRip) file, using a *translation‑instruction* file and an LLM endpoint via litellm. | Translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
@@ -148,6 +149,90 @@ subtitle-tk translate path/to/english.srt \
 * The script tolerates malformed timestamp lines - they are passed through unchanged.
 * If a shift would produce a negative time, the timestamp is clamped to `00:00:00,000`.
 * The script keeps the original line endings (`\n` or `\r\n`).
+
+---
+
+### <a name="subtitle_autosyncpy"></a>`subtitle-tk autosync`
+
+#### Purpose
+
+Applies **drift correction** to SRT subtitle files. Unlike `timeshift` which applies a uniform shift to all timestamps, `autosync` applies a **time-varying offset** that increases or decreases across the video duration. This is essential for fixing subtitles that gradually drift out of sync due to frame rate differences (e.g., 23.976fps video with 24fps subtitles).
+
+#### When to Use Autosync vs Timeshift
+
+| Scenario | Tool |
+|----------|------|
+| Subtitles are uniformly off by X seconds | `timeshift` |
+| Subtitles start correct but drift over time | `autosync` |
+| Video has wrong frame rate (23.976 vs 24 fps) | `autosync` |
+
+#### Command-line options
+
+| Option | Description |
+|--------|-------------|
+| `--correct-at`, `-c <time>` | Time where subtitles are correct (offset = 0). Format: `HH:MM:SS[,.mmm]` |
+| `--offset-at`, `-o <time>` | Time where you know the offset value |
+| `--offset <seconds>` | Offset in seconds at `--offset-at` time (positive = subtitles are late) |
+| `--points`, `-p <time:offset>...` | Multiple sync points for complex drift (e.g., `00:00:30:0 00:10:00:5`) |
+| `--drift-rate`, `-d <rate>` | Apply known drift rate: `23.976_to_24`, `24_to_23.976`, `29.97_to_30`, etc. |
+| `--reference`, `-r <time>` | Reference time for drift rate mode (default: `00:00:00`) |
+| `--output`, `-O <file>` | Output file (default: stdout) |
+| `--no-clamp` | Don't clamp negative timestamps to zero |
+| `--verbose`, `-v` | Print verbose information about the correction |
+
+#### Examples
+
+**Two-point correction (most common):**
+```bash
+# Subtitles correct at 0:30, 5 seconds late at 10:00
+cat input.srt | subtitle-tk autosync --correct-at 00:00:30 --offset-at 00:10:00 --offset 5.0 > output.srt
+```
+
+**Multi-point correction (for complex drift):**
+```bash
+# Multiple sync points: 0:30 correct, 5:00 is 2.5s late, 10:00 is 5s late
+cat input.srt | subtitle-tk autosync --points 00:00:30:0 00:05:00:2.5 00:10:00:5.0 > output.srt
+```
+
+**Known drift rate (frame rate conversion):**
+```bash
+# Video was 23.976fps but subtitles are for 24fps
+cat input.srt | subtitle-tk autosync --drift-rate 23.976_to_24 > output.srt
+
+# Common drift rates:
+# - 23.976_to_24: 23.976fps → 24fps (+0.1%, ~4.5 sec/hour)
+# - 29.97_to_30: 29.97fps → 30fps (+0.1%, ~6 sec/hour)
+# - 25_to_23.976: 25fps → 23.976fps (-4.2%, ~2.5 min/hour)
+```
+
+**With verbose output:**
+```bash
+cat input.srt | subtitle-tk autosync --correct-at 00:00:30 --offset-at 00:10:00 --offset 5.0 --verbose
+```
+
+#### How It Works
+
+The autosync tool calculates a **drift rate** based on your sync points:
+
+```
+drift_rate = offset_at_offset_time / (offset_time - reference_time)
+```
+
+For any subtitle at time `t`:
+```
+offset = drift_rate × (t - reference_time)
+new_time = t + offset
+```
+
+This creates a linear correction that gradually increases (or decreases) across the video.
+
+#### Tips
+
+1. **Watch your video** and note timestamps where subtitles are correct vs. wrong
+2. **Positive offset** means subtitles appear LATE (after the audio)
+3. **Negative offset** means subtitles appear EARLY (before the audio)
+4. **Two-point mode** works for most cases - just find where subs are correct and where they're wrong
+5. **Multi-point mode** is for complex drift patterns (rare)
 
 ---
 

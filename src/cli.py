@@ -55,16 +55,20 @@ def run_convert(args: List[str]) -> int:
     return subprocess.run(cmd).returncode
 
 
-def main() -> None:
-    if len(sys.argv) < 2:
-        parser = argparse.ArgumentParser(
-            prog="subtitle-tk",
-            description="Subtitle Toolkit - A collection of utilities for working with subtitle files",
-            formatter_class=argparse.RawDescriptionHelpFormatter,
-            epilog="""
+def run_autosync(args: List[str]) -> int:
+    """Run the autosync.py script."""
+    script_path = get_script_dir() / "autosync.py"
+    cmd = [sys.executable, str(script_path)] + args
+    return subprocess.run(cmd).returncode
+
+
+def get_help_epilog() -> str:
+    """Get the help epilog text."""
+    return """
 Commands:
     translate   Translate subtitles using AI
-    timeshift   Shift timestamps in SRT files
+    timeshift   Shift timestamps in SRT files (uniform shift)
+    autosync    Apply drift correction to subtitles (time-varying offset)
     mkv2srt     Extract subtitles from MKV files
     convert     Convert subtitles between formats (SRT, VTT, ASS, TTML, etc.)
     web         Start the web interface
@@ -72,10 +76,21 @@ Commands:
 Examples:
     subtitle-tk translate input.srt --instructions instructions.txt
     subtitle-tk timeshift --shift-seconds 2.5 < input.srt > output.srt
+    subtitle-tk autosync --correct-at 00:00:30 --offset-at 00:10:00 --offset 5.0 < input.srt
+    subtitle-tk autosync --point 00:00:30:0 00:05:00:2.5 00:10:00:5.0 < input.srt
     subtitle-tk mkv2srt --input video.mkv --language en
     subtitle-tk convert input.srt --output-format vtt -o output.vtt
     subtitle-tk web --host 0.0.0.0 --port 8000
         """
+
+
+def main() -> None:
+    if len(sys.argv) < 2:
+        parser = argparse.ArgumentParser(
+            prog="subtitle-tk",
+            description="Subtitle Toolkit - A collection of utilities for working with subtitle files",
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            epilog=get_help_epilog()
         )
         parser.print_help()
         sys.exit(0)
@@ -87,31 +102,17 @@ Examples:
             prog="subtitle-tk",
             description="Subtitle Toolkit - A collection of utilities for working with subtitle files",
             formatter_class=argparse.RawDescriptionHelpFormatter,
-            epilog="""
-Commands:
-    translate   Translate subtitles using AI
-    timeshift   Shift timestamps in SRT files
-    mkv2srt     Extract subtitles from MKV files
-    convert     Convert subtitles between formats (SRT, VTT, ASS, TTML, etc.)
-    web         Start the web interface
-
-Examples:
-    subtitle-tk translate input.srt --instructions instructions.txt
-    subtitle-tk timeshift --shift-seconds 2.5 < input.srt > output.srt
-    subtitle-tk mkv2srt --input video.mkv --language en
-    subtitle-tk convert input.srt --output-format vtt -o output.vtt
-    subtitle-tk web --host 0.0.0.0 --port 8000
-        """
+            epilog=get_help_epilog()
         )
         parser.print_help()
         sys.exit(0)
     
-    if command not in ["translate", "timeshift", "mkv2srt", "convert", "web"]:
+    if command not in ["translate", "timeshift", "mkv2srt", "convert", "autosync", "web"]:
         parser = argparse.ArgumentParser(
             prog="subtitle-tk",
             description="Subtitle Toolkit - A collection of utilities for working with subtitle files"
         )
-        parser.add_argument("command", nargs="?", choices=["translate", "timeshift", "mkv2srt", "convert", "web"])
+        parser.add_argument("command", nargs="?", choices=["translate", "timeshift", "mkv2srt", "convert", "autosync", "web"])
         parser.print_help()
         sys.exit(1)
     
@@ -125,6 +126,8 @@ Examples:
         sys.exit(run_mkv2srt(remaining_args))
     elif command == "convert":
         sys.exit(run_convert(remaining_args))
+    elif command == "autosync":
+        sys.exit(run_autosync(remaining_args))
     elif command == "web":
         sys.exit(run_web(remaining_args))
 

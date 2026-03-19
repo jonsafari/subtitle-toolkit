@@ -10,7 +10,7 @@
     </p>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 mb-12">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
     <a href="/timeshift" class="tool-card bg-white rounded-lg p-6 shadow-md hover:shadow-lg dark:bg-slate-800">
         <div class="flex justify-center mb-4">
             <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl dark:bg-slate-700 dark:text-blue-400">
@@ -20,6 +20,18 @@
         <h3 class="text-xl font-semibold text-gray-900 mb-2 dark:text-white">{{ translations.time_shift_tool if translations else 'Time Shift Tool' }}</h3>
         <p class="text-gray-600 dark:text-gray-300">
             {{ translations.time_shift_desc if translations else 'Shift timestamps in subtitle files to fix synchronization issues with videos.' }}
+        </p>
+    </a>
+
+    <a href="/autosync" class="tool-card bg-white rounded-lg p-6 shadow-md hover:shadow-lg dark:bg-slate-800">
+        <div class="flex justify-center mb-4">
+            <div class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center text-2xl dark:bg-slate-700 dark:text-indigo-400">
+                🎯
+            </div>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2 dark:text-white">{{ translations.auto_sync_tool if translations else 'Auto Sync Tool' }}</h3>
+        <p class="text-gray-600 dark:text-gray-300">
+            {{ translations.auto_sync_desc if translations else 'Fix subtitle drift by applying time-varying offset correction for frame rate issues.' }}
         </p>
     </a>
 

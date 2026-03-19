@@ -57,6 +57,7 @@ TIMESHIFT_SCRIPT = PROJECT_ROOT / "timeshift.py"
 MKV2SRT_SCRIPT = PROJECT_ROOT / "mkv2srt.py"
 TRANSLATE_SCRIPT = PROJECT_ROOT / "translate.py"
 CONVERT_SCRIPT = PROJECT_ROOT / "convert.py"
+AUTOSYNC_SCRIPT = PROJECT_ROOT / "autosync.py"
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request) -> HTMLResponse:
@@ -460,6 +461,122 @@ async def convert_download(request: Request, output: Optional[str] = Form(None),
             tmp_file_path,
             media_type="application/octet-stream",
             filename=f"converted_subtitles{ext}"
+        )
+    except Exception:
+        # Clean up in case of error
+        if tmp_file_path and os.path.exists(tmp_file_path):
+            os.unlink(tmp_file_path)
+        raise
+
+@app.get("/autosync", response_class=HTMLResponse)
+async def autosync_page(request: Request) -> HTMLResponse:
+    lang = get_language_from_request(request)
+    return templates.TemplateResponse(request, "autosync.html", {
+        "lang": lang,
+        "translations": load_translations(lang)
+    })
+
+@app.post("/autosync", response_class=HTMLResponse)
+async def autosync_submit(
+    request: Request,
+    srt_file: Optional[str] = Form(None),
+    correct_at: Optional[str] = Form(None),
+    offset_at: Optional[str] = Form(None),
+    offset_seconds: Optional[float] = Form(None),
+    drift_rate: Optional[str] = Form(None),
+    reference_time: Optional[str] = Form(None),
+    sync_point_time: Optional[List[str]] = Form(None),
+    sync_point_offset: Optional[List[float]] = Form(None)
+) -> HTMLResponse:
+    lang = get_language_from_request(request)
+    translations = load_translations(lang)
+
+    # Validate inputs
+    if not srt_file:
+        return templates.TemplateResponse(request, "autosync.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": translations.get("please_upload_srt", "Please upload an SRT file")
+        })
+
+    # Process the file
+    try:
+        # Build command
+        cmd: List[str] = ["python3", str(AUTOSYNC_SCRIPT)]
+
+        # Determine which mode to use
+        if drift_rate:
+            # Known drift rate mode
+            cmd.extend(["--drift-rate", drift_rate])
+            if reference_time:
+                cmd.extend(["--reference", reference_time])
+        elif sync_point_time and len(sync_point_time) >= 2:
+            # Multi-point mode
+            points = []
+            for i in range(len(sync_point_time)):
+                if sync_point_offset and i < len(sync_point_offset):
+                    points.append(f"{sync_point_time[i]}:{sync_point_offset[i]}")
+                else:
+                    points.append(f"{sync_point_time[i]}:0")
+            cmd.extend(["--points"] + points)
+        elif correct_at and offset_at and offset_seconds is not None:
+            # Two-point mode
+            cmd.extend(["--correct-at", correct_at])
+            cmd.extend(["--offset-at", offset_at])
+            cmd.extend(["--offset", str(offset_seconds)])
+        else:
+            return templates.TemplateResponse(request, "autosync.html", {
+                "lang": lang,
+                "translations": translations,
+                "error": translations.get("error_processing_file", "Please provide valid correction parameters")
+            })
+
+        # Run the command with input from stdin
+        result = subprocess.run(
+            cmd,
+            input=srt_file,
+            text=True,
+            capture_output=True,
+            check=True
+        )
+
+        return templates.TemplateResponse(request, "autosync_result.html", {
+            "lang": lang,
+            "translations": translations,
+            "output": result.stdout
+        })
+
+    except subprocess.CalledProcessError as e:
+        return templates.TemplateResponse(request, "autosync.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr.decode() if isinstance(e.stderr, bytes) else e.stderr}"
+        })
+    except Exception as e:
+        return templates.TemplateResponse(request, "autosync.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}"
+        })
+
+@app.post("/autosync/download")
+async def autosync_download(request: Request, output: Optional[str] = Form(None)):  # type: ignore[no-untyped-def]
+    if not output:
+        # If no output provided, redirect to autosync page
+        return templates.TemplateResponse(request, "autosync.html", {})
+
+    # Create a temporary file with the output content
+    tmp_file_path = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.srt', delete=False, encoding='utf-8') as tmp_file:
+            tmp_file.write(output)
+            tmp_file_path = tmp_file.name
+
+        # Return the file for download
+        return FileResponse(
+            tmp_file_path,
+            media_type="application/octet-stream",
+            filename="corrected_subtitles.srt"
         )
     except Exception:
         # Clean up in case of error
