@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{{ tool_name if tool_name else 'Subtitle Tracks' }} - Result{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2 dark:text-white">{{ tool_name if tool_name else 'Subtitle Tracks' }} - {{ translations.result if translations else 'Result' }}</h1>
+        <a href="/subtitle-tracks" class="inline-flex items-center text-blue-600 hover:text-blue-800 mt-2 dark:text-blue-400 dark:hover:text-blue-300">
+            <i class="fas fa-arrow-left mr-1"></i> {{ translations.back_to_tool if translations else 'Back to Tool' }}
+        </a>
+    </div>
+
+    <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6 dark:bg-green-900/20 dark:border-green-700">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-check-circle text-green-400 dark:text-green-500"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-green-700 dark:text-green-300">
+                    {{ translations.success if translations else 'Processing completed successfully' }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 dark:bg-slate-800">
+        <h2 class="text-xl font-semibold mb-4 dark:text-white">
+            {{ translations.processing_output if translations else 'Processing Output' }}
+        </h2>
+
+        <div class="mb-4">
+            <textarea readonly class="w-full h-96 p-4 font-mono text-sm bg-gray-50 border rounded-md dark:bg-slate-700 dark:border-slate-600 dark:text-white" style="resize: vertical;">{{ output }}</textarea>
+        </div>
+
+        {% if download_filename %}
+        <form method="post" action="/subtitle-tracks/download">
+            <input type="hidden" name="output" value="{{ output }}">
+            <input type="hidden" name="filename" value="{{ download_filename }}">
+            <div class="flex justify-end space-x-4">
+                <a href="/subtitle-tracks" class="text-blue-600 hover:text-blue-800 dark:text-blue-400">
+                    <i class="fas fa-redo mr-1"></i>{{ translations.process_another if translations else 'Process Another' }}
+                </a>
+                <button type="submit" class="save-button text-white px-6 py-2 rounded-md font-medium">
+                    <i class="fas fa-download mr-2"></i>{{ translations.download_srt if translations else 'Download SRT' }}
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <div class="flex justify-end">
+            <a href="/subtitle-tracks" class="btn-primary text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition duration-200">
+                <i class="fas fa-redo mr-1"></i>{{ translations.process_another if translations else 'Process Another' }}
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

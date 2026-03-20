@@ -58,6 +58,7 @@ MKV2SRT_SCRIPT = PROJECT_ROOT / "mkv2srt.py"
 TRANSLATE_SCRIPT = PROJECT_ROOT / "translate.py"
 CONVERT_SCRIPT = PROJECT_ROOT / "convert.py"
 AUTOSYNC_SCRIPT = PROJECT_ROOT / "autosync.py"
+SUBTITLE_TRACKS_SCRIPT = PROJECT_ROOT / "subtitle_tracks.py"
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request) -> HTMLResponse:
@@ -583,6 +584,279 @@ async def autosync_download(request: Request, output: Optional[str] = Form(None)
         if tmp_file_path and os.path.exists(tmp_file_path):
             os.unlink(tmp_file_path)
         raise
+
+@app.get("/subtitle-tracks", response_class=HTMLResponse)
+async def subtitle_tracks_page(request: Request) -> HTMLResponse:
+    """Show the subtitle tracks management page."""
+    lang = get_language_from_request(request)
+    return templates.TemplateResponse(request, "subtitle_tracks.html", {
+        "lang": lang,
+        "translations": load_translations(lang)
+    })
+
+
+@app.post("/subtitle-tracks/list", response_class=HTMLResponse)
+async def subtitle_tracks_list(
+    request: Request,
+    video_file: Optional[UploadFile] = Form(None)
+) -> HTMLResponse:
+    """List subtitle tracks in a video file."""
+    lang = get_language_from_request(request)
+    translations = load_translations(lang)
+
+    if not video_file or video_file.filename is None or video_file.filename == "":
+        return templates.TemplateResponse(request, "subtitle_tracks.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": translations.get("please_upload_video", "Please upload a video file")
+        })
+
+    try:
+        # Save uploaded file (stream to disk to handle large files)
+        with tempfile.NamedTemporaryFile(mode='wb', suffix='.mkv', delete=False) as tmp_input:
+            while True:
+                chunk = await video_file.read(8192)
+                if not chunk:
+                    break
+                tmp_input.write(chunk)
+            tmp_input_path = tmp_input.name
+
+        # Run list command
+        cmd: List[str] = ["python3", str(SUBTITLE_TRACKS_SCRIPT), "list", str(tmp_input_path)]
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+
+        # Clean up
+        os.unlink(tmp_input_path)
+
+        return templates.TemplateResponse(request, "subtitle_tracks_result.html", {
+            "lang": lang,
+            "translations": translations,
+            "output": result.stdout,
+            "tool_name": "Track Listing"
+        })
+
+    except subprocess.CalledProcessError as e:
+        error_msg = f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr}"
+        return templates.TemplateResponse(request, "subtitle_tracks.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": error_msg
+        })
+    except Exception as e:
+        return templates.TemplateResponse(request, "subtitle_tracks.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}"
+        })
+
+
+@app.post("/subtitle-tracks/extract", response_class=HTMLResponse)
+async def subtitle_tracks_extract(
+    request: Request,
+    video_file: Optional[UploadFile] = Form(None),
+    track_index: Optional[int] = Form(None),
+    language: Optional[str] = Form(None),
+    extract_all: bool = Form(False),
+    as_zip: bool = Form(False),
+    forced_only: bool = Form(False),
+    no_forced: bool = Form(False)
+) -> HTMLResponse:
+    """Extract subtitle tracks from a video file."""
+    lang = get_language_from_request(request)
+    translations = load_translations(lang)
+
+    if not video_file or video_file.filename is None or video_file.filename == "":
+        return templates.TemplateResponse(request, "subtitle_tracks.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": translations.get("please_upload_video", "Please upload a video file")
+        })
+
+    try:
+        # Create temp directory for outputs
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_dir_path = Path(tmp_dir)
+
+            # Save uploaded file (stream to disk to handle large files)
+            tmp_input_path = tmp_dir_path / "input.mkv"
+            with open(tmp_input_path, 'wb') as f:
+                while True:
+                    chunk = await video_file.read(8192)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+
+            # Build command
+            cmd: List[str] = ["python3", str(SUBTITLE_TRACKS_SCRIPT), "extract", str(tmp_input_path)]
+
+            if extract_all:
+                cmd.extend(["--all"])
+                if as_zip:
+                    cmd.extend(["--as-zip"])
+                cmd.extend(["--output", str(tmp_dir_path)])
+            else:
+                if track_index is not None:
+                    cmd.extend(["--track", str(track_index)])
+                if language:
+                    cmd.extend(["--language", language])
+                if forced_only:
+                    cmd.append("--forced-only")
+                if no_forced:
+                    cmd.append("--no-forced")
+
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+
+            # Find output files
+            output_files = list(tmp_dir_path.glob("*.srt"))
+            zip_files = list(tmp_dir_path.glob("*.zip"))
+
+            if zip_files:
+                # Read ZIP file content and return as Response
+                with open(zip_files[0], 'rb') as f:
+                    zip_content = f.read()
+                from starlette.responses import Response
+                return Response(
+                    content=zip_content,
+                    media_type="application/zip",
+                    headers={"Content-Disposition": f"attachment; filename={video_file.filename.rsplit('.', 1)[0]}_subtitles.zip"}
+                )
+            elif output_files:
+                # Return first SRT file
+                with open(output_files[0], 'r', encoding='utf-8') as f:
+                    content = f.read()
+                return templates.TemplateResponse(request, "subtitle_tracks_result.html", {
+                    "lang": lang,
+                    "translations": translations,
+                    "output": content,
+                    "tool_name": "Track Extraction",
+                    "download_filename": output_files[0].name
+                })
+            else:
+                return templates.TemplateResponse(request, "subtitle_tracks.html", {
+                    "lang": lang,
+                    "translations": translations,
+                    "error": "No subtitle tracks were extracted"
+                })
+
+    except subprocess.CalledProcessError as e:
+        error_msg = f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr}"
+        return templates.TemplateResponse(request, "subtitle_tracks.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": error_msg
+        })
+    except Exception as e:
+        return templates.TemplateResponse(request, "subtitle_tracks.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}"
+        })
+
+
+@app.post("/subtitle-tracks/merge", response_class=HTMLResponse)
+async def subtitle_tracks_merge(
+    request: Request,
+    subtitle_files: Optional[List[UploadFile]] = Form(None),
+    priority: str = Form("first")
+) -> HTMLResponse:
+    """Merge multiple subtitle files."""
+    lang = get_language_from_request(request)
+    translations = load_translations(lang)
+
+    if not subtitle_files or len(subtitle_files) < 2:
+        return templates.TemplateResponse(request, "subtitle_tracks.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": translations.get("please_upload_at_least_two", "Please upload at least two subtitle files")
+        })
+
+    try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_dir_path = Path(tmp_dir)
+
+            # Save uploaded files (stream to disk to handle large files)
+            input_files = []
+            for i, file in enumerate(subtitle_files):
+                if file and file.filename:
+                    tmp_file = tmp_dir_path / f"input_{i}.srt"
+                    with open(tmp_file, 'wb') as f:
+                        while True:
+                            chunk = await file.read(8192)
+                            if not chunk:
+                                break
+                            f.write(chunk)
+                    input_files.append(tmp_file)
+
+            if len(input_files) < 2:
+                return templates.TemplateResponse(request, "subtitle_tracks.html", {
+                    "lang": lang,
+                    "translations": translations,
+                    "error": "Need at least two valid subtitle files to merge"
+                })
+
+            # Output file
+            output_file = tmp_dir_path / "merged.srt"
+
+            # Build command
+            cmd: List[str] = ["python3", str(SUBTITLE_TRACKS_SCRIPT), "merge"]
+            for f in input_files:
+                cmd.append(str(f))
+            cmd.extend(["--output", str(output_file), "--priority", priority])
+
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+
+            # Read output
+            with open(output_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            return templates.TemplateResponse(request, "subtitle_tracks_result.html", {
+                "lang": lang,
+                "translations": translations,
+                "output": content,
+                "tool_name": "Subtitle Merging",
+                "download_filename": "merged.srt"
+            })
+
+    except subprocess.CalledProcessError as e:
+        error_msg = f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr}"
+        return templates.TemplateResponse(request, "subtitle_tracks.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": error_msg
+        })
+    except Exception as e:
+        return templates.TemplateResponse(request, "subtitle_tracks.html", {
+            "lang": lang,
+            "translations": translations,
+            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}"
+        })
+
+
+@app.post("/subtitle-tracks/download")
+async def subtitle_tracks_download(request: Request, output: Optional[str] = Form(None), filename: Optional[str] = Form(None)):  # type: ignore[no-untyped-def]
+    """Download subtitle tracks result."""
+    if not output:
+        return templates.TemplateResponse(request, "subtitle_tracks.html", {})
+
+    # Create a temporary file with the output content
+    tmp_file_path = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.srt', delete=False, encoding='utf-8') as tmp_file:
+            tmp_file.write(output)
+            tmp_file_path = tmp_file.name
+
+        # Return the file for download
+        return FileResponse(
+            tmp_file_path,
+            media_type="application/octet-stream",
+            filename=filename or "subtitles.srt"
+        )
+    except Exception:
+        # Clean up in case of error
+        if tmp_file_path and os.path.exists(tmp_file_path):
+            os.unlink(tmp_file_path)
+        raise
+
 
 @app.post("/set-language")
 async def set_language(request: Request, lang: str = Form(...)) -> RedirectResponse:

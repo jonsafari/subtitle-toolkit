@@ -8,6 +8,9 @@ The tools are deliberately lightweight, command-line-first, and work with any LL
 | `subtitle-tk timeshift` | Shifts every timestamp in an SRT stream by a fixed amount **or** aligns the first subtitle to a user-provided start time. | Fix subtitles that are uniformly out of sync with the video. |
 | `subtitle-tk autosync` | Applies **drift correction** to SRT files using two-point, multi-point, or known drift rate methods. | Fix subtitles that gradually drift out of sync (e.g., due to frame rate differences like 23.976fps vs 24fps). |
 | `subtitle_timeshift_gui.sh` | Small Zenity-based GUI wrapper around `subtitle-tk timeshift`. | Users who prefer a point-and-click workflow on Linux. |
+| `subtitle-tk subtitle-tracks list` | Lists all subtitle tracks in a video file (MKV, MP4, AVI, MOV, WEBM, etc.). | Discover what subtitle tracks are available in your video files. |
+| `subtitle-tk subtitle-tracks extract` | Extracts specific subtitle tracks by index, language, or filter (forced, hearing impaired). | Extract the subtitle track you want to use from a multi-track video. |
+| `subtitle-tk subtitle-tracks merge` | Merges multiple subtitle files with configurable priority handling. | Combine regular subtitles with hearing-impaired tracks or merge translations. |
 | `subtitle-tk mkv2srt` | Extracts subtitles from MKV files and converts them to SRT format. | Extract subtitles from MKV files for use with video players. |
 | `subtitle-tk translate` | Translates a subtitle (SRT/SubRip) file, using a *translation‑instruction* file and an LLM endpoint via litellm. | Translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
 | `subtitle-tk convert` | Converts subtitle files between different formats (SRT, VTT, ASS, TTML, etc.). | Convert subtitles to a format compatible with your video player or editing software. |
@@ -289,6 +292,114 @@ subtitle-tk mkv2srt --input video.mkv --output subtitles.srt
 * The script requires `ffmpeg` to be installed and available in `$PATH`.
 * ASS/SSA formatting tags like {\an7} are automatically removed to ensure compatibility with video players.
 * If no subtitles are found in the MKV file, the script will report this and exit.
+
+---
+
+### <a name="subtitle_tracks"></a>`subtitle-tk subtitle-tracks`
+
+#### Purpose
+
+A comprehensive tool for managing subtitle tracks in video files. It can:
+- **List** all subtitle tracks in a video file (MKV, MP4, AVI, MOV, WEBM, etc.)
+- **Extract** specific tracks by index, language, or filter (forced, hearing impaired)
+- **Merge** multiple subtitle files with configurable priority handling
+
+This is the recommended tool for working with multi-track video files, replacing the older `mkv2srt` functionality.
+
+#### Subcommands
+
+##### `list` - List subtitle tracks
+
+Lists all subtitle tracks in a video file with their metadata.
+
+```bash
+# List all subtitle tracks
+subtitle-tk subtitle-tracks list video.mkv
+
+# Output as JSON
+subtitle-tk subtitle-tracks list video.mkv --format json
+```
+
+**Example output:**
+```
+Found 5 subtitle track(s) in movie.mkv:
+  Track 3: ENG - dvd_subtitle
+  Track 4: SPA - dvd_subtitle
+  Track 5: POR - dvd_subtitle
+  Track 6: HIN - dvd_subtitle
+  Track 7: ENG - ass [Hearing Impaired]
+```
+
+##### `extract` - Extract subtitle tracks
+
+Extract one or all subtitle tracks from a video file.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--track` or `-t` | - | Track index to extract (0-based). |
+| `--language` or `-l` | - | Language code to filter by (e.g., "eng", "spa"). |
+| `--all` or `-a` | - | Extract all subtitle tracks. |
+| `--output` or `-o` | - | Output file path or directory. |
+| `--as-zip` | - | Package all extracted files into a ZIP archive. |
+| `--forced-only` | - | Only extract forced subtitle tracks (foreign dialogue). |
+| `--no-forced` | - | Exclude forced subtitle tracks. |
+
+**Examples:**
+
+```bash
+# Extract English subtitles
+subtitle-tk subtitle-tracks extract movie.mkv --language eng
+
+# Extract a specific track by index
+subtitle-tk subtitle-tracks extract movie.mkv --track 0
+
+# Extract all tracks to individual files
+subtitle-tk subtitle-tracks extract movie.mkv --all
+
+# Extract all tracks as a ZIP archive
+subtitle-tk subtitle-tracks extract movie.mkv --all --as-zip
+
+# Extract only forced subtitles (foreign dialogue)
+subtitle-tk subtitle-tracks extract movie.mkv --forced-only
+
+# Exclude forced subtitles
+subtitle-tk subtitle-tracks extract movie.mkv --no-forced
+```
+
+##### `merge` - Merge subtitle files
+
+Merges multiple subtitle files into one, with configurable handling of overlapping timestamps.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--output` or `-o` | - | Output file path (required). |
+| `--priority` or `-p` | `first` | How to handle overlapping timestamps: `first`, `second`, or `combine`. |
+
+**Priority modes:**
+- **`first`**: When timestamps overlap, keep the subtitle from the first file.
+- **`second`**: When timestamps overlap, keep the subtitle from the last file.
+- **`combine`**: When timestamps overlap, stack both subtitles with a line break between them.
+
+**Examples:**
+
+```bash
+# Merge two subtitle files (first file takes priority on overlaps)
+subtitle-tk subtitle-tracks merge regular.srt hearing-impaired.srt -o combined.srt
+
+# Merge with combine priority (stack overlapping subtitles)
+subtitle-tk subtitle-tracks merge subs1.srt subs2.srt -o merged.srt --priority combine
+
+# Merge multiple files
+subtitle-tk subtitle-tracks merge en.srt es.srt fr.srt -o all_languages.srt --priority first
+```
+
+#### Important notes
+
+* The tool requires `ffmpeg` and `ffprobe` to be installed and available in `$PATH`.
+* Supports all video formats that ffmpeg can handle (MKV, MP4, AVI, MOV, WEBM, FLV, etc.).
+* ASS/SSA formatting tags are automatically removed during extraction.
+* When extracting all tracks, filenames are auto-generated based on language and track properties.
+* For merging, the order of input files matters when using `first` or `second` priority modes.
 
 ---
 

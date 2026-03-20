@@ -70,6 +70,18 @@
             {{ translations.convert_desc if translations else 'Convert subtitle files between different formats (SRT, VTT, ASS, TTML, and more).' }}
         </p>
     </a>
+
+    <a href="/subtitle-tracks" class="tool-card bg-white rounded-lg p-6 shadow-md hover:shadow-lg dark:bg-slate-800">
+        <div class="flex justify-center mb-4">
+            <div class="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center text-2xl dark:bg-slate-700 dark:text-teal-400">
+                📋
+            </div>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2 dark:text-white">{{ translations.track_management if translations else 'Track Management' }}</h3>
+        <p class="text-gray-600 dark:text-gray-300">
+            {{ translations.track_management_desc if translations else 'List, extract, and merge subtitle tracks from video files.' }}
+        </p>
+    </a>
 </div>
 
 <div class="bg-white rounded-lg shadow-md p-6 dark:bg-slate-800">

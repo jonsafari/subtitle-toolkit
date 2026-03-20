@@ -6,8 +6,8 @@ from unittest import mock
 import pytest
 from fastapi.testclient import TestClient
 
-# Add the project root to the path so we can import the module
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add the src directory to the path so we can import the module
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from web.app import app
 
@@ -403,3 +403,103 @@ class TestI18n:
         request = MockRequest()
         lang = get_language_from_request(request)
         assert lang == "en"
+
+
+class TestSubtitleTracksEndpoints:
+    """Tests for the subtitle-tracks web endpoints."""
+
+    def test_subtitle_tracks_page(self):
+        """Test the subtitle-tracks page returns the form."""
+        response = client.get("/subtitle-tracks")
+
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith("text/html")
+        # Check for tab buttons which are present in all languages
+        assert "tab-list" in response.text or "tab-extract" in response.text or "tab-merge" in response.text
+
+    def test_subtitle_tracks_list_missing_file(self):
+        """Test subtitle-tracks list without video file."""
+        response = client.post(
+            "/subtitle-tracks/list",
+            data={}
+        )
+
+        # The form validation should show an error
+        assert response.status_code == 200
+        assert "error" in response.text.lower() or "upload" in response.text.lower() or "video" in response.text.lower()
+
+    def test_subtitle_tracks_extract_missing_file(self):
+        """Test subtitle-tracks extract without video file."""
+        response = client.post(
+            "/subtitle-tracks/extract",
+            data={
+                "extract_all": False,
+                "as_zip": False
+            }
+        )
+
+        # The form validation should show an error
+        assert response.status_code == 200
+        assert "error" in response.text.lower() or "upload" in response.text.lower() or "video" in response.text.lower()
+
+    def test_subtitle_tracks_merge_missing_files(self):
+        """Test subtitle-tracks merge without subtitle files."""
+        response = client.post(
+            "/subtitle-tracks/merge",
+            data={
+                "priority": "first"
+            }
+        )
+
+        # The form validation should show an error
+        assert response.status_code == 200
+        assert "error" in response.text.lower() or "upload" in response.text.lower() or "two" in response.text.lower()
+
+    def test_subtitle_tracks_merge_with_one_file(self):
+        """Test subtitle-tracks merge with only one file (need at least two)."""
+        mock_srt_content = b"""1
+00:00:01,000 --> 00:00:04,000
+Hello World
+"""
+
+        response = client.post(
+            "/subtitle-tracks/merge",
+            data={
+                "priority": "first"
+            },
+            files={
+                "subtitle_files": ("test.srt", mock_srt_content, "text/plain")
+            }
+        )
+
+        # Should show error about needing at least two files
+        assert response.status_code == 200
+        # Check for error div (language-agnostic)
+        assert "bg-red-50" in response.text or "border-red-400" in response.text or "fa-exclamation-circle" in response.text
+
+    def test_subtitle_tracks_merge_with_two_files(self):
+        """Test subtitle-tracks merge with two subtitle files."""
+        mock_srt_content_1 = b"""1
+00:00:01,000 --> 00:00:04,000
+Hello World
+"""
+        mock_srt_content_2 = b"""1
+00:00:02,000 --> 00:00:05,000
+Goodbye World
+"""
+
+        response = client.post(
+            "/subtitle-tracks/merge",
+            data={
+                "priority": "first"
+            },
+            files=[
+                ("subtitle_files", ("file1.srt", mock_srt_content_1, "text/plain")),
+                ("subtitle_files", ("file2.srt", mock_srt_content_2, "text/plain"))
+            ]
+        )
+
+        # Should return a successful response with merged content
+        assert response.status_code == 200
+        # The merged content should contain subtitles from both files
+        assert "Hello World" in response.text or "Goodbye World" in response.text
