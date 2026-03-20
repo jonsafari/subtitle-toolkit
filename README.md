@@ -11,7 +11,7 @@ The tools are deliberately lightweight, command-line-first, and work with any LL
 | `subtitle-tk subtitle-tracks list` | Lists all subtitle tracks in a video file (MKV, MP4, AVI, MOV, WEBM, etc.). | Discover what subtitle tracks are available in your video files. |
 | `subtitle-tk subtitle-tracks extract` | Extracts specific subtitle tracks by index, language, or filter (forced, hearing impaired). | Extract the subtitle track you want to use from a multi-track video. |
 | `subtitle-tk subtitle-tracks merge` | Merges multiple subtitle files with configurable priority handling. | Combine regular subtitles with hearing-impaired tracks or merge translations. |
-| `subtitle-tk mkv2srt` | Extracts subtitles from MKV files and converts them to SRT format. | Extract subtitles from MKV files for use with video players. |
+| `subtitle-tk mkv2srt` | **(DEPRECATED)** Extracts subtitles from MKV files. Use `subtitle-tracks` instead. | Legacy support only - use `subtitle-tk subtitle-tracks` for enhanced functionality. |
 | `subtitle-tk translate` | Translates a subtitle (SRT/SubRip) file, using a *translation‑instruction* file and an LLM endpoint via litellm. | Translate subtitles (e.g. English → Spanish) while keeping the original formatting. |
 | `subtitle-tk convert` | Converts subtitle files between different formats (SRT, VTT, ASS, TTML, etc.). | Convert subtitles to a format compatible with your video player or editing software. |
 | translation_instruction_prompts/`subtitle_translate_*.txt` | Example instruction files that tell the LLM how to translate (show/movie context, keep formatting, don't add extra text, etc.). | Supply to `subtitle-tk translate` via `--instructions`. |
@@ -260,11 +260,18 @@ If you do not need the GUI, just use `subtitle-tk timeshift` directly.
 
 ---
 
-### <a name="subtitle_mkv2srt"></a>`subtitle-tk mkv2srt`
+### <a name="subtitle_mkv2srt"></a>`subtitle-tk mkv2srt` **(DEPRECATED)**
+
+> **⚠️ DEPRECATED:** This tool is deprecated and will be removed in a future version. Please use [`subtitle-tk subtitle-tracks`](#subtitle_tracks) instead, which provides enhanced functionality including:
+> - Support for all video formats (not just MKV)
+> - Track listing with metadata
+> - Forced and hearing impaired subtitle filtering
+> - Subtitle merging capabilities
+> - ZIP download for multiple tracks
 
 #### Purpose
 
-Extracts subtitles from MKV files and converts them to SRT (SubRip) format.
+Extracts subtitles from MKV files and converts them to SRT (SubRip) format. This tool is maintained for backward compatibility only.
 
 #### Command-line options
 
@@ -277,14 +284,11 @@ Extracts subtitles from MKV files and converts them to SRT (SubRip) format.
 #### Examples
 
 ```bash
-# Extract all subtitles from an MKV file
+# Extract all subtitles from an MKV file (deprecated - use subtitle-tracks instead)
 subtitle-tk mkv2srt --input video.mkv
 
-# Extract subtitles in a specific language
-subtitle-tk mkv2srt --input video.mkv --language en
-
-# Extract to a specific output file
-subtitle-tk mkv2srt --input video.mkv --output subtitles.srt
+# Recommended alternative:
+subtitle-tk subtitle-tracks extract video.mkv --all
 ```
 
 #### Important notes
@@ -292,6 +296,7 @@ subtitle-tk mkv2srt --input video.mkv --output subtitles.srt
 * The script requires `ffmpeg` to be installed and available in `$PATH`.
 * ASS/SSA formatting tags like {\an7} are automatically removed to ensure compatibility with video players.
 * If no subtitles are found in the MKV file, the script will report this and exit.
+* **This tool is deprecated.** Please migrate to `subtitle-tk subtitle-tracks` for new projects.
 
 ---
 
@@ -304,7 +309,7 @@ A comprehensive tool for managing subtitle tracks in video files. It can:
 - **Extract** specific tracks by index, language, or filter (forced, hearing impaired)
 - **Merge** multiple subtitle files with configurable priority handling
 
-This is the recommended tool for working with multi-track video files, replacing the older `mkv2srt` functionality.
+**This is the recommended tool for extracting subtitles from video files.** It replaces the older `mkv2srt` command with enhanced functionality including support for all video formats, track metadata, and subtitle merging.
 
 #### Subcommands
 
