@@ -4,6 +4,31 @@
 
 {% block content %}
 <div class="max-w-3xl mx-auto">
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 dark:bg-yellow-900/20 dark:border-yellow-700">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-yellow-400 dark:text-yellow-500"></i>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-300">Deprecated Tool</h3>
+                <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                    <p>This tool is deprecated. Please use the <a href="/subtitle-tracks" class="font-bold underline">Subtitle Track Management</a> tool instead, which provides enhanced functionality:</p>
+                    <ul class="list-disc pl-5 mt-1 space-y-1">
+                        <li>List all subtitle tracks with metadata (language, codec, forced, hearing impaired)</li>
+                        <li>Extract by track index or language</li>
+                        <li>Filter by forced subtitles or hearing impaired tracks</li>
+                        <li>Merge multiple subtitle files</li>
+                        <li>Support for all video formats (MKV, MP4, AVI, MOV, WEBM, etc.)</li>
+                        <li>Download all tracks as a ZIP file</li>
+                    </ul>
+                    <a href="/subtitle-tracks" class="inline-flex items-center mt-3 bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 transition duration-200">
+                        <i class="fas fa-arrow-right mr-2"></i> Go to Subtitle Track Management
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800">
         <h1 class="text-2xl font-bold text-gray-900 mb-2 dark:text-white">{{ translations.mkv_to_srt_tool if translations else 'MKV to SRT Tool' }}</h1>
         <p class="text-gray-600 dark:text-gray-300">
