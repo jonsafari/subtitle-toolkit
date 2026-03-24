@@ -8,15 +8,12 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy requirements and install Python dependencies
-COPY requirements-web.txt .
-RUN pip install --no-cache-dir -r requirements-web.txt
-
-# Copy application code
+# Copy application code and install with web dependencies
 COPY . .
+RUN pip install --no-cache-dir -e .[web]
 
 # Expose port
 EXPOSE 8000
 
 # Run the application
-CMD ["python", "app.py"]
+CMD ["python", "-m", "src.web.app"]
