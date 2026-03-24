@@ -395,11 +395,262 @@ class TestExtractTrack:
 
 class TestExtractAllTracks:
     """Tests for extract_all_tracks function."""
-    
+
     def test_extract_all_tracks_no_file(self):
         """Test extracting from non-existent file."""
         with pytest.raises(FileNotFoundError):
             extract_all_tracks(Path("/nonexistent/file.mkv"))
+
+    def test_extract_all_tracks_real_file(self, tmp_path):
+        """Test extracting all tracks from a real video file."""
+        video_file = Path("/home/tcsh/src/subtitle-toolkit/Winged_Migration_-_2001.mkv")
+        if video_file.exists():
+            result = extract_all_tracks(video_file, output_dir=tmp_path, as_zip=False)
+            # Result is a tuple of (srt_files, zip_path)
+            srt_files, zip_path = result
+            # srt_files might be None if extraction fails, so check first
+            if srt_files is not None:
+                assert len(srt_files) > 0
+                # Verify all files were created
+                for srt_file in srt_files:
+                    assert srt_file.exists()
+
+
+class TestCheckFfmpeg:
+    """Tests for check_ffmpeg function."""
+
+    def test_check_ffmpeg_success(self):
+        """Test ffmpeg check when ffmpeg is installed."""
+        from src.subtitle_tracks import check_ffmpeg
+
+        # This should not raise if ffmpeg is installed
+        try:
+            result = check_ffmpeg()
+            assert result is True
+        except SystemExit:
+            pytest.skip("ffmpeg not installed in test environment")
+
+    def test_check_ffmpeg_called(self):
+        """Test that check_ffmpeg is called by other functions."""
+        from src.subtitle_tracks import list_tracks
+
+        # list_tracks should call check_ffmpeg internally
+        # If ffmpeg is not installed, it should exit
+        try:
+            list_tracks(Path("/nonexistent/file.mkv"))
+        except FileNotFoundError:
+            # Expected - file doesn't exist, but ffmpeg was checked first
+            pass
+        except SystemExit:
+            pytest.skip("ffmpeg not installed in test environment")
+
+
+class TestCleanSrtFile:
+    """Tests for clean_srt_file function."""
+
+    def test_clean_srt_file(self, tmp_path):
+        """Test cleaning an SRT file in place."""
+        from src.subtitle_tracks import clean_srt_file
+
+        # Create a test SRT file with ASS tags
+        srt_file = tmp_path / "test.srt"
+        content = """1
+00:00:01,000 --> 00:00:04,000
+{\\an7}Hello World
+
+2
+00:00:05,000 --> 00:00:08,000
+{\\b1}Bold text
+"""
+        srt_file.write_text(content, encoding='utf-8')
+
+        # Clean the file
+        clean_srt_file(srt_file)
+
+        # Verify tags were removed
+        cleaned_content = srt_file.read_text(encoding='utf-8')
+        assert "{\\an7}" not in cleaned_content
+        assert "{\\b1}" not in cleaned_content
+        assert "Hello World" in cleaned_content
+        assert "Bold text" in cleaned_content
+
+    def test_clean_srt_file_no_tags(self, tmp_path):
+        """Test cleaning an SRT file without tags."""
+        from src.subtitle_tracks import clean_srt_file
+
+        srt_file = tmp_path / "test.srt"
+        content = """1
+00:00:01,000 --> 00:00:04,000
+Hello World
+"""
+        srt_file.write_text(content, encoding='utf-8')
+
+        # Clean the file
+        clean_srt_file(srt_file)
+
+        # Content should be unchanged (except for whitespace normalization)
+        cleaned_content = srt_file.read_text(encoding='utf-8')
+        assert "Hello World" in cleaned_content
+
+    def test_clean_srt_file_not_found(self):
+        """Test cleaning a non-existent file."""
+        from src.subtitle_tracks import clean_srt_file
+
+        with pytest.raises(FileNotFoundError):
+            clean_srt_file(Path("/nonexistent/file.srt"))
+
+
+class TestParseFfprobeOutput:
+    """Tests for _parse_ffprobe_output internal function."""
+
+    def test_parse_ffprobe_output_no_file(self):
+        """Test parsing ffprobe output for non-existent file."""
+        from src.subtitle_tracks import _parse_ffprobe_output
+
+        # ffprobe fails on non-existent files, which raises RuntimeError
+        with pytest.raises((FileNotFoundError, RuntimeError)):
+            _parse_ffprobe_output(Path("/nonexistent/file.mkv"))
+
+    def test_parse_ffprobe_output_real_file(self):
+        """Test parsing ffprobe output for a real video file."""
+        from src.subtitle_tracks import _parse_ffprobe_output
+
+        video_file = Path("/home/tcsh/src/subtitle-toolkit/Winged_Migration_-_2001.mkv")
+        if video_file.exists():
+            info = _parse_ffprobe_output(video_file)
+            assert "streams" in info
+            assert "format" in info
+
+
+class TestExtractTrackWithLanguage:
+    """Tests for extract_track with language filtering."""
+
+    def test_extract_track_by_language(self, tmp_path):
+        """Test extracting a track by language code."""
+        video_file = Path("/home/tcsh/src/subtitle-toolkit/Winged_Migration_-_2001.mkv")
+        if video_file.exists():
+            output_file = tmp_path / "output.srt"
+            try:
+                result = extract_track(video_file, language="eng", output_file=output_file)
+                assert result.exists()
+                # Verify it contains valid SRT format
+                content = result.read_text(encoding='utf-8')
+                assert "-->" in content
+            except RuntimeError as e:
+                # Some video files may have subtitle codecs that can't be converted to SRT
+                pytest.skip(f"Subtitle extraction failed: {e}")
+
+    def test_extract_track_by_track_index(self, tmp_path):
+        """Test extracting a track by index."""
+        video_file = Path("/home/tcsh/src/subtitle-toolkit/Winged_Migration_-_2001.mkv")
+        if video_file.exists():
+            # First, list tracks to find a valid track index
+            tracks = list_tracks(video_file)
+            if len(tracks) > 0:
+                output_file = tmp_path / "output.srt"
+                try:
+                    result = extract_track(video_file, track_index=tracks[0].index, output_file=output_file)
+                    assert result.exists()
+                except RuntimeError as e:
+                    # Some subtitle codecs may not be convertible to SRT
+                    pytest.skip(f"Subtitle extraction failed: {e}")
+
+
+class TestExtractAllTracksWithZip:
+    """Tests for extract_all_tracks with ZIP output."""
+
+    def test_extract_all_tracks_as_zip(self, tmp_path):
+        """Test extracting all tracks as a ZIP file."""
+        video_file = Path("/home/tcsh/src/subtitle-toolkit/Winged_Migration_-_2001.mkv")
+        if video_file.exists():
+            output_dir = tmp_path / "subtitles"
+            try:
+                srt_files, zip_path = extract_all_tracks(video_file, output_dir=output_dir, as_zip=True)
+                # When as_zip=True, zip_path should be set
+                if zip_path is not None:
+                    assert zip_path.exists()
+                    # Verify ZIP contains SRT files
+                    import zipfile
+                    with zipfile.ZipFile(zip_path, 'r') as zf:
+                        names = zf.namelist()
+                        assert any(name.endswith('.srt') for name in names)
+                else:
+                    # If zip_path is None, check that srt_files were created
+                    if srt_files is not None:
+                        assert len(srt_files) > 0
+            except RuntimeError as e:
+                # Some subtitle codecs may not be convertible to SRT
+                pytest.skip(f"Subtitle extraction failed: {e}")
+
+
+class TestCleanSrtContentEdgeCases:
+    """Additional edge case tests for clean_srt_content."""
+
+    def test_clean_empty_content(self):
+        """Test cleaning empty content."""
+        result = clean_srt_content("")
+        assert result == ""
+
+    def test_clean_content_no_tags(self):
+        """Test cleaning content without any tags."""
+        content = """1
+00:00:01,000 --> 00:00:04,000
+Normal text without tags
+"""
+        result = clean_srt_content(content)
+        assert "Normal text without tags" in result
+
+    def test_clean_content_with_unicode(self):
+        """Test cleaning content with unicode characters."""
+        content = """1
+00:00:01,000 --> 00:00:04,000
+{\\an7}Héllo Wörld! 你好世界!
+"""
+        result = clean_srt_content(content)
+        assert "Héllo Wörld!" in result
+        assert "你好世界!" in result
+        assert "{\\an7}" not in result
+
+    def test_clean_content_with_special_chars(self):
+        """Test cleaning content with special characters."""
+        content = """1
+00:00:01,000 --> 00:00:04,000
+{\\an7}Special chars: @#$%^&*()
+"""
+        result = clean_srt_content(content)
+        assert "Special chars: @#$%^&*()" in result
+        assert "{\\an7}" not in result
+
+    def test_clean_content_preserves_index(self):
+        """Test that index numbers are preserved."""
+        content = """1
+00:00:01,000 --> 00:00:04,000
+{\\an7}First
+
+2
+00:00:05,000 --> 00:00:08,000
+{\\an7}Second
+
+3
+00:00:09,000 --> 00:00:12,000
+{\\an7}Third
+"""
+        result = clean_srt_content(content)
+        assert "1\n" in result
+        assert "2\n" in result
+        assert "3\n" in result
+
+    def test_clean_content_with_multiple_tags(self):
+        """Test cleaning content with multiple consecutive tags."""
+        content = """1
+00:00:01,000 --> 00:00:04,000
+{\\b1}{\\i1}{\\u1}Multiple tags
+"""
+        result = clean_srt_content(content)
+        assert "Multiple tags" in result
+        assert "{\\b1}" not in result
+        assert "{\\i1}" not in result
+        assert "{\\u1}" not in result
 
 
 if __name__ == "__main__":

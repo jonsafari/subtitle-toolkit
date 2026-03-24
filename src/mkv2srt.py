@@ -20,12 +20,21 @@ from pathlib import Path
 from typing import List, Optional
 
 # Import from subtitle_tracks for backward compatibility
-from subtitle_tracks import (
-    extract_track,
-    extract_all_tracks,
-    clean_srt_content,
-    list_tracks,
-)
+try:
+    from .subtitle_tracks import (
+        extract_track,
+        extract_all_tracks,
+        clean_srt_content,
+        list_tracks,
+    )
+except ImportError:
+    # Running as a script, use absolute import
+    from subtitle_tracks import (
+        extract_track,
+        extract_all_tracks,
+        clean_srt_content,
+        list_tracks,
+    )
 
 __all__ = ["extract_subtitles", "extract_all_subtitles", "clean_srt_content"]
 
@@ -93,11 +102,14 @@ def extract_all_subtitles(mkv_file: Path) -> List[Path]:
 
 def check_ffmpeg() -> bool:
     """Check if ffmpeg is installed and provide helpful error messages if not.
-    
+
     DEPRECATED: Use subtitle_tracks.check_ffmpeg() instead.
     """
     print("Warning: check_ffmpeg() is deprecated. Use subtitle_tracks.check_ffmpeg() instead.")
-    from subtitle_tracks import check_ffmpeg as _check_ffmpeg
+    try:
+        from .subtitle_tracks import check_ffmpeg as _check_ffmpeg
+    except ImportError:
+        from subtitle_tracks import check_ffmpeg as _check_ffmpeg
     return _check_ffmpeg()
 
 
