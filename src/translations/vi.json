@@ -73,7 +73,7 @@
   "time_shift_result": "Kết Quả Dịch Thời Gian",
   "time_shift_success": "Tập tin phụ đề của bạn đã được xử lý thành công.",
   "processed_subtitles": "Nội Dung Phụ Đề Đã Xử Lý",
-  "process_another": "Xử Lý Tập Tin Khác",
+  "process_another": "Xử lý Tệp Khác",
   "mkv_to_srt_result": "Kết Quả Từ MKV sang SRT",
   "mkv_to_srt_success": "Việc trích xuất phụ đề đã hoàn thành thành công.",
   "processing_output": "Đầu Ra Xử Lý",
@@ -189,5 +189,11 @@
   "back_to_tool": "Quay lại Công cụ",
   "result": "Kết quả",
   "success": "Xử lý hoàn tất thành công",
-  "process_another": "Xử lý Tệp Khác"
+  "translating": "Translating...",
+  "processing": "Processing...",
+  "current_chunk": "Current Chunk",
+  "total_chunks": "Total Chunks",
+  "elapsed_time": "Elapsed Time",
+  "eta": "ETA",
+  "cancel_translation": "Cancel Translation"
 }

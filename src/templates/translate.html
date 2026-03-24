@@ -187,12 +187,75 @@
         <div class="flex justify-end">
             <button
                 type="submit"
+                id="translate-btn"
                 class="btn-primary text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition duration-200"
             >
-                {{ translations.translate_subtitles if translations else 'Translate Subtitles' }}
+                <i class="fas fa-language mr-2"></i>{{ translations.translate_subtitles if translations else 'Translate Subtitles' }}
             </button>
         </div>
     </form>
+
+    <!-- Progress Section (hidden by default) -->
+    <div id="progress-section" class="hidden bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4 dark:text-white">
+            <i class="fas fa-spinner fa-spin mr-2"></i>
+            {{ translations.translating if translations else 'Translating...' }}
+        </h2>
+
+        <!-- Progress Bar -->
+        <div class="mb-4">
+            <div class="flex justify-between mb-1">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300" id="progress-text">
+                    {{ translations.processing if translations else 'Processing...' }}
+                </span>
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300" id="progress-percent">
+                    0%
+                </span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3 dark:bg-slate-700">
+                <div
+                    id="progress-bar"
+                    class="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                    style="width: 0%"
+                ></div>
+            </div>
+        </div>
+
+        <!-- Progress Details -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div class="bg-blue-50 rounded-lg p-3 dark:bg-blue-900/20">
+                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="chunk-current">0</div>
+                <div class="text-xs text-gray-600 dark:text-gray-400">{{ translations.current_chunk if translations else 'Current Chunk' }}</div>
+            </div>
+            <div class="bg-blue-50 rounded-lg p-3 dark:bg-blue-900/20">
+                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="chunk-total">0</div>
+                <div class="text-xs text-gray-600 dark:text-gray-400">{{ translations.total_chunks if translations else 'Total Chunks' }}</div>
+            </div>
+            <div class="bg-blue-50 rounded-lg p-3 dark:bg-blue-900/20">
+                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="time-elapsed">0s</div>
+                <div class="text-xs text-gray-600 dark:text-gray-400">{{ translations.elapsed_time if translations else 'Elapsed Time' }}</div>
+            </div>
+            <div class="bg-blue-50 rounded-lg p-3 dark:bg-blue-900/20">
+                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400" id="time-eta">--</div>
+                <div class="text-xs text-gray-600 dark:text-gray-400">{{ translations.eta if translations else 'ETA' }}</div>
+            </div>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="status-messages" class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+        </div>
+
+        <!-- Cancel Button -->
+        <div class="mt-4 flex justify-center">
+            <button
+                id="cancel-translate"
+                class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium"
+            >
+                <i class="fas fa-times-circle mr-2"></i>{{ translations.cancel_translation if translations else 'Cancel Translation' }}
+            </button>
+        </div>
+    </div>
+</div>
 
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6 dark:bg-blue-900/20 dark:border-blue-700">
         <h3 class="text-lg font-medium text-blue-800 mb-2 dark:text-blue-300">{{ translations.usage_examples if translations else 'Usage Examples' }}</h3>
@@ -285,6 +348,220 @@
         const srtFile = document.getElementById('srt_file');
         if (srtFile && srtFile.value.trim() !== '') {
             formValuesRestored = true;
+        }
+    });
+
+    // Progress bar and SSE handling
+    let eventSource = null;
+    let abortController = null;
+
+    // Format time in seconds to human-readable format
+    function formatTime(seconds) {
+        if (seconds < 60) {
+            return Math.floor(seconds) + 's';
+        } else if (seconds < 3600) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return mins + 'm ' + secs + 's';
+        } else {
+            const hours = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            return hours + 'h ' + mins + 'm';
+        }
+    }
+
+    // Update progress UI
+    function updateProgress(data) {
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercent = document.getElementById('progress-percent');
+        const progressText = document.getElementById('progress-text');
+        const chunkCurrent = document.getElementById('chunk-current');
+        const chunkTotal = document.getElementById('chunk-total');
+        const timeElapsed = document.getElementById('time-elapsed');
+        const timeEta = document.getElementById('time-eta');
+        const statusMessages = document.getElementById('status-messages');
+
+        // Update progress bar
+        const percent = data.percent_complete || 0;
+        progressBar.style.width = percent + '%';
+        progressPercent.textContent = Math.round(percent) + '%';
+
+        // Update chunk info
+        chunkCurrent.textContent = data.current_chunk || 0;
+        chunkTotal.textContent = data.total_chunks || 0;
+
+        // Update time info
+        timeElapsed.textContent = formatTime(data.elapsed_time || 0);
+        timeEta.textContent = data.eta_str || '--';
+
+        // Update status text based on status
+        let statusText = '';
+        switch(data.status) {
+            case 'starting':
+                statusText = 'Starting translation...';
+                break;
+            case 'translating':
+                statusText = `Translating chunk ${data.current_chunk} of ${data.total_chunks}`;
+                break;
+            case 'completed':
+                statusText = 'Translation completed!';
+                break;
+            default:
+                statusText = 'Processing...';
+        }
+        progressText.textContent = statusText;
+
+        // Add status message
+        if (data.status === 'translating') {
+            const message = document.createElement('div');
+            message.className = 'text-sm text-gray-600 dark:text-gray-400';
+            message.textContent = `✓ Chunk ${data.current_chunk}/${data.total_chunks} completed (${data.chunk_units} units) - ${formatTime(data.elapsed_time)} elapsed`;
+            statusMessages.insertBefore(message, statusMessages.firstChild);
+        }
+    }
+
+    // Handle SSE events
+    function handleSSEEvent(event) {
+        try {
+            const data = JSON.parse(event.data);
+
+            switch(data.type) {
+                case 'progress':
+                    updateProgress(data);
+                    break;
+                case 'complete':
+                    updateProgress(data);
+                    // Show success message and redirect to result page after a delay
+                    setTimeout(() => {
+                        // Store output for result page
+                        localStorage.setItem('translation_output', data.output);
+                        // Redirect to result page
+                        window.location.href = '/translate/result';
+                    }, 1000);
+                    break;
+                case 'error':
+                    showError(data.message);
+                    closeSSE();
+                    break;
+            }
+        } catch (e) {
+            console.error('Error parsing SSE event:', e);
+        }
+    }
+
+    // Show error message
+    function showError(message) {
+        const progressSection = document.getElementById('progress-section');
+        const statusMessages = document.getElementById('status-messages');
+
+        // Show error in status
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'text-red-600 dark:text-red-400 font-medium mt-2';
+        errorDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>' + message;
+        statusMessages.appendChild(errorDiv);
+
+        // Re-enable translate button
+        const translateBtn = document.getElementById('translate-btn');
+        translateBtn.disabled = false;
+        translateBtn.innerHTML = '<i class="fas fa-language mr-2"></i>Translate Subtitles';
+    }
+
+    // Close SSE connection
+    function closeSSE() {
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+        if (abortController) {
+            abortController.abort();
+            abortController = null;
+        }
+    }
+
+    // Handle form submission with SSE
+    document.querySelector('form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const form = this;
+        const formData = new FormData(form);
+
+        // Show progress section, hide form slightly
+        const progressSection = document.getElementById('progress-section');
+        progressSection.classList.remove('hidden');
+
+        // Disable submit button
+        const translateBtn = document.getElementById('translate-btn');
+        translateBtn.disabled = true;
+        translateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Translating...';
+
+        // Clear previous status messages
+        const statusMessages = document.getElementById('status-messages');
+        statusMessages.innerHTML = '';
+
+        // Reset progress UI
+        document.getElementById('progress-bar').style.width = '0%';
+        document.getElementById('progress-percent').textContent = '0%';
+        document.getElementById('chunk-current').textContent = '0';
+        document.getElementById('chunk-total').textContent = '0';
+        document.getElementById('time-elapsed').textContent = '0s';
+        document.getElementById('time-eta').textContent = '--';
+
+        // Create abort controller for cancellation
+        abortController = new AbortController();
+
+        try {
+            // Fetch with SSE
+            const response = await fetch('/translate/stream', {
+                method: 'POST',
+                body: formData,
+                signal: abortController.signal
+            });
+
+            if (!response.ok) {
+                throw new Error('Translation request failed: ' + response.status);
+            }
+
+            // Set up SSE reader
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6); // Remove 'data: ' prefix
+                        if (data.trim()) {
+                            // Create a mock event
+                            handleSSEEvent({ data: data });
+                        }
+                    }
+                }
+            }
+
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                showError('Translation cancelled by user.');
+            } else {
+                showError('Error: ' + error.message);
+            }
+        } finally {
+            // Re-enable button
+            translateBtn.disabled = false;
+            translateBtn.innerHTML = '<i class="fas fa-language mr-2"></i>Translate Subtitles';
+        }
+    });
+
+    // Handle cancel button
+    document.getElementById('cancel-translate').addEventListener('click', function() {
+        if (confirm('Are you sure you want to cancel the translation?')) {
+            closeSSE();
         }
     });
 </script>

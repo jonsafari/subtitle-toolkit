@@ -189,5 +189,11 @@
   "back_to_tool": "Повернутися до Інструменту",
   "result": "Результат",
   "success": "Обробка завершена успішно",
-  "process_another": "Обробити Інший Файл"
+  "translating": "Translating...",
+  "processing": "Processing...",
+  "current_chunk": "Current Chunk",
+  "total_chunks": "Total Chunks",
+  "elapsed_time": "Elapsed Time",
+  "eta": "ETA",
+  "cancel_translation": "Cancel Translation"
 }

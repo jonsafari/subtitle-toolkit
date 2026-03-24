@@ -189,5 +189,11 @@
   "back_to_tool": "Torna allo Strumento",
   "result": "Risultato",
   "success": "Elaborazione completata con successo",
-  "process_another": "Elabora un Altro File"
+  "translating": "Translating...",
+  "processing": "Processing...",
+  "current_chunk": "Current Chunk",
+  "total_chunks": "Total Chunks",
+  "elapsed_time": "Elapsed Time",
+  "eta": "ETA",
+  "cancel_translation": "Cancel Translation"
 }

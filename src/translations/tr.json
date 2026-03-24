@@ -73,7 +73,7 @@
   "time_shift_result": "Zaman Kaydırma Sonucu",
   "time_shift_success": "Altyazı dosyanız başarıyla işlendi.",
   "processed_subtitles": "İşlenmiş Altyazı İçeriği",
-  "process_another": "Başka Bir Dosyayı İşle",
+  "process_another": "Başka Bir Dosya İşle",
   "mkv_to_srt_result": "MKV'den SRT'ye Sonucu",
   "mkv_to_srt_success": "Altyazı çıkarma işlemi başarıyla tamamlandı.",
   "processing_output": "İşleme Çıktısı",
@@ -189,5 +189,11 @@
   "back_to_tool": "Araça Dön",
   "result": "Sonuç",
   "success": "İşleme başarıyla tamamlandı",
-  "process_another": "Başka Bir Dosya İşle"
+  "translating": "Translating...",
+  "processing": "Processing...",
+  "current_chunk": "Current Chunk",
+  "total_chunks": "Total Chunks",
+  "elapsed_time": "Elapsed Time",
+  "eta": "ETA",
+  "cancel_translation": "Cancel Translation"
 }

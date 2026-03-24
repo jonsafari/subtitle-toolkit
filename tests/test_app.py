@@ -220,6 +220,30 @@ class TestTranslateEndpoints:
 
         assert response.status_code == 200
 
+    def test_translate_stream_missing_file(self):
+        """Test translate stream endpoint without SRT file."""
+        response = client.post(
+            "/translate/stream",
+            data={
+                "provider": "local",
+                "chunk_size": "30",
+                "api_base": "http://localhost:8080",
+                "model_id": "local-model",
+                "api_key": "dummy-key"
+            }
+        )
+
+        # Should return SSE format with error
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith("text/event-stream")
+
+    def test_translate_result_page(self):
+        """Test the translate result page."""
+        response = client.get("/translate/result")
+
+        assert response.status_code == 200
+        assert "translate_result.html" in response.text or response.headers["content-type"].startswith("text/html")
+
 
 class TestStaticFiles:
     """Tests for static file serving."""

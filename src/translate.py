@@ -12,6 +12,8 @@ Public API:
 import argparse
 import os
 import sys
+import json
+import time
 from pathlib import Path
 from typing import List, Optional
 from tqdm import tqdm
@@ -121,6 +123,12 @@ def main() -> None:
         default='dummy-key',
         help='LLM API key. Default: %(default)s'
     )
+    parser.add_argument(
+        '--progress-output',
+        type=str,
+        default=None,
+        help='Output progress updates as JSON to stderr (for web interface). Default: %(default)s'
+    )
 
     args = parser.parse_args()
 
@@ -163,12 +171,40 @@ def main() -> None:
 
     separator = line_ending * 2
 
+    # Helper function to emit progress updates
+    def emit_progress(current_chunk: int, total_chunks: int, chunk_units: int, elapsed_time: float, status: str = "translating"):
+        """Emit progress update as JSON to stderr if progress output is enabled."""
+        if args.progress_output:
+            progress_data = {
+                "current_chunk": current_chunk,
+                "total_chunks": total_chunks,
+                "chunk_units": chunk_units,
+                "elapsed_time": elapsed_time,
+                "status": status,
+                "percent_complete": (current_chunk / total_chunks) * 100 if total_chunks > 0 else 0
+            }
+            # Write to stderr as JSON line
+            print(json.dumps(progress_data), file=sys.stderr, flush=True)
+
     # Translate each chunk and write to output file incrementally
     # Truncate output file if it exists
     with open(output_path, 'w', encoding='utf-8') as f:
         pass  # This truncates the file
 
-    for idx, chunk in enumerate(tqdm(chunks, desc="Translating chunks"), start=1):
+    # Emit start progress
+    emit_progress(0, len(chunks), 0, 0, "starting")
+
+    start_time = time.time()
+
+    # Use tqdm only if not outputting progress (to avoid mixing output)
+    chunk_iter = enumerate(chunks, start=1)
+    if args.progress_output:
+        chunk_iter = enumerate(chunks, start=1)  # No tqdm when outputting progress
+    else:
+        chunk_iter = enumerate(tqdm(chunks, desc="Translating chunks"), start=1)
+
+    for idx, chunk in chunk_iter:
+        chunk_start_time = time.time()
         source_text_chunk = separator.join(chunk) + line_ending
 
         response = litellm.completion(
@@ -186,7 +222,14 @@ def main() -> None:
         with open(output_path, 'a', encoding='utf-8') as f:
             f.write(translation)
 
-        print(f"Translated chunk {idx}/{len(chunks)} ({len(chunk)} units)")
+        elapsed_time = time.time() - start_time
+        emit_progress(idx, len(chunks), len(chunk), elapsed_time, "translating")
+
+        if not args.progress_output:
+            print(f"Translated chunk {idx}/{len(chunks)} ({len(chunk)} units)")
+
+    elapsed_time = time.time() - start_time
+    emit_progress(len(chunks), len(chunks), 0, elapsed_time, "completed")
 
     print(f"\nFinished! Translated {len(chunks)} chunks written to {output_path.resolve()}")
 

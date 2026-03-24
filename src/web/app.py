@@ -3,7 +3,7 @@
 FastAPI web interface for the Subtitle Toolkit
 """
 from fastapi import FastAPI, Request, Form, UploadFile
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import subprocess
@@ -12,7 +12,8 @@ import tempfile
 from pathlib import Path
 import shutil
 import json
-from typing import Dict, Any, Optional, List
+import asyncio
+from typing import Dict, Any, Optional, List, Generator
 
 # Get the project root (parent of web directory)
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
@@ -394,6 +395,235 @@ async def translate_submit(
                 "provider": provider
             }
         })
+
+
+def generate_translation_progress(
+    srt_file: str,
+    instructions_file: Optional[str],
+    chunk_size: int,
+    api_base: str,
+    model_id: str,
+    api_key: str,
+    output_file: Optional[str],
+    provider: str,
+    custom_instructions_file: Optional[UploadFile]
+) -> Generator[str, None, None]:
+    """
+    Generator function that runs the translation script and yields SSE-formatted progress updates.
+    """
+    import tempfile
+    import os
+    import time
+    
+    # Create a temporary file for the input
+    tmp_input_path = None
+    instruction_path = None
+    
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.srt', delete=False) as tmp_input:
+            tmp_input.write(srt_file)
+            tmp_input_path = tmp_input.name
+
+        # Create a temporary instruction file if provided
+        if instructions_file:
+            instruction_path = Path(instructions_file)
+            if not instruction_path.exists():
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as tmp_inst:
+                    tmp_inst.write(instructions_file)
+                    instruction_path = Path(tmp_inst.name)
+
+        # Build command with progress output enabled
+        cmd: List[str] = ["python3", str(TRANSLATE_SCRIPT), str(tmp_input_path)]
+        if instruction_path:
+            cmd.extend(["--instructions", str(instruction_path)])
+        cmd.extend(["--chunk-size", str(chunk_size)])
+        cmd.extend(["--api-base", api_base])
+        cmd.extend(["--model-id", model_id])
+        cmd.extend(["--api-key", api_key])
+        cmd.append("--progress-output")  # Enable progress output
+        if output_file:
+            cmd.extend(["--output", output_file])
+
+        # Start the process
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1
+        )
+
+        # Track state
+        total_chunks = 0
+        last_progress = None
+        start_time = None
+        output_collected = []
+
+        try:
+            while True:
+                # Read from stderr (progress updates)
+                stderr_line = process.stderr.readline()
+                if stderr_line:
+                    stderr_line = stderr_line.strip()
+                    if stderr_line:
+                        try:
+                            progress_data = json.loads(stderr_line)
+                            status = progress_data.get("status", "translating")
+                            current_chunk = progress_data.get("current_chunk", 0)
+                            total_chunks = progress_data.get("total_chunks", 0)
+                            chunk_units = progress_data.get("chunk_units", 0)
+                            elapsed_time = progress_data.get("elapsed_time", 0)
+                            percent_complete = progress_data.get("percent_complete", 0)
+
+                            # Calculate ETA
+                            eta_seconds = 0
+                            if status == "translating" and current_chunk > 0:
+                                remaining_chunks = total_chunks - current_chunk
+                                avg_time_per_chunk = elapsed_time / current_chunk
+                                eta_seconds = avg_time_per_chunk * remaining_chunks
+
+                            # Format ETA
+                            if eta_seconds < 60:
+                                eta_str = f"{int(eta_seconds)}s"
+                            elif eta_seconds < 3600:
+                                eta_str = f"{int(eta_seconds / 60)}m {int(eta_seconds % 60)}s"
+                            else:
+                                eta_str = f"{int(eta_seconds / 3600)}h {int((eta_seconds % 3600) / 60)}m"
+
+                            # Yield SSE event
+                            event_data = {
+                                "type": "progress",
+                                "status": status,
+                                "current_chunk": current_chunk,
+                                "total_chunks": total_chunks,
+                                "chunk_units": chunk_units,
+                                "elapsed_time": round(elapsed_time, 1),
+                                "percent_complete": round(percent_complete, 1),
+                                "eta_seconds": round(eta_seconds, 1),
+                                "eta_str": eta_str
+                            }
+                            yield f"data: {json.dumps(event_data)}\n\n"
+
+                        except json.JSONDecodeError:
+                            # Not a progress update, ignore
+                            pass
+
+                # Check if process is done
+                if process.poll() is not None:
+                    break
+
+                # Small sleep to prevent busy waiting
+                time.sleep(0.1)
+
+        finally:
+            # Wait for process to complete and collect output
+            stdout, stderr = process.communicate(timeout=300)
+            output_collected.append(stdout)
+
+            # Check for errors
+            if process.returncode != 0:
+                error_msg = stderr if stderr else "Unknown error occurred"
+                error_event = {
+                    "type": "error",
+                    "message": error_msg
+                }
+                yield f"data: {json.dumps(error_event)}\n\n"
+            else:
+                # Success event with output
+                success_event = {
+                    "type": "complete",
+                    "output": stdout,
+                    "message": "Translation completed successfully"
+                }
+                yield f"data: {json.dumps(success_event)}\n\n"
+
+        # Clean up
+        if tmp_input_path and os.path.exists(tmp_input_path):
+            os.unlink(tmp_input_path)
+        if instruction_path and instruction_path.name.startswith('tmp') and os.path.exists(instruction_path):
+            os.unlink(instruction_path)
+
+    except Exception as e:
+        error_event = {
+            "type": "error",
+            "message": str(e)
+        }
+        yield f"data: {json.dumps(error_event)}\n\n"
+
+
+@app.post("/translate/stream")
+async def translate_stream(
+    request: Request,
+    srt_file: Optional[str] = Form(None),
+    instructions_file: Optional[str] = Form(None),
+    chunk_size: int = Form(30),
+    api_base: str = Form("http://localhost:8080"),
+    model_id: str = Form("local-model"),
+    api_key: str = Form("dummy-key"),
+    output_file: Optional[str] = Form(None),
+    provider: str = Form("local"),
+    custom_instructions_file: Optional[UploadFile] = Form(None)
+) -> StreamingResponse:
+    """Stream translation progress via Server-Sent Events (SSE)."""
+    
+    # Validate inputs
+    if not srt_file:
+        return StreamingResponse(
+            generate_error_stream("Please upload an SRT file"),
+            media_type="text/event-stream"
+        )
+
+    def event_stream():
+        yield from generate_translation_progress(
+            srt_file=srt_file,
+            instructions_file=instructions_file,
+            chunk_size=chunk_size,
+            api_base=api_base,
+            model_id=model_id,
+            api_key=api_key,
+            output_file=output_file,
+            provider=provider,
+            custom_instructions_file=custom_instructions_file
+        )
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"  # Disable nginx buffering
+        }
+    )
+
+
+def generate_error_stream(message: str) -> Generator[str, None, None]:
+    """Generate an error SSE event."""
+    error_event = {
+        "type": "error",
+        "message": message
+    }
+    yield f"data: {json.dumps(error_event)}\n\n"
+
+
+@app.get("/translate/result", response_class=HTMLResponse)
+async def translate_result_page(request: Request) -> HTMLResponse:
+    """Show the translation result page (called after SSE completes)."""
+    lang = get_language_from_request(request)
+    translations = load_translations(lang)
+
+    # Get available instruction files
+    instruction_files: List[Path] = []
+    instruction_dir = APP_DIR / "translation_instruction_prompts"
+    if instruction_dir.exists():
+        instruction_files = [f for f in instruction_dir.iterdir() if f.is_file()]
+
+    return templates.TemplateResponse(request, "translate_result.html", {
+        "lang": lang,
+        "translations": translations,
+        "instruction_files": instruction_files
+    })
+
 
 @app.get("/convert", response_class=HTMLResponse)
 async def convert_page(request: Request) -> HTMLResponse:

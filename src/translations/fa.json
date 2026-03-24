@@ -189,5 +189,11 @@
   "back_to_tool": "بازگشت به ابزار",
   "result": "نتیجه",
   "success": "پردازش با موفقیت تکمیل شد",
-  "process_another": "پردازش فایل دیگر"
+  "translating": "Translating...",
+  "processing": "Processing...",
+  "current_chunk": "Current Chunk",
+  "total_chunks": "Total Chunks",
+  "elapsed_time": "Elapsed Time",
+  "eta": "ETA",
+  "cancel_translation": "Cancel Translation"
 }

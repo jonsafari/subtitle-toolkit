@@ -189,5 +189,11 @@
   "back_to_tool": "返回工具",
   "result": "结果",
   "success": "处理成功完成",
-  "process_another": "处理另一个文件"
+  "translating": "Translating...",
+  "processing": "Processing...",
+  "current_chunk": "Current Chunk",
+  "total_chunks": "Total Chunks",
+  "elapsed_time": "Elapsed Time",
+  "eta": "ETA",
+  "cancel_translation": "Cancel Translation"
 }

@@ -189,5 +189,11 @@
   "back_to_tool": "Terug naar Hulpmiddel",
   "result": "Resultaat",
   "success": "Verwerking succesvol voltooid",
-  "process_another": "Verwerk Een Ander Bestand"
+  "translating": "Translating...",
+  "processing": "Processing...",
+  "current_chunk": "Current Chunk",
+  "total_chunks": "Total Chunks",
+  "elapsed_time": "Elapsed Time",
+  "eta": "ETA",
+  "cancel_translation": "Cancel Translation"
 }

@@ -189,5 +189,11 @@
   "back_to_tool": "العودة إلى الأداة",
   "result": "النتيجة",
   "success": "تمت المعالجة بنجاح",
-  "process_another": "معالجة ملف آخر"
+  "translating": "Translating...",
+  "processing": "Processing...",
+  "current_chunk": "Current Chunk",
+  "total_chunks": "Total Chunks",
+  "elapsed_time": "Elapsed Time",
+  "eta": "ETA",
+  "cancel_translation": "Cancel Translation"
 }

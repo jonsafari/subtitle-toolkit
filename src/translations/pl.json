@@ -73,7 +73,7 @@
   "time_shift_result": "Wynik Przesunięcia Czasu",
   "time_shift_success": "Twój plik z napisami został pomyślnie przetworzony.",
   "processed_subtitles": "Przetworzona Treść Napisów",
-  "process_another": "Przetwarzaj Inny Plik",
+  "process_another": "Przetwórz Inny Plik",
   "mkv_to_srt_result": "Wynik MKV do SRT",
   "mkv_to_srt_success": "Wydobywanie napisów zostało pomyślnie ukończone.",
   "processing_output": "Wyjście Przetwarzania",
@@ -189,5 +189,11 @@
   "back_to_tool": "Wróć do Narzędzia",
   "result": "Wynik",
   "success": "Przetwarzanie zakończone pomyślnie",
-  "process_another": "Przetwórz Inny Plik"
+  "translating": "Translating...",
+  "processing": "Processing...",
+  "current_chunk": "Current Chunk",
+  "total_chunks": "Total Chunks",
+  "elapsed_time": "Elapsed Time",
+  "eta": "ETA",
+  "cancel_translation": "Cancel Translation"
 }

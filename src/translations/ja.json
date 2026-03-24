@@ -189,5 +189,11 @@
   "back_to_tool": "ツールに戻る",
   "result": "結果",
   "success": "処理が正常に完了しました",
-  "process_another": "別のファイルを処理"
+  "translating": "Translating...",
+  "processing": "Processing...",
+  "current_chunk": "Current Chunk",
+  "total_chunks": "Total Chunks",
+  "elapsed_time": "Elapsed Time",
+  "eta": "ETA",
+  "cancel_translation": "Cancel Translation"
 }

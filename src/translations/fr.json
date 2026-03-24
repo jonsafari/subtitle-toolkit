@@ -73,7 +73,7 @@
   "time_shift_result": "Résultat du décalage temporel",
   "time_shift_success": "Votre fichier de sous-titres a été traité avec succès.",
   "processed_subtitles": "Contenu des sous-titres traités",
-  "process_another": "Traiter un autre fichier",
+  "process_another": "Traiter un Autre Fichier",
   "mkv_to_srt_result": "Résultat MKV en SRT",
   "mkv_to_srt_success": "Extraction des sous-titres terminée avec succès.",
   "processing_output": "Sortie du traitement",
@@ -189,5 +189,11 @@
   "back_to_tool": "Retour à l'Outil",
   "result": "Résultat",
   "success": "Traitement terminé avec succès",
-  "process_another": "Traiter un Autre Fichier"
+  "translating": "Translating...",
+  "processing": "Processing...",
+  "current_chunk": "Current Chunk",
+  "total_chunks": "Total Chunks",
+  "elapsed_time": "Elapsed Time",
+  "eta": "ETA",
+  "cancel_translation": "Cancel Translation"
 }

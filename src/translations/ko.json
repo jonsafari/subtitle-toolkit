@@ -189,5 +189,11 @@
   "back_to_tool": "도구로 돌아가기",
   "result": "결과",
   "success": "처리 성공적으로 완료됨",
-  "process_another": "다른 파일 처리"
+  "translating": "Translating...",
+  "processing": "Processing...",
+  "current_chunk": "Current Chunk",
+  "total_chunks": "Total Chunks",
+  "elapsed_time": "Elapsed Time",
+  "eta": "ETA",
+  "cancel_translation": "Cancel Translation"
 }

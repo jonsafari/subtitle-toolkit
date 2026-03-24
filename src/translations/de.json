@@ -189,5 +189,11 @@
   "back_to_tool": "Zurück zum Werkzeug",
   "result": "Ergebnis",
   "success": "Verarbeitung erfolgreich abgeschlossen",
-  "process_another": "Weitere Datei verarbeiten"
+  "translating": "Translating...",
+  "processing": "Processing...",
+  "current_chunk": "Current Chunk",
+  "total_chunks": "Total Chunks",
+  "elapsed_time": "Elapsed Time",
+  "eta": "ETA",
+  "cancel_translation": "Cancel Translation"
 }
