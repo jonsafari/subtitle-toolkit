@@ -1,6 +1,6 @@
 # Subtitle Toolkit  🍿
 
-> Your Swiss Army knife for everything subtitle-related.
+> Swiss Army knife for everything subtitle-related.
 
 [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)

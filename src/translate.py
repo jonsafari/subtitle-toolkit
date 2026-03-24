@@ -213,6 +213,7 @@ def main() -> None:
                 {"role": "system", "content": instructions_text.rstrip()},
                 {"role": "user", "content": source_text_chunk},
             ],
+            reasoning_effort="low",
             api_base=args.api_base if args.api_base else None,
         )
 
