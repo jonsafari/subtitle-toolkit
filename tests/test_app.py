@@ -166,6 +166,7 @@ class TestTranslateEndpoints:
         response = client.post(
             "/translate",
             data={
+                "provider": "local",
                 "chunk_size": "30",
                 "api_base": "http://localhost:8080",
                 "model_id": "local-model",
@@ -183,6 +184,7 @@ class TestTranslateEndpoints:
             "/translate",
             data={
                 "srt_file": "1\n00:00:01,000 --> 00:00:04,000\nTest\n",
+                "provider": "local",
                 "chunk_size": "30",
                 "api_base": "http://localhost:8080",
                 "model_id": "local-model",
@@ -207,6 +209,7 @@ class TestTranslateEndpoints:
             "/translate",
             data={
                 "srt_file": "1\n00:00:01,000 --> 00:00:04,000\nTest\n",
+                "provider": "local",
                 "instructions_file": str(instruction_file),
                 "chunk_size": "30",
                 "api_base": "http://localhost:8080",

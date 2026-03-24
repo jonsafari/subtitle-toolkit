@@ -86,12 +86,20 @@ async def timeshift_submit(
     lang = get_language_from_request(request)
     translations = load_translations(lang)
 
+    # Build form values for error recovery
+    form_values = {
+        "srt_file": srt_file or "",
+        "shift_seconds": str(shift_seconds) if shift_seconds is not None else "",
+        "first_entry_starts_at": first_entry_starts_at or ""
+    }
+
     # Validate inputs
     if not srt_file:
         return templates.TemplateResponse(request, "timeshift.html", {
             "lang": lang,
             "translations": translations,
-            "error": translations.get("please_upload_srt", "Please upload an SRT file")
+            "error": translations.get("please_upload_srt", "Please upload an SRT file"),
+            "form_values": form_values
         })
 
     # Process the file
@@ -111,7 +119,8 @@ async def timeshift_submit(
             return templates.TemplateResponse(request, "timeshift.html", {
                 "lang": lang,
                 "translations": translations,
-                "error": translations.get("error_processing_file", "Please provide either shift seconds or start time")
+                "error": translations.get("error_processing_file", "Please provide either shift seconds or start time"),
+                "form_values": form_values
             })
 
         # Run the command
@@ -136,13 +145,15 @@ async def timeshift_submit(
         return templates.TemplateResponse(request, "timeshift.html", {
             "lang": lang,
             "translations": translations,
-            "error": f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr}"
+            "error": f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr}",
+            "form_values": form_values
         })
     except Exception as e:
         return templates.TemplateResponse(request, "timeshift.html", {
             "lang": lang,
             "translations": translations,
-            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}"
+            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}",
+            "form_values": form_values
         })
 
 @app.post("/timeshift/download")
@@ -270,17 +281,36 @@ async def translate_submit(
     api_base: str = Form("http://localhost:8080"),
     model_id: str = Form("local-model"),
     api_key: str = Form("dummy-key"),
-    output_file: Optional[str] = Form(None)
+    output_file: Optional[str] = Form(None),
+    provider: str = Form("local"),
+    custom_instructions_file: Optional[UploadFile] = Form(None)
 ) -> HTMLResponse:
     lang = get_language_from_request(request)
     translations = load_translations(lang)
+    
+    # Get available instruction files
+    instruction_files: List[Path] = []
+    instruction_dir = APP_DIR / "translation_instruction_prompts"
+    if instruction_dir.exists():
+        instruction_files = [f for f in instruction_dir.iterdir() if f.is_file()]
 
     # Validate inputs
     if not srt_file:
         return templates.TemplateResponse(request, "translate.html", {
             "lang": lang,
             "translations": translations,
-            "error": translations.get("please_upload_srt", "Please upload an SRT file")
+            "instruction_files": instruction_files,
+            "error": translations.get("please_upload_srt", "Please upload an SRT file"),
+            "form_values": {
+                "srt_file": srt_file or "",
+                "instructions_file": instructions_file or "",
+                "chunk_size": chunk_size,
+                "api_base": api_base,
+                "model_id": model_id,
+                "api_key": api_key,
+                "output_file": output_file or "",
+                "provider": provider
+            }
         })
 
     # Process the file
@@ -334,13 +364,35 @@ async def translate_submit(
         return templates.TemplateResponse(request, "translate.html", {
             "lang": lang,
             "translations": translations,
-            "error": f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr}"
+            "instruction_files": instruction_files,
+            "error": f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr}",
+            "form_values": {
+                "srt_file": srt_file or "",
+                "instructions_file": instructions_file or "",
+                "chunk_size": chunk_size,
+                "api_base": api_base,
+                "model_id": model_id,
+                "api_key": api_key,
+                "output_file": output_file or "",
+                "provider": provider
+            }
         })
     except Exception as e:
         return templates.TemplateResponse(request, "translate.html", {
             "lang": lang,
             "translations": translations,
-            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}"
+            "instruction_files": instruction_files,
+            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}",
+            "form_values": {
+                "srt_file": srt_file or "",
+                "instructions_file": instructions_file or "",
+                "chunk_size": chunk_size,
+                "api_base": api_base,
+                "model_id": model_id,
+                "api_key": api_key,
+                "output_file": output_file or "",
+                "provider": provider
+            }
         })
 
 @app.get("/convert", response_class=HTMLResponse)
@@ -362,19 +414,29 @@ async def convert_submit(
     lang = get_language_from_request(request)
     translations = load_translations(lang)
 
+    # Build form values for error recovery
+    form_values = {
+        "subtitle_file": subtitle_file or "",
+        "input_format": input_format or "auto",
+        "output_format": output_format or "",
+        "preserve_formatting": preserve_formatting
+    }
+
     # Validate inputs
     if not subtitle_file:
         return templates.TemplateResponse(request, "convert.html", {
             "lang": lang,
             "translations": translations,
-            "error": translations.get("please_upload_subtitle", "Please upload a subtitle file")
+            "error": translations.get("please_upload_subtitle", "Please upload a subtitle file"),
+            "form_values": form_values
         })
 
     if not output_format:
         return templates.TemplateResponse(request, "convert.html", {
             "lang": lang,
             "translations": translations,
-            "error": translations.get("please_select_output_format", "Please select an output format")
+            "error": translations.get("please_select_output_format", "Please select an output format"),
+            "form_values": form_values
         })
 
     # Process the file
@@ -407,13 +469,15 @@ async def convert_submit(
         return templates.TemplateResponse(request, "convert.html", {
             "lang": lang,
             "translations": translations,
-            "error": f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr.decode() if isinstance(e.stderr, bytes) else e.stderr}"
+            "error": f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr.decode() if isinstance(e.stderr, bytes) else e.stderr}",
+            "form_values": form_values
         })
     except Exception as e:
         return templates.TemplateResponse(request, "convert.html", {
             "lang": lang,
             "translations": translations,
-            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}"
+            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}",
+            "form_values": form_values
         })
 
 @app.post("/convert/download")
@@ -492,12 +556,23 @@ async def autosync_submit(
     lang = get_language_from_request(request)
     translations = load_translations(lang)
 
+    # Build form values for error recovery
+    form_values = {
+        "srt_file": srt_file or "",
+        "correct_at": correct_at or "",
+        "offset_at": offset_at or "",
+        "offset_seconds": str(offset_seconds) if offset_seconds is not None else "",
+        "drift_rate": drift_rate or "",
+        "reference_time": reference_time or ""
+    }
+
     # Validate inputs
     if not srt_file:
         return templates.TemplateResponse(request, "autosync.html", {
             "lang": lang,
             "translations": translations,
-            "error": translations.get("please_upload_srt", "Please upload an SRT file")
+            "error": translations.get("please_upload_srt", "Please upload an SRT file"),
+            "form_values": form_values
         })
 
     # Process the file
@@ -529,7 +604,8 @@ async def autosync_submit(
             return templates.TemplateResponse(request, "autosync.html", {
                 "lang": lang,
                 "translations": translations,
-                "error": translations.get("error_processing_file", "Please provide valid correction parameters")
+                "error": translations.get("error_processing_file", "Please provide valid correction parameters"),
+                "form_values": form_values
             })
 
         # Run the command with input from stdin
@@ -551,13 +627,15 @@ async def autosync_submit(
         return templates.TemplateResponse(request, "autosync.html", {
             "lang": lang,
             "translations": translations,
-            "error": f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr.decode() if isinstance(e.stderr, bytes) else e.stderr}"
+            "error": f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr.decode() if isinstance(e.stderr, bytes) else e.stderr}",
+            "form_values": form_values
         })
     except Exception as e:
         return templates.TemplateResponse(request, "autosync.html", {
             "lang": lang,
             "translations": translations,
-            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}"
+            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)}",
+            "form_values": form_values
         })
 
 @app.post("/autosync/download")

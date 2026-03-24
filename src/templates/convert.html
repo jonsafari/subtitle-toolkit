@@ -48,7 +48,7 @@
                 class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                 placeholder="{{ translations.paste_subtitle_content if translations else 'Paste your subtitle content here or upload a file...' }}"
                 required
-            ></textarea>
+            >{{ form_values.get('subtitle_file', '') if form_values else '' }}</textarea>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.paste_subtitle_desc if translations else 'Paste the content of your subtitle file here or upload a file' }}</p>
         </div>
 
@@ -62,21 +62,21 @@
                     name="input_format"
                     class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                 >
-                    <option value="auto" selected>{{ translations.auto_detect if translations else 'Auto-detect' }}</option>
-                    <option value="srt">SRT</option>
-                    <option value="vtt">VTT (WebVTT)</option>
-                    <option value="ass">ASS (Advanced Substation)</option>
-                    <option value="ssa">SSA (SubStation Alpha)</option>
-                    <option value="sub">SUB</option>
-                    <option value="sbv">SBV (YouTube)</option>
-                    <option value="txt">TXT</option>
-                    <option value="sami">SAMI</option>
-                    <option value="smi">SMI</option>
-                    <option value="csv">CSV</option>
-                    <option value="tsv">TSV</option>
-                    <option value="json">JSON</option>
-                    <option value="textgrid">TextGrid (Praat)</option>
-                    <option value="gemini">Gemini/YouTube Transcript</option>
+                    <option value="auto" {% if not form_values or form_values.get('input_format') == 'auto' %}selected{% endif %}>{{ translations.auto_detect if translations else 'Auto-detect' }}</option>
+                    <option value="srt" {% if form_values and form_values.get('input_format') == 'srt' %}selected{% endif %}>SRT</option>
+                    <option value="vtt" {% if form_values and form_values.get('input_format') == 'vtt' %}selected{% endif %}>VTT (WebVTT)</option>
+                    <option value="ass" {% if form_values and form_values.get('input_format') == 'ass' %}selected{% endif %}>ASS (Advanced Substation)</option>
+                    <option value="ssa" {% if form_values and form_values.get('input_format') == 'ssa' %}selected{% endif %}>SSA (SubStation Alpha)</option>
+                    <option value="sub" {% if form_values and form_values.get('input_format') == 'sub' %}selected{% endif %}>SUB</option>
+                    <option value="sbv" {% if form_values and form_values.get('input_format') == 'sbv' %}selected{% endif %}>SBV (YouTube)</option>
+                    <option value="txt" {% if form_values and form_values.get('input_format') == 'txt' %}selected{% endif %}>TXT</option>
+                    <option value="sami" {% if form_values and form_values.get('input_format') == 'sami' %}selected{% endif %}>SAMI</option>
+                    <option value="smi" {% if form_values and form_values.get('input_format') == 'smi' %}selected{% endif %}>SMI</option>
+                    <option value="csv" {% if form_values and form_values.get('input_format') == 'csv' %}selected{% endif %}>CSV</option>
+                    <option value="tsv" {% if form_values and form_values.get('input_format') == 'tsv' %}selected{% endif %}>TSV</option>
+                    <option value="json" {% if form_values and form_values.get('input_format') == 'json' %}selected{% endif %}>JSON</option>
+                    <option value="textgrid" {% if form_values and form_values.get('input_format') == 'textgrid' %}selected{% endif %}>TextGrid (Praat)</option>
+                    <option value="gemini" {% if form_values and form_values.get('input_format') == 'gemini' %}selected{% endif %}>Gemini/YouTube Transcript</option>
                 </select>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.input_format_desc if translations else 'Select input format or auto-detect' }}</p>
             </div>
@@ -92,28 +92,28 @@
                     required
                 >
                     <option value="">{{ translations.select_output_format if translations else 'Select output format...' }}</option>
-                    <option value="srt">SRT</option>
-                    <option value="vtt">VTT (WebVTT)</option>
-                    <option value="ass">ASS (Advanced Substation)</option>
-                    <option value="ssa">SSA (SubStation Alpha)</option>
-                    <option value="sub">SUB</option>
-                    <option value="sbv">SBV (YouTube)</option>
-                    <option value="txt">TXT</option>
-                    <option value="sami">SAMI</option>
-                    <option value="smi">SMI</option>
-                    <option value="csv">CSV</option>
-                    <option value="tsv">TSV</option>
-                    <option value="json">JSON</option>
-                    <option value="textgrid">TextGrid (Praat)</option>
-                    <option value="gemini">Gemini/YouTube Transcript</option>
-                    <option value="ttml">TTML (Generic)</option>
-                    <option value="imsc1">TTML (IMSC1 - Netflix/Streaming)</option>
-                    <option value="ebu_tt_d">TTML (EBU-TT-D - European Broadcast)</option>
-                    <option value="avid_ds">Avid Media Composer (DS)</option>
-                    <option value="fcpxml">Final Cut Pro XML</option>
-                    <option value="premiere_xml">Adobe Premiere Pro XML</option>
-                    <option value="audition_csv">Adobe Audition CSV</option>
-                    <option value="edimarker_csv">Pro Tools (EdiMarker CSV)</option>
+                    <option value="srt" {% if form_values and form_values.get('output_format') == 'srt' %}selected{% endif %}>SRT</option>
+                    <option value="vtt" {% if form_values and form_values.get('output_format') == 'vtt' %}selected{% endif %}>VTT (WebVTT)</option>
+                    <option value="ass" {% if form_values and form_values.get('output_format') == 'ass' %}selected{% endif %}>ASS (Advanced Substation)</option>
+                    <option value="ssa" {% if form_values and form_values.get('output_format') == 'ssa' %}selected{% endif %}>SSA (SubStation Alpha)</option>
+                    <option value="sub" {% if form_values and form_values.get('output_format') == 'sub' %}selected{% endif %}>SUB</option>
+                    <option value="sbv" {% if form_values and form_values.get('output_format') == 'sbv' %}selected{% endif %}>SBV (YouTube)</option>
+                    <option value="txt" {% if form_values and form_values.get('output_format') == 'txt' %}selected{% endif %}>TXT</option>
+                    <option value="sami" {% if form_values and form_values.get('output_format') == 'sami' %}selected{% endif %}>SAMI</option>
+                    <option value="smi" {% if form_values and form_values.get('output_format') == 'smi' %}selected{% endif %}>SMI</option>
+                    <option value="csv" {% if form_values and form_values.get('output_format') == 'csv' %}selected{% endif %}>CSV</option>
+                    <option value="tsv" {% if form_values and form_values.get('output_format') == 'tsv' %}selected{% endif %}>TSV</option>
+                    <option value="json" {% if form_values and form_values.get('output_format') == 'json' %}selected{% endif %}>JSON</option>
+                    <option value="textgrid" {% if form_values and form_values.get('output_format') == 'textgrid' %}selected{% endif %}>TextGrid (Praat)</option>
+                    <option value="gemini" {% if form_values and form_values.get('output_format') == 'gemini' %}selected{% endif %}>Gemini/YouTube Transcript</option>
+                    <option value="ttml" {% if form_values and form_values.get('output_format') == 'ttml' %}selected{% endif %}>TTML (Generic)</option>
+                    <option value="imsc1" {% if form_values and form_values.get('output_format') == 'imsc1' %}selected{% endif %}>TTML (IMSC1 - Netflix/Streaming)</option>
+                    <option value="ebu_tt_d" {% if form_values and form_values.get('output_format') == 'ebu_tt_d' %}selected{% endif %}>TTML (EBU-TT-D - European Broadcast)</option>
+                    <option value="avid_ds" {% if form_values and form_values.get('output_format') == 'avid_ds' %}selected{% endif %}>Avid Media Composer (DS)</option>
+                    <option value="fcpxml" {% if form_values and form_values.get('output_format') == 'fcpxml' %}selected{% endif %}>Final Cut Pro XML</option>
+                    <option value="premiere_xml" {% if form_values and form_values.get('output_format') == 'premiere_xml' %}selected{% endif %}>Adobe Premiere Pro XML</option>
+                    <option value="audition_csv" {% if form_values and form_values.get('output_format') == 'audition_csv' %}selected{% endif %}>Adobe Audition CSV</option>
+                    <option value="edimarker_csv" {% if form_values and form_values.get('output_format') == 'edimarker_csv' %}selected{% endif %}>Pro Tools (EdiMarker CSV)</option>
                 </select>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.output_format_desc if translations else 'Select the format to convert to' }}</p>
             </div>
@@ -125,7 +125,7 @@
                     type="checkbox"
                     id="preserve_formatting"
                     name="preserve_formatting"
-                    checked
+                    {% if not form_values or form_values.get('preserve_formatting') %}checked{% endif %}
                     class="form-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:border-slate-600"
                 >
                 <span class="ml-2 text-gray-700 dark:text-gray-300">{{ translations.preserve_formatting if translations else 'Preserve text formatting' }}</span>
