@@ -263,10 +263,10 @@ class TestCliEdgeCases:
         )
 
         assert result.returncode == 0
-        # First entry starts at 00:00:01,000, shifted by 1.5 seconds = negative, clamped to 00:00:00,000
-        # Second entry starts at 00:00:05,000, shifted by 1.5 seconds = 00:00:03,500
-        assert "00:00:00,000 --> 00:00:02,500" in result.stdout
-        assert "00:00:03,500 --> 00:00:06,500" in result.stdout
+        # First entry starts at 00:00:01,000, shifted by 1.5 seconds later = 00:00:02,500
+        # Second entry starts at 00:00:05,000, shifted by 1.5 seconds later = 00:00:06,500
+        assert "00:00:02,500 --> 00:00:05,500" in result.stdout
+        assert "00:00:06,500 --> 00:00:09,500" in result.stdout
 
     def test_cli_case_sensitive_commands(self):
         """Test that commands are case-sensitive."""
@@ -319,11 +319,11 @@ class TestCliIntegration:
         # Verify output file
         assert output_file.exists()
         content = output_file.read_text(encoding='utf-8')
-        # First entry starts at 00:00:01,000, shifted by 5 seconds = negative, clamped to 00:00:00,000
-        # Second entry starts at 00:00:05,000, shifted by 5 seconds = 00:00:00,000 (also clamped)
-        # Third entry starts at 00:00:09,000, shifted by 5 seconds = 00:00:04,000
-        assert "00:00:00,000 --> 00:00:00,000" in content  # First entry clamped
-        assert "00:00:04,000 --> 00:00:07,000" in content  # Third entry shifted by 5 seconds
+        # First entry starts at 00:00:01,000, shifted by 5 seconds later = 00:00:06,000
+        # Second entry starts at 00:00:05,000, shifted by 5 seconds later = 00:00:10,000
+        # Third entry starts at 00:00:09,000, shifted by 5 seconds later = 00:00:14,000
+        assert "00:00:06,000 --> 00:00:09,000" in content  # First entry shifted by 5 seconds
+        assert "00:00:14,000 --> 00:00:17,000" in content  # Third entry shifted by 5 seconds
 
     def test_cli_preserves_subtitle_text(self, tmp_path, sample_srt_content):
         """Test that CLI preserves subtitle text content."""

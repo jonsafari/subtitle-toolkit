@@ -13,18 +13,18 @@ class TestShiftTimestamp:
     """Tests for the shift_timestamp function."""
 
     def test_shift_positive_seconds(self):
-        """Shifting by positive seconds should move timestamps earlier."""
+        """Shifting by positive seconds should move timestamps later."""
         from src.timeshift import shift_timestamp
 
         result = shift_timestamp("00:00:10,000", 2.5)
-        assert result == "00:00:07,500"
+        assert result == "00:00:12,500"
 
     def test_shift_negative_seconds(self):
-        """Shifting by negative seconds should move timestamps later."""
+        """Shifting by negative seconds should move timestamps earlier."""
         from src.timeshift import shift_timestamp
 
         result = shift_timestamp("00:00:10,000", -2.5)
-        assert result == "00:00:12,500"
+        assert result == "00:00:07,500"
 
     def test_shift_zero_seconds(self):
         """Shifting by zero seconds should return the same timestamp."""
@@ -37,8 +37,8 @@ class TestShiftTimestamp:
         """Shifts that would produce negative time should clamp to 0."""
         from src.timeshift import shift_timestamp
 
-        # Shifting forward (positive) by more than the timestamp value causes underflow
-        result = shift_timestamp("00:00:01,000", 5.0)
+        # Shifting backward (negative) by more than the timestamp value causes underflow
+        result = shift_timestamp("00:00:01,000", -5.0)
         # 00:00:01,000 - 5 seconds = negative, so clamp to 00:00:00,000
         assert result == "00:00:00,000"
 
@@ -54,7 +54,7 @@ class TestShiftTimestamp:
         from src.timeshift import shift_timestamp
 
         result = shift_timestamp("00:01:30,500", 1.5)
-        assert result == "00:01:29,000"
+        assert result == "00:01:32,000"
 
 
 class TestTimestampToSeconds:
@@ -183,8 +183,8 @@ Back to normal
 
         assert result.returncode == 0
         # Malformed line should be preserved (but timestamps get shifted)
-        # The malformed timestamp line gets shifted by 1 second
-        assert "malformed-timestamp --> 00:00:07,000" in result.stdout
+        # The malformed timestamp line gets shifted by 1 second (later)
+        assert "malformed-timestamp --> 00:00:09,000" in result.stdout
 
 
 class TestCommandLineArguments:
