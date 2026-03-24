@@ -55,7 +55,6 @@ async def favicon() -> FileResponse:
 
 # Tool paths (relative to src directory)
 TIMESHIFT_SCRIPT = PROJECT_ROOT / "timeshift.py"
-MKV2SRT_SCRIPT = PROJECT_ROOT / "mkv2srt.py"
 TRANSLATE_SCRIPT = PROJECT_ROOT / "translate.py"
 CONVERT_SCRIPT = PROJECT_ROOT / "convert.py"
 AUTOSYNC_SCRIPT = PROJECT_ROOT / "autosync.py"
@@ -182,81 +181,7 @@ async def timeshift_download(request: Request, output: Optional[str] = Form(None
             os.unlink(tmp_file_path)
         raise
 
-@app.get("/mkv2srt", response_class=HTMLResponse)
-async def mkv2srt_page(request: Request) -> HTMLResponse:
-    lang = get_language_from_request(request)
-    return templates.TemplateResponse(request, "mkv2srt.html", {
-        "lang": lang,
-        "translations": load_translations(lang)
-    })
 
-@app.post("/mkv2srt", response_class=HTMLResponse)
-async def mkv2srt_submit(
-    request: Request,
-    mkv_file: Optional[UploadFile] = Form(None),
-    language: Optional[str] = Form(None),
-    output_file: Optional[str] = Form(None)
-) -> HTMLResponse:
-    lang = get_language_from_request(request)
-    translations = load_translations(lang)
-
-    # Validate inputs
-    if not mkv_file or mkv_file.filename is None or mkv_file.filename == "":
-        return templates.TemplateResponse(request, "mkv2srt.html", {
-            "lang": lang,
-            "translations": translations,
-            "error": translations.get("please_upload_mkv", "Please upload an MKV file")
-        })
-
-    # Process the file
-    try:
-        # Create a temporary file for the input
-        with tempfile.NamedTemporaryFile(mode='wb', suffix='.mkv', delete=False) as tmp_input:
-            # Read file content and write to temporary file
-            content = await mkv_file.read()
-            tmp_input.write(content)
-            tmp_input_path = tmp_input.name
-
-        # Build command
-        cmd: List[str] = ["python3", str(MKV2SRT_SCRIPT), "--input", str(tmp_input_path)]
-        if language:
-            cmd.extend(["--language", language])
-        if output_file:
-            cmd.extend(["--output", output_file])
-
-        # Run the command
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=True
-        )
-
-        # Clean up
-        os.unlink(tmp_input_path)
-
-        return templates.TemplateResponse(request, "mkv2srt_result.html", {
-            "lang": lang,
-            "translations": translations,
-            "output": result.stdout
-        })
-
-    except subprocess.CalledProcessError as e:
-        # Provide more detailed error information
-        error_msg = f"{translations.get('error_processing_file', 'Error processing file')}: {e.stderr} ({translations.get('return_code', 'return code')}: {e.returncode})"
-        if e.stdout:
-            error_msg += f" | {translations.get('stdout', 'stdout')}: {e.stdout[:200]}..."
-        return templates.TemplateResponse(request, "mkv2srt.html", {
-            "lang": lang,
-            "translations": translations,
-            "error": error_msg
-        })
-    except Exception as e:
-        return templates.TemplateResponse(request, "mkv2srt.html", {
-            "lang": lang,
-            "translations": translations,
-            "error": f"{translations.get('unexpected_error', 'Unexpected error')}: {str(e)} ({translations.get('type', 'type')}: {type(e).__name__})"
-        })
 
 @app.get("/translate", response_class=HTMLResponse)
 async def translate_page(request: Request) -> HTMLResponse:

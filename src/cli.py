@@ -34,13 +34,6 @@ def run_timeshift(args: List[str]) -> int:
     return subprocess.run(cmd).returncode
 
 
-def run_mkv2srt(args: List[str]) -> int:
-    """Run the mkv2srt.py script."""
-    script_path = get_script_dir() / "mkv2srt.py"
-    cmd = [sys.executable, str(script_path)] + args
-    return subprocess.run(cmd).returncode
-
-
 def run_subtitle_tracks(args: List[str]) -> int:
     """Run the subtitle_tracks.py script."""
     script_path = get_script_dir() / "subtitle_tracks.py"
@@ -76,7 +69,6 @@ Commands:
     translate        Translate subtitles using AI
     timeshift        Shift timestamps in SRT files (uniform shift)
     autosync         Apply drift correction to subtitles (time-varying offset)
-    mkv2srt          Extract subtitles from MKV files (DEPRECATED - use subtitle-tracks)
     subtitle-tracks  Manage subtitle tracks - list, extract, merge
     convert          Convert subtitles between formats (SRT, VTT, ASS, TTML, etc.)
     web              Start the web interface
@@ -92,8 +84,6 @@ Examples:
     subtitle-tk subtitle-tracks merge subs1.srt subs2.srt -o merged.srt
     subtitle-tk convert input.srt --output-format vtt -o output.vtt
     subtitle-tk web --host 0.0.0.0 --port 8000
-
-Note: mkv2srt is deprecated. Use 'subtitle-tracks' instead for enhanced functionality.
         """
 
 
@@ -120,12 +110,12 @@ def main() -> None:
         parser.print_help()
         sys.exit(0)
     
-    if command not in ["translate", "timeshift", "mkv2srt", "subtitle-tracks", "convert", "autosync", "web"]:
+    if command not in ["translate", "timeshift", "subtitle-tracks", "convert", "autosync", "web"]:
         parser = argparse.ArgumentParser(
             prog="subtitle-tk",
             description="Subtitle Toolkit - A collection of utilities for working with subtitle files"
         )
-        parser.add_argument("command", nargs="?", choices=["translate", "timeshift", "mkv2srt", "subtitle-tracks", "convert", "autosync", "web"])
+        parser.add_argument("command", nargs="?", choices=["translate", "timeshift", "subtitle-tracks", "convert", "autosync", "web"])
         parser.print_help()
         sys.exit(1)
     
@@ -135,8 +125,6 @@ def main() -> None:
         sys.exit(run_translate(remaining_args))
     elif command == "timeshift":
         sys.exit(run_timeshift(remaining_args))
-    elif command == "mkv2srt":
-        sys.exit(run_mkv2srt(remaining_args))
     elif command == "subtitle-tracks":
         sys.exit(run_subtitle_tracks(remaining_args))
     elif command == "convert":

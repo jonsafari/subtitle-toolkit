@@ -107,50 +107,6 @@ class TestTimeshiftEndpoints:
         assert "processed_subtitles.srt" in response.headers.get("content-disposition", "")
 
 
-class TestMkv2srtEndpoints:
-    """Tests for the mkv2srt endpoints."""
-
-    def test_mkv2srt_page(self):
-        """Test the mkv2srt page returns the form."""
-        response = client.get("/mkv2srt")
-
-        assert response.status_code == 200
-        assert "mkv2srt.html" in response.text or response.headers["content-type"].startswith("text/html")
-
-    def test_mkv2srt_submit_missing_file(self):
-        """Test mkv2srt submission without MKV file."""
-        response = client.post(
-            "/mkv2srt",
-            data={
-                "language": "en",
-                "output_file": "output.srt"
-            }
-        )
-
-        # The form validation should show an error
-        assert response.status_code == 200
-        assert "error" in response.text.lower() or "upload" in response.text.lower()
-
-    def test_mkv2srt_submit_with_file(self):
-        """Test mkv2srt submission with MKV file."""
-        # Create a mock MKV file
-        mock_mkv_content = b'Mock MKV content'
-
-        response = client.post(
-            "/mkv2srt",
-            data={
-                "language": "en",
-                "output_file": "output.srt"
-            },
-            files={
-                "mkv_file": ("test.mkv", mock_mkv_content, "video/x-matroska")
-            }
-        )
-
-        # This will likely fail if ffmpeg is not available, but should return a response
-        assert response.status_code == 200
-
-
 class TestTranslateEndpoints:
     """Tests for the translate endpoints."""
 
@@ -340,12 +296,6 @@ class TestI18n:
         response = client.get("/timeshift?lang=es")
         assert response.status_code == 200
         assert "Desplazamiento de Tiempo" in response.text
-
-    def test_mkv2srt_page_spanish(self):
-        """Test mkv2srt page in Spanish."""
-        response = client.get("/mkv2srt?lang=es")
-        assert response.status_code == 200
-        assert "MKV a SRT" in response.text
 
     def test_translate_page_spanish(self):
         """Test translate page in Spanish."""

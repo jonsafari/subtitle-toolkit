@@ -40,7 +40,6 @@ class TestCommandLineInterface:
         assert "Subtitle Toolkit" in result.stdout
         assert "translate" in result.stdout
         assert "timeshift" in result.stdout
-        assert "mkv2srt" in result.stdout
 
     def test_cli_short_help_flag(self):
         """Test that -h flag shows help message."""
@@ -78,7 +77,7 @@ class TestCommandLineInterface:
 
         assert result.returncode == 1
         # Should show help with available commands
-        assert "translate" in result.stdout or "timeshift" in result.stdout or "mkv2srt" in result.stdout
+        assert "translate" in result.stdout or "timeshift" in result.stdout
 
     def test_cli_translate_command_exists(self):
         """Test that translate command is recognized."""
@@ -103,18 +102,6 @@ class TestCommandLineInterface:
         )
 
         # Should succeed (show timeshift help)
-        assert result.returncode == 0
-
-    def test_cli_mkv2srt_command_exists(self):
-        """Test that mkv2srt command is recognized."""
-        result = subprocess.run(
-            [sys.executable, "./src/cli.py", "mkv2srt", "--help"],
-            capture_output=True,
-            text=True,
-            cwd=Path(__file__).parent.parent
-        )
-
-        # Should succeed (show mkv2srt help)
         assert result.returncode == 0
 
 
@@ -152,19 +139,6 @@ class TestCliSubcommands:
 
         assert result.returncode == 0
         assert "00:00:05,000 --> 00:00:08,000" in result.stdout
-
-    def test_cli_mkv2srt_with_invalid_file(self, tmp_path):
-        """Test mkv2srt subcommand with non-existent file."""
-        result = subprocess.run(
-            [sys.executable, "./src/cli.py", "mkv2srt", "--input", str(tmp_path / "nonexistent.mkv")],
-            capture_output=True,
-            text=True,
-            cwd=Path(__file__).parent.parent
-        )
-
-        # Should fail because file doesn't exist
-        assert result.returncode != 0
-        assert "does not exist" in result.stderr.lower() or "not found" in result.stderr.lower()
 
     def test_cli_translate_with_invalid_file(self, tmp_path):
         """Test translate subcommand with non-existent file."""
@@ -210,23 +184,6 @@ class TestRunFunctions:
             mock_run.return_value = mock.MagicMock(returncode=0)
 
             result = run_timeshift(["--help"])
-
-            # Verify subprocess was called with correct arguments
-            mock_run.assert_called_once()
-            call_args = mock_run.call_args[0][0]
-            assert str(script_path) in str(call_args)
-            assert "--help" in call_args
-
-    def test_run_mkv2srt_calls_subprocess(self):
-        """Test that run_mkv2srt builds correct command."""
-        from src.cli import run_mkv2srt, get_script_dir
-
-        script_path = get_script_dir() / "mkv2srt.py"
-
-        with mock.patch('subprocess.run') as mock_run:
-            mock_run.return_value = mock.MagicMock(returncode=0)
-
-            result = run_mkv2srt(["--help"])
 
             # Verify subprocess was called with correct arguments
             mock_run.assert_called_once()
