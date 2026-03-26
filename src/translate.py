@@ -97,7 +97,7 @@ def main() -> None:
     parser.add_argument(
         '--chunk-size',
         type=int,
-        default=30,
+        default=600,
         help='Number of subtitle units per chunk. Default: %(default)s'
     )
     parser.add_argument(
