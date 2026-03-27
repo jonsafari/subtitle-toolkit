@@ -448,6 +448,12 @@ function handleProgressEvent(data) {
         case 'complete':
             document.getElementById('status-display').innerHTML = '<span class="text-green-600"><i class="fas fa-check-circle"></i> ' + data.message + '</span>';
             document.getElementById('overall-progress-bar').style.width = '100%';
+            
+            // If a ZIP file is available, trigger download
+            if (data.zip_file) {
+                downloadZipFile(data.zip_file, data.message);
+            }
+            
             document.getElementById('close-modal').classList.remove('hidden');
             break;
             
@@ -461,5 +467,50 @@ function handleProgressEvent(data) {
 document.getElementById('close-modal').addEventListener('click', function() {
     document.getElementById('progress-modal').classList.add('hidden');
 });
+
+// Function to download the ZIP file
+async function downloadZipFile(zipFilePath, message) {
+    try {
+        const formData = new FormData();
+        formData.append('zip_file', zipFilePath);
+        
+        const response = await fetch('/translate-batch/download-zip', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to download ZIP file');
+        }
+        
+        // Create a blob from the response
+        const blob = await response.blob();
+        
+        // Create a download link and trigger it
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'translated_subtitles.zip';
+        document.body.appendChild(a);
+        a.click();
+        
+        // Clean up
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        // Update status to show download started
+        document.getElementById('status-display').innerHTML = 
+            '<span class="text-green-600"><i class="fas fa-check-circle"></i> ' + 
+            message + 
+            ' <br><i class="fas fa-download"></i> Download started!</span>';
+            
+    } catch (error) {
+        console.error('Download error:', error);
+        document.getElementById('status-display').innerHTML = 
+            '<span class="text-red-600"><i class="fas fa-exclamation-circle"></i> ' + 
+            message + 
+            ' <br><i class="fas fa-exclamation-triangle"></i> Download failed: ' + error.message + '</span>';
+    }
+}
 </script>
 {% endblock %}

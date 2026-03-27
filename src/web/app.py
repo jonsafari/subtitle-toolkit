@@ -773,6 +773,9 @@ def generate_batch_translation_progress(
             start_time = time.time()
             total_episodes = len(file_pairs)
             
+            # Use a list to collect progress updates
+            progress_queue = []
+            
             def progress_callback(
                 episode_num: int,
                 total_episodes: int,
@@ -782,6 +785,7 @@ def generate_batch_translation_progress(
                 elapsed_time: float,
                 status: str
             ):
+                """Callback that stores progress updates in a queue."""
                 try:
                     # Calculate ETA
                     eta_seconds = 0
@@ -817,7 +821,7 @@ def generate_batch_translation_progress(
                         "status": status,
                         "percent_complete": round((episode_num / total_episodes) * 100, 1)
                     }
-                    yield f"data: {json.dumps(progress_data)}\n\n"
+                    progress_queue.append(f"data: {json.dumps(progress_data)}\n\n")
                 except (BrokenPipeError, OSError) as e:
                     # Client disconnected, stop processing
                     if e.errno == errno.EPIPE:
@@ -835,6 +839,10 @@ def generate_batch_translation_progress(
                     api_key=api_key,
                     progress_callback=progress_callback  # Pass the callback
                 )
+                
+                # Yield all collected progress updates
+                for progress_update in progress_queue:
+                    yield progress_update
                 
                 # Create ZIP file with translated files
                 zip_buffer = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
