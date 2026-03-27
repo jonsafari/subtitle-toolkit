@@ -220,5 +220,10 @@
   "custom_instructions_desc": "Paste your custom instructions here...",
   "instructions_help": "Choose one option: select from dropdown, upload a file, or paste text.",
   "upload_instructions_file": "Or upload an instructions file",
-  "paste_instructions": "Or paste instructions here"
+  "paste_instructions": "Or paste instructions here",
+  "cancel": "Hủy",
+  "cancelling": "Đang hủy...",
+  "cancelled": "Đã hủy",
+  "confirm_cancel": "Bạn có chắc chắn muốn hủy việc dịch không?",
+  "cancel_failed": "Hủy không thành công"
 }

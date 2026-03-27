@@ -220,5 +220,10 @@
   "custom_instructions_desc": "Paste your custom instructions here...",
   "instructions_help": "Choose one option: select from dropdown, upload a file, or paste text.",
   "upload_instructions_file": "Or upload an instructions file",
-  "paste_instructions": "Or paste instructions here"
+  "paste_instructions": "Or paste instructions here",
+  "cancel": "Annuler",
+  "cancelling": "Annulation...",
+  "cancelled": "Annulé",
+  "confirm_cancel": "Êtes-vous sûr de vouloir annuler la traduction ?",
+  "cancel_failed": "Échec de l'annulation"
 }

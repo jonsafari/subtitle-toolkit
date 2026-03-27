@@ -220,5 +220,10 @@
   "custom_instructions_desc": "Paste your custom instructions here...",
   "instructions_help": "Choose one option: select from dropdown, upload a file, or paste text.",
   "upload_instructions_file": "Or upload an instructions file",
-  "paste_instructions": "Or paste instructions here"
+  "paste_instructions": "Or paste instructions here",
+  "cancel": "取消",
+  "cancelling": "取消中...",
+  "cancelled": "已取消",
+  "confirm_cancel": "您确定要取消翻译吗？",
+  "cancel_failed": "取消失败"
 }

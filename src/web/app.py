@@ -773,8 +773,11 @@ def generate_batch_translation_progress(
             start_time = time.time()
             total_episodes = len(file_pairs)
             
-            # Use a list to collect progress updates
-            progress_queue = []
+            # Use a thread-safe queue for real-time progress updates
+            from queue import Queue, Empty
+            progress_queue = Queue()
+            translation_error = None
+            translation_complete = False
             
             def progress_callback(
                 episode_num: int,
@@ -785,7 +788,7 @@ def generate_batch_translation_progress(
                 elapsed_time: float,
                 status: str
             ):
-                """Callback that stores progress updates in a queue."""
+                """Callback that puts progress updates in a thread-safe queue."""
                 try:
                     # Calculate ETA
                     eta_seconds = 0
@@ -821,51 +824,66 @@ def generate_batch_translation_progress(
                         "status": status,
                         "percent_complete": round((episode_num / total_episodes) * 100, 1)
                     }
-                    progress_queue.append(f"data: {json.dumps(progress_data)}\n\n")
-                except (BrokenPipeError, OSError) as e:
-                    # Client disconnected, stop processing
-                    if e.errno == errno.EPIPE:
-                        logger.debug("Client disconnected (broken pipe)")
-                    raise GeneratorExit("Client disconnected")
+                    progress_queue.put(f"data: {json.dumps(progress_data)}\n\n")
+                except Exception as e:
+                    logger.error(f"Progress callback error: {e}")
             
-            # Run batch translation
-            try:
-                translate_batch(
-                    file_pairs=file_pairs,
-                    instructions_path=instruction_path,
-                    chunk_size=chunk_size,
-                    api_base=api_base,
-                    model_id=model_id,
-                    api_key=api_key,
-                    progress_callback=progress_callback  # Pass the callback
-                )
-                
-                # Yield all collected progress updates
-                for progress_update in progress_queue:
+            def run_translation():
+                """Run translation in a background thread."""
+                nonlocal translation_error, translation_complete
+                try:
+                    translate_batch(
+                        file_pairs=file_pairs,
+                        instructions_path=instruction_path,
+                        chunk_size=chunk_size,
+                        api_base=api_base,
+                        model_id=model_id,
+                        api_key=api_key,
+                        progress_callback=progress_callback
+                    )
+                    translation_complete = True
+                except Exception as e:
+                    translation_error = e
+                    translation_complete = True
+            
+            # Start translation in background thread
+            import threading
+            translation_thread = threading.Thread(target=run_translation)
+            translation_thread.start()
+            
+            # Yield progress updates in real-time while translation runs
+            while not translation_complete:
+                try:
+                    # Wait for progress update with timeout to check completion
+                    progress_update = progress_queue.get(timeout=0.5)
                     yield progress_update
-                
-                # Create ZIP file with translated files
-                zip_buffer = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
-                with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-                    for source, target in file_pairs:
-                        if target.exists():
-                            zip_file.write(target, arcname=target.name)
-                zip_buffer.close()
-                
-                # Yield completion with ZIP file path
-                complete_data = {
-                    "type": "complete",
-                    "message": f"Batch translation complete! {len(file_pairs)} files translated.",
-                    "zip_file": str(zip_buffer.name)
-                }
-                yield f"data: {json.dumps(complete_data)}\n\n"
-                
-            except Exception as e:
-                error_data = {
-                    "type": "error",
-                    "message": str(e)
-                }
-                yield f"data: {json.dumps(error_data)}\n\n"
+                except Empty:
+                    # No update yet, continue waiting
+                    continue
+            
+            # Yield any remaining progress updates
+            while not progress_queue.empty():
+                yield progress_queue.get()
+            
+            # Check for errors
+            if translation_error:
+                raise translation_error
+            
+            # Create ZIP file with translated files
+            zip_buffer = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                for source, target in file_pairs:
+                    if target.exists():
+                        zip_file.write(target, arcname=target.name)
+            zip_buffer.close()
+            
+            # Yield completion with ZIP file path
+            complete_data = {
+                "type": "complete",
+                "message": f"Batch translation complete! {len(file_pairs)} files translated.",
+                "zip_file": str(zip_buffer.name)
+            }
+            yield f"data: {json.dumps(complete_data)}\n\n"
             
             # Clean up temp instruction file
             if instruction_path and str(instruction_path).startswith(tempfile.gettempdir()):

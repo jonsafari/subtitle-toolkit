@@ -320,13 +320,24 @@
             {{ translations.elapsed_time if translations else 'Elapsed time' }}: <span id="elapsed-time">0s</span>
         </div>
 
-        <!-- Close Button (for errors) -->
-        <button
-            id="close-modal"
-            class="hidden mt-4 btn-secondary px-4 py-2 rounded-md"
-        >
-            {{ translations.close if translations else 'Close' }}
-        </button>
+        <!-- Action Buttons -->
+        <div class="mt-4 flex gap-2">
+            <!-- Cancel Button -->
+            <button
+                id="cancel-btn"
+                class="btn-danger px-4 py-2 rounded-md text-white font-medium hover:bg-red-700 transition-colors"
+            >
+                <i class="fas fa-stop mr-1"></i> {{ translations.cancel if translations else 'Cancel' }}
+            </button>
+            
+            <!-- Close Button (for completion/errors) -->
+            <button
+                id="close-modal"
+                class="hidden btn-secondary px-4 py-2 rounded-md"
+            >
+                {{ translations.close if translations else 'Close' }}
+            </button>
+        </div>
     </div>
 </div>
 
@@ -389,11 +400,17 @@ document.getElementById('batch-translate-form').addEventListener('submit', async
     // Show progress modal
     document.getElementById('progress-modal').classList.remove('hidden');
     document.getElementById('close-modal').classList.add('hidden');
+    document.getElementById('cancel-btn').disabled = false;
+    document.getElementById('cancel-btn').innerHTML = '<i class="fas fa-stop mr-1"></i> {{ translations.cancel if translations else "Cancel" }}';
+    
+    // Create AbortController for this request
+    abortController = new AbortController();
     
     try {
         const response = await fetch('/translate-batch/stream', {
             method: 'POST',
-            body: formData
+            body: formData,
+            signal: abortController.signal
         });
         
         const reader = response.body.getReader();
@@ -415,8 +432,19 @@ document.getElementById('batch-translate-form').addEventListener('submit', async
         }
         
     } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('status-display').innerHTML = '<span class="text-red-600">Error: ' + error.message + '</span>';
+        if (error.name === 'AbortError') {
+            // Request was cancelled by user
+            console.log('Translation cancelled by user');
+            document.getElementById('status-display').innerHTML = 
+                '<span class="text-yellow-600"><i class="fas fa-info-circle"></i> ' + 
+                '{{ translations.cancelled if translations else "Translation cancelled" }}' + 
+                '</span>';
+            document.getElementById('cancel-btn').disabled = true;
+            document.getElementById('cancel-btn').innerHTML = '<i class="fas fa-stop mr-1"></i> {{ translations.cancelled if translations else "Cancelled" }}';
+        } else {
+            console.error('Error:', error);
+            document.getElementById('status-display').innerHTML = '<span class="text-red-600">Error: ' + error.message + '</span>';
+        }
         document.getElementById('close-modal').classList.remove('hidden');
     }
 });
@@ -463,6 +491,44 @@ function handleProgressEvent(data) {
             break;
     }
 }
+
+// Cancel button functionality
+let abortController = null;
+
+document.getElementById('cancel-btn').addEventListener('click', async function() {
+    if (confirm('{{ translations.confirm_cancel if translations else "Are you sure you want to cancel the translation?" }}')) {
+        // Disable the button to prevent multiple clicks
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> {{ translations.cancelling if translations else "Cancelling..." }}';
+        
+        try {
+            // Abort the current fetch if it's in progress
+            if (abortController) {
+                abortController.abort();
+            }
+            
+            // Show cancelling status
+            document.getElementById('status-display').innerHTML = 
+                '<span class="text-yellow-600"><i class="fas fa-spinner fa-spin"></i> ' + 
+                '{{ translations.cancelling if translations else "Cancelling..." }}' + 
+                '</span>';
+            
+            // Note: The backend will stop processing when it detects the connection is closed
+            // The abort() above will close the SSE connection
+            
+        } catch (error) {
+            console.error('Cancel error:', error);
+            document.getElementById('status-display').innerHTML = 
+                '<span class="text-red-600"><i class="fas fa-exclamation-circle"></i> ' + 
+                '{{ translations.cancel_failed if translations else "Failed to cancel" }}: ' + error.message + '</span>';
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-stop mr-1"></i> {{ translations.cancel if translations else "Cancel" }}';
+        }
+        
+        // Show close button so user can close the modal
+        document.getElementById('close-modal').classList.remove('hidden');
+    }
+});
 
 document.getElementById('close-modal').addEventListener('click', function() {
     document.getElementById('progress-modal').classList.add('hidden');

@@ -220,5 +220,10 @@
   "custom_instructions_desc": "Paste your custom instructions here...",
   "instructions_help": "Choose one option: select from dropdown, upload a file, or paste text.",
   "upload_instructions_file": "Or upload an instructions file",
-  "paste_instructions": "Or paste instructions here"
+  "paste_instructions": "Or paste instructions here",
+  "cancel": "İptal",
+  "cancelling": "İptal ediliyor...",
+  "cancelled": "İptal edildi",
+  "confirm_cancel": "Çeviriyi iptal etmek istediğinizden emin misiniz?",
+  "cancel_failed": "İptal başarısız"
 }

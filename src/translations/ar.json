@@ -220,5 +220,10 @@
   "custom_instructions_desc": "Paste your custom instructions here...",
   "instructions_help": "Choose one option: select from dropdown, upload a file, or paste text.",
   "upload_instructions_file": "Or upload an instructions file",
-  "paste_instructions": "Or paste instructions here"
+  "paste_instructions": "Or paste instructions here",
+  "cancel": "إلغاء",
+  "cancelling": "جاري الإلغاء...",
+  "cancelled": "ملغى",
+  "confirm_cancel": "هل أنت متأكد أنك تريد إلغاء الترجمة؟",
+  "cancel_failed": "فشل الإلغاء"
 }

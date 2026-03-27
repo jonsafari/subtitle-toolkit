@@ -220,5 +220,10 @@
   "custom_instructions_desc": "Paste your custom instructions here...",
   "instructions_help": "Choose one option: select from dropdown, upload a file, or paste text.",
   "upload_instructions_file": "Or upload an instructions file",
-  "paste_instructions": "Or paste instructions here"
+  "paste_instructions": "Or paste instructions here",
+  "cancel": "취소",
+  "cancelling": "취소 중...",
+  "cancelled": "취소됨",
+  "confirm_cancel": "번역을 취소하시겠습니까?",
+  "cancel_failed": "취소 실패"
 }
