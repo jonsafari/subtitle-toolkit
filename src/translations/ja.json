@@ -225,5 +225,11 @@
   "cancelling": "キャンセル中...",
   "cancelled": "キャンセル済み",
   "confirm_cancel": "翻訳をキャンセルしてもよろしいですか？",
-  "cancel_failed": "キャンセルに失敗しました"
+  "cancel_failed": "キャンセルに失敗しました",
+  "select_model": "モデルを選択...",
+  "refresh_models": "モデルリストを更新",
+  "enter_model_id": "またはモデル ID を手動で入力...",
+  "loading_models": "モデルを読み込み中...",
+  "no_models_found": "モデルが見つからないか、API がモデル一覧をサポートしていません",
+  "error_loading_models": "モデルの読み込みに失敗しました: "
 }

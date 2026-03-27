@@ -225,5 +225,11 @@
   "cancelling": "Membatalkan...",
   "cancelled": "Dibatalkan",
   "confirm_cancel": "Apakah Anda yakin ingin membatalkan terjemahan?",
-  "cancel_failed": "Gagal membatalkan"
+  "cancel_failed": "Gagal membatalkan",
+  "select_model": "Pilih model...",
+  "refresh_models": "Perbarui daftar model",
+  "enter_model_id": "Atau masukkan ID model secara manual...",
+  "loading_models": "Memuat model...",
+  "no_models_found": "Model tidak ditemukan atau API tidak mendukung daftar model",
+  "error_loading_models": "Kesalahan saat memuat model: "
 }

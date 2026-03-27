@@ -225,5 +225,11 @@
   "cancelling": "İptal ediliyor...",
   "cancelled": "İptal edildi",
   "confirm_cancel": "Çeviriyi iptal etmek istediğinizden emin misiniz?",
-  "cancel_failed": "İptal başarısız"
+  "cancel_failed": "İptal başarısız",
+  "select_model": "Bir model seçin...",
+  "refresh_models": "Model listesini yenile",
+  "enter_model_id": "Veya model kimliğini manuel girin...",
+  "loading_models": "Modeller yükleniyor...",
+  "no_models_found": "Model bulunamadı veya API model listelemeyi desteklemiyor",
+  "error_loading_models": "Modeller yüklenirken hata: "
 }

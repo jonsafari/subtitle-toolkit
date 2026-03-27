@@ -229,13 +229,37 @@
                         <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="model_id">
                             Model ID
                         </label>
+                        
+                        <!-- Model dropdown (populated from API) -->
+                        <div class="relative">
+                            <select
+                                id="model_select"
+                                class="form-input w-full px-3 py-2 border rounded-t-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                                style="display: none;"
+                            >
+                                <option value="">{{ translations.select_model if translations else 'Select a model...' }}</option>
+                            </select>
+                            <button
+                                type="button"
+                                id="refresh-models-btn"
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                                title="{{ translations.refresh_models if translations else 'Refresh model list' }}"
+                                style="display: none;"
+                            >
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Manual model ID input -->
                         <input
                             type="text"
                             id="model_id"
                             name="model_id"
                             value="{{ form_values.get('model_id', 'local-model') if form_values else 'local-model' }}"
-                            class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                            placeholder="{{ translations.enter_model_id if translations else 'Or enter model ID manually...' }}"
+                            class="form-input w-full px-3 py-2 border rounded-b-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                         >
+                        <p class="mt-1 text-xs text-blue-600 dark:text-blue-400" id="models-status"></p>
                     </div>
 
                     <div>
@@ -259,7 +283,7 @@
                             type="number"
                             id="chunk_size"
                             name="chunk_size"
-                            value="{{ form_values.get('chunk_size', 600) if form_values else 600 }}"
+                            value="{{ form_values.get('chunk_size', 800) if form_values else 800 }}"
                             min="1"
                             class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                         >
@@ -577,6 +601,109 @@ async function downloadZipFile(zipFilePath, message) {
             message + 
             ' <br><i class="fas fa-exclamation-triangle"></i> Download failed: ' + error.message + '</span>';
     }
+}
+
+// Model list functionality
+const apiBaseInput = document.getElementById('api_base');
+const apiKeyInput = document.getElementById('api_key');
+const modelSelect = document.getElementById('model_select');
+const modelIdInput = document.getElementById('model_id');
+const refreshModelsBtn = document.getElementById('refresh-models-btn');
+const modelsStatus = document.getElementById('models-status');
+
+async function fetchModels() {
+    const apiBase = apiBaseInput.value.trim();
+    const apiKey = apiKeyInput.value;
+    
+    if (!apiBase) {
+        modelsStatus.textContent = '';
+        modelSelect.style.display = 'none';
+        refreshModelsBtn.style.display = 'none';
+        return;
+    }
+
+    modelsStatus.textContent = '{{ translations.loading_models if translations else "Loading models..." }}';
+    modelsStatus.className = 'mt-1 text-xs text-blue-600 dark:text-blue-400';
+
+    try {
+        const url = new URL('/api/models', window.location.origin);
+        url.searchParams.append('api_base', apiBase);
+        if (apiKey && apiKey !== 'dummy-key') {
+            url.searchParams.append('api_key', apiKey);
+        }
+
+        const response = await fetch(url.toString());
+        const data = await response.json();
+
+        if (data.models && data.models.length > 0) {
+            // Populate dropdown
+            const selectModelText = '{{ translations.select_model }}' || 'Select a model...';
+            modelSelect.innerHTML = '<option value="">' + selectModelText + '</option>';
+            data.models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.id;
+                option.textContent = model.id;
+                modelSelect.appendChild(option);
+            });
+
+            // Show dropdown and refresh button
+            modelSelect.style.display = 'block';
+            refreshModelsBtn.style.display = 'flex';
+            
+            // Set status
+            modelsStatus.textContent = `✓ ${data.models.length} model(s) available`;
+            modelsStatus.className = 'mt-1 text-xs text-green-600 dark:text-green-400';
+        } else {
+            // No models found
+            modelSelect.style.display = 'none';
+            refreshModelsBtn.style.display = 'none';
+            modelsStatus.textContent = data.error || '{{ translations.no_models_found if translations else "No models found or API does not support model listing" }}';
+            modelsStatus.className = 'mt-1 text-xs text-yellow-600 dark:text-yellow-400';
+        }
+    } catch (error) {
+        modelSelect.style.display = 'none';
+        refreshModelsBtn.style.display = 'none';
+        modelsStatus.textContent = '{{ translations.error_loading_models if translations else "Error loading models: " }}' + error.message;
+        modelsStatus.className = 'mt-1 text-xs text-red-600 dark:text-red-400';
+    }
+}
+
+// Handle model selection
+modelSelect.addEventListener('change', function() {
+    if (this.value) {
+        modelIdInput.value = this.value;
+    }
+});
+
+// Handle manual model ID input
+modelIdInput.addEventListener('input', function() {
+    // Deselect dropdown if user types manually
+    if (this.value && this.value !== modelSelect.value) {
+        modelSelect.value = '';
+    }
+});
+
+// Fetch models when API base URL changes (with debounce)
+let fetchTimeout;
+apiBaseInput.addEventListener('input', function() {
+    clearTimeout(fetchTimeout);
+    fetchTimeout = setTimeout(fetchModels, 500); // 500ms debounce
+});
+
+// Fetch models when API key changes
+apiKeyInput.addEventListener('input', function() {
+    clearTimeout(fetchTimeout);
+    fetchTimeout = setTimeout(fetchModels, 300); // 300ms debounce
+});
+
+// Refresh button
+refreshModelsBtn.addEventListener('click', function() {
+    fetchModels();
+});
+
+// Initial fetch if API base is already set
+if (apiBaseInput.value) {
+    setTimeout(fetchModels, 1000);
 }
 </script>
 {% endblock %}

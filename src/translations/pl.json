@@ -225,5 +225,11 @@
   "cancelling": "Anulowanie...",
   "cancelled": "Anulowano",
   "confirm_cancel": "Czy na pewno chcesz anulować tłumaczenie?",
-  "cancel_failed": "Nie udało się anulować"
+  "cancel_failed": "Nie udało się anulować",
+  "select_model": "Wybierz model...",
+  "refresh_models": "Odśwież listę modeli",
+  "enter_model_id": "Lub wprowadź ID modelu ręcznie...",
+  "loading_models": "Ładowanie modeli...",
+  "no_models_found": "Nie znaleziono modeli lub API nie obsługuje listy modeli",
+  "error_loading_models": "Błąd ładowania modeli: "
 }

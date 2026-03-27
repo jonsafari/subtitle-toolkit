@@ -2,7 +2,7 @@
 """
 FastAPI web interface for the Subtitle Toolkit
 """
-from fastapi import FastAPI, Request, Form, UploadFile
+from fastapi import FastAPI, Request, Form, UploadFile, Query
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -1463,6 +1463,79 @@ async def subtitle_tracks_download(request: Request, output: Optional[str] = For
         if tmp_file_path and os.path.exists(tmp_file_path):
             os.unlink(tmp_file_path)
         raise
+
+
+@app.get("/api/models")
+async def list_models(api_base: str = Query(...), api_key: str = Query(None)):
+    """
+    List available models from the LLM API.
+    
+    Args:
+        api_base: The API base URL to query
+        api_key: Optional API key for authentication
+        
+    Returns:
+        JSON list of available models
+    """
+    import httpx
+    
+    try:
+        headers = {}
+        if api_key and api_key != 'dummy-key':
+            headers['Authorization'] = f'Bearer {api_key}'
+        
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # Try multiple endpoints in order of preference
+            endpoints_to_try = [
+                f"{api_base.rstrip('/')}/v1/models",  # OpenAI-style
+                f"{api_base.rstrip('/')}/models",     # llama.cpp and others
+            ]
+            
+            for models_url in endpoints_to_try:
+                try:
+                    response = await client.get(models_url, headers=headers)
+                    
+                    if response.status_code != 200:
+                        continue
+                    
+                    data = response.json()
+                    models = []
+                    
+                    # Handle different API response formats
+                    if isinstance(data, list):
+                        # Direct list of models
+                        models = [{"id": m if isinstance(m, str) else m.get('id', str(m))} for m in data]
+                    elif isinstance(data, dict):
+                        # Try 'data' key first (OpenAI-style)
+                        if 'data' in data and isinstance(data['data'], list):
+                            models = [{"id": m.get('id', str(m))} for m in data['data']]
+                        # Try 'models' key (llama.cpp style)
+                        elif 'models' in data and isinstance(data['models'], list):
+                            models = [{"id": m.get('id', m.get('name', str(m)))} for m in data['models']]
+                        # Try to find any list in the response
+                        else:
+                            for key, value in data.items():
+                                if isinstance(value, list) and len(value) > 0:
+                                    models = [{"id": item.get('id', item.get('name', str(item)))} 
+                                              if isinstance(item, dict) else {"id": item} 
+                                              for item in value]
+                                    break
+                    
+                    if models:
+                        return {"models": models, "api_base": api_base}
+                    
+                except httpx.HTTPError:
+                    continue
+            
+            # No models found from any endpoint
+            return {"models": [], "api_base": api_base, "error": "No models found or API does not support model listing"}
+                
+    except httpx.TimeoutException:
+        return {"models": [], "api_base": api_base, "error": "Request timed out"}
+    except httpx.HTTPError as e:
+        return {"models": [], "api_base": api_base, "error": f"HTTP error: {str(e)}"}
+    except Exception as e:
+        return {"models": [], "api_base": api_base, "error": f"Error: {str(e)}"}
 
 
 @app.post("/set-language")

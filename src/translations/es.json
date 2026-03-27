@@ -225,5 +225,11 @@
   "cancelling": "Cancelando...",
   "cancelled": "Cancelado",
   "confirm_cancel": "¿Está seguro de que desea cancelar la traducción?",
-  "cancel_failed": "No se pudo cancelar"
+  "cancel_failed": "No se pudo cancelar",
+  "select_model": "Seleccionar un modelo...",
+  "refresh_models": "Actualizar lista de modelos",
+  "enter_model_id": "O ingrese el ID del modelo manualmente...",
+  "loading_models": "Cargando modelos...",
+  "no_models_found": "No se encontraron modelos o la API no admite el listado de modelos",
+  "error_loading_models": "Error al cargar modelos: "
 }

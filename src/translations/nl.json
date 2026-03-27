@@ -225,5 +225,11 @@
   "cancelling": "Annuleren...",
   "cancelled": "Geannuleerd",
   "confirm_cancel": "Weet u zeker dat u de vertaling wilt annuleren?",
-  "cancel_failed": "Annuleren mislukt"
+  "cancel_failed": "Annuleren mislukt",
+  "select_model": "Selecteer een model...",
+  "refresh_models": "Modellijst vernieuwen",
+  "enter_model_id": "Of voer model-ID handmatig in...",
+  "loading_models": "Modellen laden...",
+  "no_models_found": "Geen modellen gevonden of API ondersteunt geen modellijst",
+  "error_loading_models": "Fout bij laden van modellen: "
 }

@@ -225,5 +225,11 @@
   "cancelling": "取消中...",
   "cancelled": "已取消",
   "confirm_cancel": "您确定要取消翻译吗？",
-  "cancel_failed": "取消失败"
+  "cancel_failed": "取消失败",
+  "select_model": "选择一个模型...",
+  "refresh_models": "刷新模型列表",
+  "enter_model_id": "或手动输入模型 ID...",
+  "loading_models": "正在加载模型...",
+  "no_models_found": "未找到模型或 API 不支持模型列表",
+  "error_loading_models": "加载模型时出错: "
 }

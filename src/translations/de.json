@@ -225,5 +225,11 @@
   "cancelling": "Abbrechen...",
   "cancelled": "Abgebrochen",
   "confirm_cancel": "Sind Sie sicher, dass Sie die Übersetzung abbrechen möchten?",
-  "cancel_failed": "Abbrechen fehlgeschlagen"
+  "cancel_failed": "Abbrechen fehlgeschlagen",
+  "select_model": "Ein Modell auswählen...",
+  "refresh_models": "Modellliste aktualisieren",
+  "enter_model_id": "Oder Modell-ID manuell eingeben...",
+  "loading_models": "Modelle werden geladen...",
+  "no_models_found": "Keine Modelle gefunden oder API unterstützt keine Modellauflistung",
+  "error_loading_models": "Fehler beim Laden der Modelle: "
 }

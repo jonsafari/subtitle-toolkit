@@ -225,5 +225,11 @@
   "cancelling": "Đang hủy...",
   "cancelled": "Đã hủy",
   "confirm_cancel": "Bạn có chắc chắn muốn hủy việc dịch không?",
-  "cancel_failed": "Hủy không thành công"
+  "cancel_failed": "Hủy không thành công",
+  "select_model": "Chọn một mô hình...",
+  "refresh_models": "Làm mới danh sách mô hình",
+  "enter_model_id": "Hoặc nhập ID mô hình thủ công...",
+  "loading_models": "Đang tải mô hình...",
+  "no_models_found": "Không tìm thấy mô hình hoặc API không hỗ trợ danh sách mô hình",
+  "error_loading_models": "Lỗi khi tải mô hình: "
 }

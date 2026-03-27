@@ -225,5 +225,11 @@
   "cancelling": "جاري الإلغاء...",
   "cancelled": "ملغى",
   "confirm_cancel": "هل أنت متأكد أنك تريد إلغاء الترجمة؟",
-  "cancel_failed": "فشل الإلغاء"
+  "cancel_failed": "فشل الإلغاء",
+  "select_model": "اختر نموذجاً...",
+  "refresh_models": "تحديث قائمة النماذج",
+  "enter_model_id": "أو أدخل معرف النموذج يدوياً...",
+  "loading_models": "جاري تحميل النماذج...",
+  "no_models_found": "لم يتم العثور على نماذج أو أن الواجهة لا تدعم سرد النماذج",
+  "error_loading_models": "خطأ في تحميل النماذج: "
 }
