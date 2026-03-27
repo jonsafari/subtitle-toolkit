@@ -671,7 +671,8 @@ async function fetchModels() {
 // Handle model selection
 modelSelect.addEventListener('change', function() {
     if (this.value) {
-        modelIdInput.value = this.value;
+        // Prepend "openai/" prefix for OpenAI-compatible endpoints
+        modelIdInput.value = 'openai/' + this.value;
     }
 });
 
