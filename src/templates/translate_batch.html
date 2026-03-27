@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+
+{% block title %}{{ translations.batch_translate if translations else 'Batch Subtitle Translation' }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2 dark:text-white">{{ translations.batch_translate if translations else 'Batch Subtitle Translation' }}</h1>
+        <p class="text-gray-600 dark:text-gray-300">
+            {{ translations.batch_translate_desc if translations else 'Translate multiple subtitle files at once. Only files without target language versions will be translated.' }}
+        </p>
+        <a href="/" class="inline-flex items-center text-blue-600 hover:text-blue-800 mt-2 dark:text-blue-400 dark:hover:text-blue-300">
+            <i class="fas fa-arrow-left mr-1"></i> {{ translations.back_to_home if translations else 'Back to Home' }}
+        </a>
+    </div>
+
+    {% if error %}
+    <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 dark:bg-red-900/20 dark:border-red-700">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-circle text-red-400 dark:text-red-500"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-red-700 dark:text-red-300">
+                    {{ error }}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if warning %}
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 dark:bg-yellow-900/20 dark:border-yellow-700">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-yellow-400 dark:text-yellow-500"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-700 dark:text-yellow-300">
+                    {{ warning }}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-lg shadow-md p-6 dark:bg-slate-800">
+        <form id="batch-translate-form" class="space-y-6">
+            <!-- Language Settings -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="source_lang">
+                        {{ translations.source_language if translations else 'Source Language' }} <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="source_lang"
+                        name="source_lang"
+                        value="{{ form_values.get('source_lang', 'en') if form_values else 'en' }}"
+                        placeholder="e.g., en, pt-BR, eng"
+                        class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                        required
+                    >
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.source_language_desc if translations else 'Language code of source subtitles' }}</p>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="target_lang">
+                        {{ translations.target_language if translations else 'Target Language' }} <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        id="target_lang"
+                        name="target_lang"
+                        value="{{ form_values.get('target_lang', 'es') if form_values else 'es' }}"
+                        placeholder="e.g., es, fr, deu"
+                        class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                        required
+                    >
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.target_language_desc if translations else 'Language code for translation' }}</p>
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="extensions">
+                        {{ translations.file_extensions if translations else 'File Extensions' }}
+                    </label>
+                    <input
+                        type="text"
+                        id="extensions"
+                        name="extensions"
+                        value="{{ form_values.get('extensions', '.srt,.vtt') if form_values else '.srt,.vtt' }}"
+                        placeholder=".srt,.vtt"
+                        class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                    >
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ translations.file_extensions_desc if translations else 'Comma-separated list (e.g., .srt,.vtt)' }}</p>
+                </div>
+            </div>
+
+            <!-- File Upload -->
+            <div>
+                <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="files">
+                    {{ translations.upload_files if translations else 'Upload Subtitle Files' }} <span class="text-red-500">*</span>
+                </label>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors dark:border-slate-600">
+                    <input
+                        type="file"
+                        id="files"
+                        name="files"
+                        multiple
+                        accept=".srt,.vtt"
+                        class="hidden"
+                        required
+                    >
+                    <label for="files" class="cursor-pointer">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-blue-500 mb-2"></i>
+                        <p class="text-gray-700 dark:text-gray-300">
+                            {{ translations.click_to_upload if translations else 'Click to select files' }}
+                        </p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {{ translations.or_drag_drop if translations else 'or drag and drop files here' }}
+                        </p>
+                    </label>
+                </div>
+                <div id="file-list" class="mt-2 text-sm text-gray-600 dark:text-gray-400"></div>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {{ translations.upload_files_desc if translations else 'Select multiple subtitle files. Files with target language already present will be skipped.' }}
+                </p>
+            </div>
+
+            <!-- Options -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="flex items-center">
+                    <input
+                        type="checkbox"
+                        id="recursive"
+                        name="recursive"
+                        value="true"
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    >
+                    <label for="recursive" class="ml-2 block text-gray-700 dark:text-gray-300">
+                        {{ translations.recursive_scan if translations else 'Scan subdirectories' }}
+                    </label>
+                </div>
+
+                <div class="flex items-center">
+                    <input
+                        type="checkbox"
+                        id="dry_run"
+                        name="dry_run"
+                        value="true"
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    >
+                    <label for="dry_run" class="ml-2 block text-gray-700 dark:text-gray-300">
+                        {{ translations.dry_run if translations else 'Dry run (preview only)' }}
+                    </label>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div>
+                <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300">
+                    {{ translations.instructions_file if translations else 'Instructions' }}
+                </label>
+
+                <!-- Option 1: Select from existing files -->
+                <select
+                    id="instructions_file_select"
+                    name="instructions_file_select"
+                    class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white mb-3"
+                >
+                    <option value="">{{ translations.default_instructions if translations else 'Default instructions' }}</option>
+                    {% for file in instruction_files %}
+                    <option value="{{ file }}">{{ file.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <!-- Option 2: Upload a file -->
+                <div class="mb-3">
+                    <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="instructions_upload">
+                        {{ translations.upload_instructions_file if translations else 'Or upload an instructions file' }}
+                    </label>
+                    <div class="flex items-center">
+                        <label for="instructions_upload" class="file-upload-label cursor-pointer">
+                            <i class="fas fa-upload mr-2"></i> {{ translations.choose_file if translations else 'Choose File' }}
+                        </label>
+                        <input type="file" id="instructions_upload" name="instructions_upload" class="file-upload-input hidden" accept=".txt">
+                        <span id="instructions-file-name" class="ml-4 text-gray-500 dark:text-gray-400">{{ translations.no_file_chosen if translations else 'No file chosen' }}</span>
+                    </div>
+                </div>
+
+                <!-- Option 3: Paste text -->
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="instructions_file">
+                        {{ translations.paste_instructions if translations else 'Or paste instructions here' }}
+                    </label>
+                    <textarea
+                        id="instructions_file"
+                        name="instructions_file"
+                        rows="5"
+                        class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                        placeholder="{{ translations.custom_instructions_desc if translations else 'Paste your custom instructions here...' }}"
+                    ></textarea>
+                </div>
+
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    {{ translations.instructions_help if translations else 'Choose one option: select from dropdown, upload a file, or paste text.' }}
+                </p>
+            </div>
+
+            <!-- API Settings -->
+            <div class="border-t pt-6 dark:border-slate-700">
+                <h3 class="text-lg font-medium text-gray-900 mb-4 dark:text-white">{{ translations.api_settings if translations else 'API Settings' }}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="api_base">
+                            API Base URL
+                        </label>
+                        <input
+                            type="text"
+                            id="api_base"
+                            name="api_base"
+                            value="{{ form_values.get('api_base', 'http://localhost:8080') if form_values else 'http://localhost:8080' }}"
+                            class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="model_id">
+                            Model ID
+                        </label>
+                        <input
+                            type="text"
+                            id="model_id"
+                            name="model_id"
+                            value="{{ form_values.get('model_id', 'local-model') if form_values else 'local-model' }}"
+                            class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="api_key">
+                            API Key
+                        </label>
+                        <input
+                            type="password"
+                            id="api_key"
+                            name="api_key"
+                            value="{{ form_values.get('api_key', 'dummy-key') if form_values else 'dummy-key' }}"
+                            class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="chunk_size">
+                            {{ translations.chunk_size if translations else 'Chunk Size' }}
+                        </label>
+                        <input
+                            type="number"
+                            id="chunk_size"
+                            name="chunk_size"
+                            value="{{ form_values.get('chunk_size', 600) if form_values else 600 }}"
+                            min="1"
+                            class="form-input w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex items-center gap-4">
+                <button
+                    type="submit"
+                    class="btn-primary px-6 py-3 rounded-md text-white font-medium hover:bg-blue-700 transition-colors"
+                >
+                    <i class="fas fa-cogs mr-2"></i> {{ translations.start_translation if translations else 'Start Translation' }}
+                </button>
+                <span id="submit-status" class="text-gray-600 dark:text-gray-400"></span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Progress Modal -->
+<div id="progress-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 dark:bg-slate-800">
+        <h2 class="text-xl font-bold text-gray-900 mb-4 dark:text-white">{{ translations.translating if translations else 'Translating...' }}</h2>
+        
+        <!-- Overall Progress -->
+        <div class="mb-4">
+            <div class="flex justify-between mb-2">
+                <span class="text-gray-700 dark:text-gray-300" id="episode-progress">Episode 0/0</span>
+                <span class="text-gray-700 dark:text-gray-300" id="percent-complete">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-slate-700">
+                <div id="overall-progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Chunk Progress -->
+        <div class="mb-4">
+            <div class="flex justify-between mb-2">
+                <span class="text-gray-700 dark:text-gray-300" id="chunk-progress">Chunk 0/0</span>
+                <span class="text-gray-700 dark:text-gray-300" id="eta-display">ETA: --</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-slate-700">
+                <div id="chunk-progress-bar" class="bg-green-600 h-2.5 rounded-full" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="mb-4">
+            <span id="status-display" class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm dark:bg-blue-900 dark:text-blue-200">
+                {{ translations.processing if translations else 'Processing...' }}
+            </span>
+        </div>
+
+        <!-- Elapsed Time -->
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+            {{ translations.elapsed_time if translations else 'Elapsed time' }}: <span id="elapsed-time">0s</span>
+        </div>
+
+        <!-- Close Button (for errors) -->
+        <button
+            id="close-modal"
+            class="hidden mt-4 btn-secondary px-4 py-2 rounded-md"
+        >
+            {{ translations.close if translations else 'Close' }}
+        </button>
+    </div>
+</div>
+
+<script>
+// File selection display
+const fileInput = document.getElementById('files');
+const fileList = document.getElementById('file-list');
+
+fileInput.addEventListener('change', function() {
+    const files = Array.from(this.files);
+    if (files.length > 0) {
+        fileList.innerHTML = '<i class="fas fa-check-circle text-green-500"></i> ' + files.length + ' file(s) selected: ' + files.map(f => f.name).join(', ').substring(0, 100) + (files.length > 3 ? '...' : '');
+    } else {
+        fileList.innerHTML = '';
+    }
+});
+
+// Instructions file select handler
+document.getElementById('instructions_file_select').addEventListener('change', function() {
+    const selected = this.value;
+    const instructionsTextarea = document.getElementById('instructions_file');
+    
+    if (selected) {
+        // Copy the selected file path to the textarea
+        instructionsTextarea.value = selected;
+    } else {
+        // Clear the textarea if default is selected
+        instructionsTextarea.value = '';
+    }
+});
+
+// File upload handler for instructions
+document.getElementById('instructions_upload').addEventListener('change', function() {
+    const fileNameDisplay = document.getElementById('instructions-file-name');
+    if (this.files.length > 0) {
+        fileNameDisplay.textContent = this.files[0].name;
+    } else {
+        fileNameDisplay.textContent = '{{ translations.no_file_chosen if translations else "No file chosen" }}';
+    }
+});
+
+// Form submission with SSE
+document.getElementById('batch-translate-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    // Get selected files
+    const files = fileInput.files;
+    if (files.length === 0) {
+        alert('{{ translations.please_select_files if translations else 'Please select at least one file' }}');
+        return;
+    }
+    
+    // Add files to form data
+    for (let file of files) {
+        formData.append('files', file);
+    }
+    
+    // Show progress modal
+    document.getElementById('progress-modal').classList.remove('hidden');
+    document.getElementById('close-modal').classList.add('hidden');
+    
+    try {
+        const response = await fetch('/translate-batch/stream', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+            
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = JSON.parse(line.slice(6));
+                    handleProgressEvent(data);
+                }
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('status-display').innerHTML = '<span class="text-red-600">Error: ' + error.message + '</span>';
+        document.getElementById('close-modal').classList.remove('hidden');
+    }
+});
+
+function handleProgressEvent(data) {
+    switch (data.type) {
+        case 'initial':
+            document.getElementById('episode-progress').textContent = 'Files to translate: ' + data.total_files;
+            break;
+            
+        case 'dry_run_complete':
+            document.getElementById('status-display').innerHTML = '<span class="text-green-600">{{ translations.dry_run_complete if translations else 'Dry run complete!' }}</span>';
+            document.getElementById('close-modal').classList.remove('hidden');
+            break;
+            
+        case 'progress':
+            document.getElementById('episode-progress').textContent = 'Episode ' + data.episode_num + '/' + data.total_episodes;
+            document.getElementById('chunk-progress').textContent = 'Chunk ' + (data.chunk_num || 0) + '/' + (data.total_chunks || 0);
+            document.getElementById('percent-complete').textContent = data.percent_complete + '%';
+            document.getElementById('overall-progress-bar').style.width = data.percent_complete + '%';
+            document.getElementById('eta-display').textContent = 'ETA: ' + data.eta_str;
+            document.getElementById('elapsed-time').textContent = Math.round(data.elapsed_time) + 's';
+            
+            const chunkPercent = data.total_chunks > 0 ? (data.chunk_num / data.total_chunks * 100) : 0;
+            document.getElementById('chunk-progress-bar').style.width = chunkPercent + '%';
+            
+            break;
+            
+        case 'complete':
+            document.getElementById('status-display').innerHTML = '<span class="text-green-600"><i class="fas fa-check-circle"></i> ' + data.message + '</span>';
+            document.getElementById('overall-progress-bar').style.width = '100%';
+            document.getElementById('close-modal').classList.remove('hidden');
+            break;
+            
+        case 'error':
+            document.getElementById('status-display').innerHTML = '<span class="text-red-600"><i class="fas fa-exclamation-circle"></i> Error: ' + data.message + '</span>';
+            document.getElementById('close-modal').classList.remove('hidden');
+            break;
+    }
+}
+
+document.getElementById('close-modal').addEventListener('click', function() {
+    document.getElementById('progress-modal').classList.add('hidden');
+});
+</script>
+{% endblock %}

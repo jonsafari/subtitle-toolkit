@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import subprocess
 import os
+import sys
 import tempfile
 from pathlib import Path
 import shutil
@@ -17,6 +18,18 @@ from typing import Dict, Any, Optional, List, Generator
 
 # Get the project root (parent of web directory)
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
+
+# PROJECT_ROOT is already the src directory, so add it to path
+sys.path.insert(0, str(PROJECT_ROOT))
+
+# Import translate_batch module
+try:
+    from translate_batch import scan_directory, translate_batch
+    print(f"DEBUG: translate_batch imported successfully: {translate_batch}")
+except ImportError as e:
+    print(f"Warning: Could not import translate_batch: {e}")
+    scan_directory = None
+    translate_batch = None
 
 # Get the app directory (parent of web directory)
 APP_DIR = PROJECT_ROOT
@@ -249,10 +262,14 @@ async def translate_submit(
         # Create a temporary instruction file if provided
         instruction_path = None
         if instructions_file:
+            # Check if it's a file path or instructions text
             instruction_path = Path(instructions_file)
-            if not instruction_path.exists():
-                # Create a temporary instruction file
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as tmp_inst:
+            if instruction_path.exists() and instruction_path.is_file():
+                # It's a file path, use it directly
+                pass
+            else:
+                # It's instructions text, create a temp file
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as tmp_inst:
                     tmp_inst.write(instructions_file)
                     instruction_path = Path(tmp_inst.name)
 
@@ -351,9 +368,14 @@ def generate_translation_progress(
 
         # Create a temporary instruction file if provided
         if instructions_file:
+            # Check if it's a file path or instructions text
             instruction_path = Path(instructions_file)
-            if not instruction_path.exists():
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as tmp_inst:
+            if instruction_path.exists() and instruction_path.is_file():
+                # It's a file path, use it directly
+                pass
+            else:
+                # It's instructions text, create a temp file
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as tmp_inst:
                     tmp_inst.write(instructions_file)
                     instruction_path = Path(tmp_inst.name)
 
@@ -548,6 +570,332 @@ async def translate_result_page(request: Request) -> HTMLResponse:
         "translations": translations,
         "instruction_files": instruction_files
     })
+
+
+# ============================================================================
+# Batch Translation Endpoints
+# ============================================================================
+
+@app.get("/translate-batch", response_class=HTMLResponse)
+async def translate_batch_page(request: Request) -> HTMLResponse:
+    """Show the batch translation page."""
+    lang = get_language_from_request(request)
+    translations = load_translations(lang)
+    
+    # Get available instruction files
+    instruction_files: List[Path] = []
+    instruction_dir = APP_DIR / "translation_instruction_prompts"
+    if instruction_dir.exists():
+        instruction_files = [f for f in instruction_dir.iterdir() if f.is_file()]
+
+    return templates.TemplateResponse(request, "translate_batch.html", {
+        "lang": lang,
+        "translations": translations,
+        "instruction_files": instruction_files
+    })
+
+
+@app.post("/translate-batch/stream")
+async def translate_batch_stream(
+    request: Request,
+    source_lang: str = Form(...),
+    target_lang: str = Form(...),
+    recursive: bool = Form(False),
+    extensions: str = Form(".srt,.vtt"),
+    instructions_file: Optional[str] = Form(None),
+    instructions_upload: Optional[UploadFile] = Form(None),
+    chunk_size: int = Form(600),
+    api_base: str = Form("http://localhost:8080"),
+    model_id: str = Form("local-model"),
+    api_key: str = Form("dummy-key"),
+    dry_run: bool = Form(False),
+    files: Optional[List[UploadFile]] = Form(None)
+) -> StreamingResponse:
+    """Stream batch translation progress via Server-Sent Events (SSE)."""
+    
+    # Debug logging
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.debug(f"instructions_file type: {type(instructions_file)}, value: {instructions_file[:100] if instructions_file else None}...")
+    logger.debug(f"instructions_upload: {instructions_upload}")
+    
+    # Validate inputs
+    if not files or len(files) == 0:
+        return StreamingResponse(
+            generate_error_stream("Please upload at least one subtitle file"),
+            media_type="text/event-stream"
+        )
+    
+    def event_stream():
+        yield from generate_batch_translation_progress(
+            files=files,
+            source_lang=source_lang,
+            target_lang=target_lang,
+            recursive=recursive,
+            extensions=extensions,
+            instructions_file=instructions_file,
+            instructions_upload=instructions_upload,
+            chunk_size=chunk_size,
+            api_base=api_base,
+            model_id=model_id,
+            api_key=api_key,
+            dry_run=dry_run
+        )
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+
+def generate_batch_translation_progress(
+    files: List[UploadFile],
+    source_lang: str,
+    target_lang: str,
+    recursive: bool,
+    extensions: str,
+    instructions_file: Optional[str],
+    instructions_upload: Optional[UploadFile],
+    chunk_size: int,
+    api_base: str,
+    model_id: str,
+    api_key: str,
+    dry_run: bool
+) -> Generator[str, None, None]:
+    """
+    Generator function that runs batch translation and yields SSE-formatted progress updates.
+    """
+    import tempfile
+    import os
+    import time
+    import zipfile
+    import errno
+    
+    # Parse extensions
+    ext_list = [ext if ext.startswith('.') else f'.{ext}' for ext in extensions.split(',')]
+    
+    tmp_dir = None
+    instruction_path = None
+    
+    try:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_dir_path = Path(tmp_dir)
+            
+            # Save uploaded files to temp directory
+            # Group files by their relative path (if any) or put in root
+            saved_files = []
+            for file in files:
+                if file and file.filename:
+                    # Save file with original name
+                    tmp_file = tmp_dir_path / file.filename
+                    with open(tmp_file, 'wb') as f:
+                        content = file.file.read()
+                        f.write(content)
+                    saved_files.append(tmp_file)
+            
+            # Create a temp instruction file if provided
+            instruction_path = None
+            
+            # Priority: 1) Uploaded file, 2) Pasted text, 3) File path, 4) Default
+            if instructions_upload and instructions_upload.filename:
+                # Use uploaded file
+                instruction_path = tmp_dir_path / "instructions.txt"
+                with open(instruction_path, 'wb') as f:
+                    content = instructions_upload.file.read()
+                    f.write(content)
+            elif instructions_file and instructions_file.strip():
+                # Check if it's a file path or instructions text
+                instruction_path = Path(instructions_file)
+                if instruction_path.exists() and instruction_path.is_file():
+                    # It's a file path, use it directly
+                    pass
+                else:
+                    # It's instructions text, create a temp file
+                    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8') as tmp_inst:
+                        tmp_inst.write(instructions_file)
+                        instruction_path = Path(tmp_inst.name)
+            
+            if instruction_path is None:
+                # Use default instruction file
+                instruction_path = APP_DIR / "translation_instruction_prompts" / "subtitle_translate_-_en-es_-_default.txt"
+                if not instruction_path.exists():
+                    instruction_path = PROJECT_ROOT / "translation_instruction_prompts" / "subtitle_translate_-_en-es_-_default.txt"
+            
+            # Scan for files to translate (treating tmp_dir as the "directory")
+            file_pairs, skipped_files = scan_directory(
+                directory=tmp_dir_path,
+                source_lang=source_lang,
+                target_lang=target_lang,
+                recursive=recursive,
+                extensions=ext_list
+            )
+            
+            # Yield initial progress
+            initial_data = {
+                "type": "initial",
+                "total_files": len(file_pairs),
+                "skipped_files": len(skipped_files),
+                "dry_run": dry_run
+            }
+            yield f"data: {json.dumps(initial_data)}\n\n"
+            
+            # Dry run mode
+            if dry_run:
+                dry_run_data = {
+                    "type": "dry_run_complete",
+                    "files_to_translate": [
+                        {"source": str(src.relative_to(tmp_dir_path)), "target": str(tgt.relative_to(tmp_dir_path))}
+                        for src, tgt in file_pairs
+                    ],
+                    "skipped": [
+                        {"source": str(src.relative_to(tmp_dir_path)), "target": str(tgt.relative_to(tmp_dir_path))}
+                        for src, tgt, _ in skipped_files
+                    ]
+                }
+                yield f"data: {json.dumps(dry_run_data)}\n\n"
+                yield f"data: {json.dumps({'type': 'complete', 'message': 'Dry run complete'})}\n\n"
+                return
+            
+            # No files to translate
+            if not file_pairs:
+                yield f"data: {json.dumps({'type': 'complete', 'message': 'No files need translation'})}\n\n"
+                return
+            
+            # Set API key
+            if api_key and api_key != 'dummy-key':
+                os.environ['LLM_API_KEY'] = api_key
+            
+            start_time = time.time()
+            total_episodes = len(file_pairs)
+            
+            def progress_callback(
+                episode_num: int,
+                total_episodes: int,
+                chunk_num: int,
+                total_chunks: int,
+                chunk_units: int,
+                elapsed_time: float,
+                status: str
+            ):
+                try:
+                    # Calculate ETA
+                    eta_seconds = 0
+                    if status == "translating" and episode_num > 0:
+                        episodes_done = episode_num - 1
+                        if chunk_num > 0 and total_chunks > 0:
+                            episode_progress = chunk_num / total_chunks
+                            total_progress = episodes_done + episode_progress
+                        else:
+                            total_progress = episodes_done
+                        
+                        if total_progress > 0:
+                            avg_time_per_episode = elapsed_time / total_progress
+                            remaining_episodes = total_episodes - episode_num
+                            eta_seconds = avg_time_per_episode * remaining_episodes
+                    
+                    # Format ETA
+                    if eta_seconds < 60:
+                        eta_str = f"{int(eta_seconds)}s"
+                    elif eta_seconds < 3600:
+                        eta_str = f"{int(eta_seconds / 60)}m"
+                    else:
+                        eta_str = f"{int(eta_seconds / 3600)}h"
+                    
+                    progress_data = {
+                        "type": "progress",
+                        "episode_num": episode_num,
+                        "total_episodes": total_episodes,
+                        "chunk_num": chunk_num,
+                        "total_chunks": total_chunks,
+                        "elapsed_time": round(elapsed_time, 1),
+                        "eta_str": eta_str,
+                        "status": status,
+                        "percent_complete": round((episode_num / total_episodes) * 100, 1)
+                    }
+                    yield f"data: {json.dumps(progress_data)}\n\n"
+                except (BrokenPipeError, OSError) as e:
+                    # Client disconnected, stop processing
+                    if e.errno == errno.EPIPE:
+                        logger.debug("Client disconnected (broken pipe)")
+                    raise GeneratorExit("Client disconnected")
+            
+            # Run batch translation
+            try:
+                translate_batch(
+                    file_pairs=file_pairs,
+                    instructions_path=instruction_path,
+                    chunk_size=chunk_size,
+                    api_base=api_base,
+                    model_id=model_id,
+                    api_key=api_key,
+                    progress_callback=progress_callback  # Pass the callback
+                )
+                
+                # Create ZIP file with translated files
+                zip_buffer = tempfile.NamedTemporaryFile(delete=False, suffix='.zip')
+                with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                    for source, target in file_pairs:
+                        if target.exists():
+                            zip_file.write(target, arcname=target.name)
+                zip_buffer.close()
+                
+                # Yield completion with ZIP file path
+                complete_data = {
+                    "type": "complete",
+                    "message": f"Batch translation complete! {len(file_pairs)} files translated.",
+                    "zip_file": str(zip_buffer.name)
+                }
+                yield f"data: {json.dumps(complete_data)}\n\n"
+                
+            except Exception as e:
+                error_data = {
+                    "type": "error",
+                    "message": str(e)
+                }
+                yield f"data: {json.dumps(error_data)}\n\n"
+            
+            # Clean up temp instruction file
+            if instruction_path and str(instruction_path).startswith(tempfile.gettempdir()):
+                if instruction_path.exists():
+                    os.unlink(instruction_path)
+                    
+    except Exception as e:
+        error_data = {
+            "type": "error",
+            "message": str(e)
+        }
+        yield f"data: {json.dumps(error_data)}\n\n"
+
+
+@app.post("/translate-batch/download-zip")
+async def translate_batch_download_zip(zip_file: str = Form(...)):  # type: ignore[no-untyped-def]
+    """Download the translated files as a ZIP archive."""
+    try:
+        zip_path = Path(zip_file)
+        if not zip_path.exists():
+            return FileResponse(
+                "",
+                media_type="text/plain",
+                headers={"Content-Disposition": "attachment; filename=error.txt"}
+            )
+        
+        return FileResponse(
+            zip_path,
+            media_type="application/zip",
+            filename="translated_subtitles.zip",
+            background=lambda: zip_path.unlink(missing_ok=True) if zip_path.exists() else None
+        )
+    except Exception as e:
+        return FileResponse(
+            "",
+            media_type="text/plain",
+            headers={"Content-Disposition": "attachment; filename=error.txt"}
+        )
 
 
 @app.get("/convert", response_class=HTMLResponse)
