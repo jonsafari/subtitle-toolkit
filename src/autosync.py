@@ -39,15 +39,20 @@ class DriftConfig:
     """Configuration for drift correction.
     
     Attributes:
-        reference_time: Time in ms where we know the offset is correct (or zero)
+        reference_time: Time in ms where we know the offset (reference_offset)
         offset_time: Time in ms where we know the offset value
-        offset_at_offset_time: Offset in ms at offset_time (positive = subtitles late)
+        offset_at_offset_time: Offset in ms at offset_time
         sync_points: Optional list of (time_ms, offset_ms) tuples for multi-point correction
+        reference_offset: Offset in ms at reference_time (default 0)
+    
+    Sign convention: a positive offset moves subtitles LATER (to bigger
+    timestamps). Use a positive offset when subtitles appear too early.
     """
     reference_time: float
     offset_time: float
     offset_at_offset_time: float
     sync_points: Optional[List[Tuple[float, float]]] = None
+    reference_offset: float = 0.0
     
     @property
     def drift_rate(self) -> float:
@@ -56,9 +61,13 @@ class DriftConfig:
             # For multi-point, return the overall rate
             first = self.sync_points[0]
             last = self.sync_points[-1]
+            if last[0] == first[0]:
+                return 0.0
             return (last[1] - first[1]) / (last[0] - first[0])
         
-        return self.offset_at_offset_time / (self.offset_time - self.reference_time)
+        if self.offset_time == self.reference_time:
+            return 0.0
+        return (self.offset_at_offset_time - self.reference_offset) / (self.offset_time - self.reference_time)
     
     def get_offset_at_time(self, time_ms: float) -> float:
         """Get the offset (in ms) that should be applied at a given time.
@@ -79,8 +88,8 @@ class DriftConfig:
     def _get_offset_two_point(self, time_ms: float) -> float:
         """Calculate offset using two-point linear drift."""
         drift_rate = self.drift_rate
-        # Offset at any time = drift_rate * (time - reference_time)
-        return drift_rate * (time_ms - self.reference_time)
+        # Offset at any time = reference_offset + drift_rate * (time - reference_time)
+        return self.reference_offset + drift_rate * (time_ms - self.reference_time)
     
     def _get_offset_multi_point(self, time_ms: float) -> float:
         """Calculate offset using piecewise linear interpolation."""
@@ -276,6 +285,40 @@ def apply_drift_correction(
     return line_ending.join(result_lines) + line_ending
 
 
+def apply_two_point(
+    srt_content: str,
+    t1_ms: float,
+    o1_ms: float,
+    t2_ms: float,
+    o2_ms: float,
+) -> str:
+    """Apply a two-point linear correction to SRT content.
+    
+    The correction added to a timestamp t is linear between (t1, o1) and
+    (t2, o2). Positive offsets move subtitles later.
+    
+    This is the same transform used by the Sync Preview page, so what you
+    see in the preview is exactly what the exported SRT will do.
+    
+    Args:
+        srt_content: Original SRT content
+        t1_ms: First sync point time (ms)
+        o1_ms: Offset (ms) to add at t1
+        t2_ms: Second sync point time (ms)
+        o2_ms: Offset (ms) to add at t2
+        
+    Returns:
+        Corrected SRT content
+    """
+    config = DriftConfig(
+        reference_time=t1_ms,
+        reference_offset=o1_ms,
+        offset_time=t2_ms,
+        offset_at_offset_time=o2_ms,
+    )
+    return apply_drift_correction(srt_content, config)
+
+
 def validate_sync_points(
     reference_time: float,
     offset_time: float,
@@ -321,13 +364,16 @@ def parse_args() -> argparse.Namespace:
             subtitles gradually drift out of sync over time (e.g., due to
             frame rate differences between video and subtitle).
             
+            Sign convention: positive offsets move subtitles LATER. If subtitles
+            appear too early, use positive offsets; if they appear too late, negative.
+
             Examples:
-              # Two-point correction: subtitles correct at 0:30, 5 seconds late at 10:00
-              cat input.srt | subtitle-tk autosync --correct-at 00:00:30 --offset-at 00:10:00 --offset 5.0
-              
-              # Multiple sync points
-              cat input.srt | subtitle-tk autosync --point 00:00:30:0 --point 00:05:00:2.5 --point 00:10:00:5.0
-              
+              # Two-point correction: subtitles 2s too early at 0:30 and 5s too early at 10:00
+              cat input.srt | subtitle-tk autosync --correct-at 00:00:30 --reference-offset 2.0 --offset-at 00:10:00 --offset 5.0
+
+              # Multiple sync points (TIME:OFFSET seconds)
+              cat input.srt | subtitle-tk autosync --points 00:00:30:0 00:05:00:2.5 00:10:00:5.0
+
               # Using common frame rate drift
               cat input.srt | subtitle-tk autosync --drift-rate 23.976_to_24 --reference 00:00:00
             """
@@ -340,7 +386,7 @@ def parse_args() -> argparse.Namespace:
     mode_group.add_argument(
         "--correct-at", "-c",
         type=str,
-        help="Time where subtitles are correct (no offset). Format: HH:MM:SS[,.mmm]"
+        help="Time where the offset equals --reference-offset (default: subtitles are correct there). Format: HH:MM:SS[,.mmm]"
     )
     mode_group.add_argument(
         "--points", "-p",
@@ -365,7 +411,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--offset",
         type=float,
-        help="Offset in seconds at --offset-at time (positive = subtitles are late)"
+        help="Offset in seconds to add at --offset-at time (positive = subtitles move later; use when they appear too early)"
+    )
+    parser.add_argument(
+        "--reference-offset",
+        type=float,
+        default=0.0,
+        help="Offset in seconds to add at --correct-at time (default 0; positive = subtitles move later)"
     )
     
     # Drift rate mode argument
@@ -409,16 +461,18 @@ def main() -> None:
         reference_time_ms = parse_time(args.correct_at)
         offset_time_ms = parse_time(args.offset_at)
         offset_ms = args.offset * 1000  # Convert to milliseconds
+        reference_offset_ms = args.reference_offset * 1000
         
         config = DriftConfig(
             reference_time=reference_time_ms,
             offset_time=offset_time_ms,
-            offset_at_offset_time=offset_ms
+            offset_at_offset_time=offset_ms,
+            reference_offset=reference_offset_ms,
         )
         
         if args.verbose:
             print(f"Two-point drift correction:", file=sys.stderr)
-            print(f"  Reference: {args.correct_at} (offset = 0)", file=sys.stderr)
+            print(f"  Reference: {args.correct_at} (offset = {args.reference_offset}s)", file=sys.stderr)
             print(f"  Offset at: {args.offset_at} (offset = {args.offset}s)", file=sys.stderr)
             print(f"  Drift rate: {config.drift_rate * 1000:.3f} ms/s ({config.drift_rate * 100:.3f}%%)", file=sys.stderr)
     

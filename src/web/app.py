@@ -2,14 +2,18 @@
 """
 FastAPI web interface for the Subtitle Toolkit
 """
-from fastapi import FastAPI, Request, Form, UploadFile, Query
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, StreamingResponse
+from fastapi import FastAPI, Request, Form, UploadFile, Query, File
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse, StreamingResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import subprocess
 import os
+import re
 import sys
 import tempfile
+import threading
+import time
+import uuid
 from pathlib import Path
 import shutil
 import json
@@ -25,11 +29,23 @@ sys.path.insert(0, str(PROJECT_ROOT))
 # Import translate_batch module
 try:
     from translate_batch import scan_directory, translate_batch
-    print(f"DEBUG: translate_batch imported successfully: {translate_batch}")
 except ImportError as e:
     print(f"Warning: Could not import translate_batch: {e}")
     scan_directory = None
     translate_batch = None
+
+# Import sync check / preview support modules
+try:
+    from synccheck import (
+        probe_video, analyze_srt, drift_scenarios, compare_with_embedded,
+        build_report, format_report, run_check, parse_srt_cues,
+        extract_embedded_cues, ms_to_ts,
+    )
+    from autosync import apply_two_point
+    SYNC_CHECK_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Could not import synccheck/autosync: {e}")
+    SYNC_CHECK_AVAILABLE = False
 
 # Get the app directory (parent of web directory)
 APP_DIR = PROJECT_ROOT
@@ -1547,6 +1563,483 @@ async def set_language(request: Request, lang: str = Form(...)) -> RedirectRespo
     response = RedirectResponse(url=request.headers.get("referer", "/"), status_code=303)
     response.set_cookie("language", lang, max_age=30*24*60*60)  # 30 days
     return response
+
+
+# ---------------------------------------------------------------------------
+# Sync Check / Sync Preview
+#
+# A "session" holds an uploaded (or locally referenced) video plus one SRT,
+# a browser-playable proxy of the video, and the probe/analysis results.
+# Sessions live in a temp dir and are cleaned up after SESSION_MAX_AGE.
+# ---------------------------------------------------------------------------
+
+SESSIONS: Dict[str, Dict[str, Any]] = {}
+SESSIONS_LOCK = threading.Lock()
+SESSION_MAX_AGE = 2 * 3600  # seconds
+
+# Codecs that modern browsers can play inside an <video> tag.
+BROWSER_VIDEO_CODECS = {"h264", "vp9", "av1"}
+BROWSER_AUDIO_CODECS = {"aac", "mp3", "opus", "vorbis"}
+
+# Extensions we keep when saving uploaded videos (so the proxy can be served
+# with the right content type and container heuristics can use the extension).
+_SAFE_VIDEO_EXTS = {".mp4", ".m4v", ".mov", ".webm", ".mkv", ".avi", ".m2ts",
+                    ".ts", ".flv", ".wmv", ".mpg", ".mpeg", ".ogv", ".3gp"}
+
+
+def _safe_video_filename(original_name: str) -> str:
+    """Build a safe on-disk name for an uploaded video, keeping its extension."""
+    ext = Path(original_name or "").suffix.lower()
+    if ext not in _SAFE_VIDEO_EXTS:
+        ext = ""
+    return f"video{ext}"
+
+
+def _is_browser_playable(container: str, codec: str, audio_codecs: set,
+                         path: Path) -> bool:
+    """Decide whether the original file can be served to the browser directly.
+
+    Conservative on purpose: only MP4/MOV/WebM *files* are served as-is.
+    ffprobe reports both MKV and WebM as "matroska,webm", and browsers do
+    not play the MKV container, so anything else is remuxed/transcoded.
+    """
+    if codec not in BROWSER_VIDEO_CODECS:
+        return False
+    if audio_codecs and not audio_codecs.issubset(BROWSER_AUDIO_CODECS):
+        return False
+    container = (container or "").lower()
+    ext = path.suffix.lower()
+    if ext in (".mp4", ".m4v", ".mov"):
+        return any(c in container for c in ("mp4", "mov", "m4v"))
+    if ext == ".webm":
+        return "matroska" in container or "webm" in container
+    return False
+
+
+def _cleanup_old_sessions() -> None:
+    """Remove sessions older than SESSION_MAX_AGE (best effort)."""
+    now = time.time()
+    with SESSIONS_LOCK:
+        stale = [sid for sid, s in SESSIONS.items()
+                 if now - s["created_at"] > SESSION_MAX_AGE]
+    for sid in stale:
+        _remove_session(sid)
+
+
+def _remove_session(sid: str) -> None:
+    """Drop a session and delete its temp dir."""
+    with SESSIONS_LOCK:
+        session = SESSIONS.pop(sid, None)
+    if session:
+        shutil.rmtree(session["dir"], ignore_errors=True)
+
+
+def create_session(
+    video_path: Path,
+    srt_content: str,
+    video_name: str,
+    base_dir: Optional[Path] = None,
+    start_preparing: bool = True,
+) -> str:
+    """Create a preview/check session.
+
+    The video file is referenced in place (never copied); the session dir
+    holds the proxy and is deleted on cleanup.
+    """
+    _cleanup_old_sessions()
+    sid = uuid.uuid4().hex[:16]
+    sdir = base_dir if base_dir is not None else Path(tempfile.mkdtemp(prefix=f"subtk_{sid}_"))
+    session: Dict[str, Any] = {
+        "id": sid,
+        "dir": sdir,
+        "video_path": video_path,
+        "video_name": video_name,
+        "srt_content": srt_content,
+        "created_at": time.time(),
+        "status": "probing",   # probing | preparing | ready | error
+        "error": None,
+        "progress": 0.0,
+        "proxy_path": None,
+        "probe": None,
+        "srt_info": None,
+    }
+    with SESSIONS_LOCK:
+        SESSIONS[sid] = session
+    if start_preparing:
+        threading.Thread(target=_prepare_session, args=(sid,), daemon=True).start()
+    return sid
+
+
+def _prepare_session(sid: str) -> None:
+    """Probe the video and build a browser-playable proxy (background thread)."""
+    session = SESSIONS.get(sid)
+    if session is None:
+        return
+    sdir: Path = session["dir"]
+    try:
+        probe = probe_video(session["video_path"])
+        if SESSIONS.get(sid) is not session:
+            return
+        if not probe.get("video"):
+            raise RuntimeError("No video stream found in the uploaded file.")
+        session["probe"] = probe
+        session["srt_info"] = analyze_srt(session["srt_content"])
+
+        video = probe["video"]
+        codec = (video.get("codec") or "").lower()
+        audio_codecs = {a.get("codec") for a in probe.get("audio", []) if a.get("codec")}
+        container = (probe.get("container") or "").lower()
+        video_ok = codec in BROWSER_VIDEO_CODECS
+        audio_ok = (not audio_codecs) or audio_codecs.issubset(BROWSER_AUDIO_CODECS)
+
+        if _is_browser_playable(container, codec, audio_codecs, session["video_path"]):
+            # Already browser-playable: serve the original file directly.
+            session["proxy_path"] = session["video_path"]
+            session["status"] = "ready"
+            session["progress"] = 1.0
+            return
+
+        proxy = sdir / "proxy.mp4"
+        duration = probe.get("duration") or 0
+        strategies: List[List[str]] = []
+        if video_ok and audio_ok:
+            # Fast path: stream copy into MP4 (no re-encode).
+            strategies.append([
+                "ffmpeg", "-loglevel", "error", "-nostats", "-y",
+                "-i", str(session["video_path"]),
+                "-c", "copy", "-f", "mp4", str(proxy),
+            ])
+        # Fallback: low-res transcode to something every browser can play.
+        strategies.append([
+            "ffmpeg", "-loglevel", "error", "-stats", "-y",
+            "-i", str(session["video_path"]),
+            "-vf", "scale=min(1280,iw):-2",
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "30", "-pix_fmt", "yuv420p",
+            "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart",
+            "-f", "mp4", str(proxy),
+        ])
+
+        session["status"] = "preparing"
+        success = False
+        for cmd in strategies:
+            if proxy.exists():
+                proxy.unlink()
+            proc = subprocess.Popen(
+                cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+            for line in proc.stderr:
+                if SESSIONS.get(sid) is not session:
+                    proc.kill()
+                    return
+                m = re.search(r"time=(\d+):(\d+):([\d.]+)", line)
+                if m and duration > 0:
+                    t = int(m.group(1)) * 3600 + int(m.group(2)) * 60 + float(m.group(3))
+                    session["progress"] = min(0.99, t / duration)
+            proc.wait()
+            if proc.returncode == 0 and proxy.exists() and proxy.stat().st_size > 0:
+                success = True
+                break
+
+        if not success:
+            raise RuntimeError(
+                "Could not create a browser-playable preview of this video. "
+                "Try converting it to MP4 (H.264 + AAC) first."
+            )
+        session["proxy_path"] = proxy
+        session["status"] = "ready"
+        session["progress"] = 1.0
+    except Exception as e:
+        if SESSIONS.get(sid) is session:
+            session["status"] = "error"
+            session["error"] = str(e)
+
+
+def _two_point_summary(t1: float, o1: float, t2: float, o2: float) -> str:
+    """Human-readable summary of a two-point correction."""
+    if t2 > t1:
+        rate = (o2 - o1) / (t2 - t1)
+        return (f"Offset {o1:+.2f}s at {ms_to_ts(int(t1 * 1000))}; "
+                f"drift {rate * 3600:+.1f}s/hour "
+                f"(offset {o2:+.2f}s at {ms_to_ts(int(t2 * 1000))})")
+    return f"Constant offset {o1:+.2f}s"
+
+
+def _apply_two_point_params(srt_content: str, t1: float, o1: float, t2: float, o2: float) -> str:
+    """Apply a two-point correction, normalizing point order."""
+    if t2 < t1:
+        t1, t2 = t2, t1
+        o1, o2 = o2, o1
+    return apply_two_point(srt_content, t1 * 1000, o1 * 1000, t2 * 1000, o2 * 1000)
+
+
+@app.get("/sync-preview", response_class=HTMLResponse)
+async def sync_preview_page(
+    request: Request,
+    session: Optional[str] = None,
+    video: Optional[str] = None,
+    srt: Optional[str] = None,
+) -> HTMLResponse:
+    """Show the Sync Preview page.
+
+    Pre-loading: pass ?video=<path>&srt=<path> (used by `subtitle-tk preview`)
+    to auto-submit a local-path session, or ?session=<id> to resume a session.
+    """
+    lang = get_language_from_request(request)
+    return templates.TemplateResponse(request, "sync_preview.html", {
+        "lang": lang,
+        "translations": load_translations(lang),
+        "session_id": session,
+        "auto_video": video,
+        "auto_srt": srt,
+    })
+
+
+@app.post("/sync-preview/session")
+async def create_preview_session(
+    request: Request,
+    video_file: Optional[UploadFile] = File(None),
+    srt_file: Optional[UploadFile] = File(None),
+    video_path: Optional[str] = Form(None),
+    srt_path: Optional[str] = Form(None),
+):
+    """Create a preview session from uploads or local paths.
+
+    Local paths are only accepted from localhost (used by `subtitle-tk preview`).
+    """
+    lang = get_language_from_request(request)
+    translations = load_translations(lang)
+
+    def page_with_error(msg: str):
+        return templates.TemplateResponse(request, "sync_preview.html", {
+            "lang": lang, "translations": translations, "error": msg,
+        })
+
+    if not SYNC_CHECK_AVAILABLE:
+        return page_with_error("Sync Preview is not available on this server.")
+
+    sdir: Optional[Path] = None
+    try:
+        if video_file is not None and srt_file is not None:
+            # Upload mode
+            sdir = Path(tempfile.mkdtemp(prefix="subtk_upload_"))
+            video_p = sdir / _safe_video_filename(video_file.filename or "")
+            with open(video_p, "wb") as f:
+                while True:
+                    chunk = await video_file.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+            video_name = video_file.filename or "video"
+            srt_content = (await srt_file.read()).decode("utf-8", errors="replace")
+            sid = create_session(video_p, srt_content, video_name, base_dir=sdir)
+        elif video_path and srt_path:
+            # Local path mode (CLI pre-load): localhost only
+            client_host = request.client.host if request.client else ""
+            if client_host not in ("127.0.0.1", "::1", "testclient"):
+                return page_with_error("Local file paths can only be used from the same machine.")
+            video_p = Path(video_path).expanduser()
+            srt_p = Path(srt_path).expanduser()
+            if not video_p.exists():
+                return page_with_error(f"Video not found: {video_p}")
+            if not srt_p.exists():
+                return page_with_error(f"Subtitle file not found: {srt_p}")
+            video_name = video_p.name
+            srt_content = srt_p.read_text(encoding="utf-8", errors="replace")
+            sid = create_session(video_p, srt_content, video_name)
+        else:
+            return page_with_error("Please upload both a video and a subtitle file.")
+    except Exception as e:
+        if sdir is not None:
+            shutil.rmtree(sdir, ignore_errors=True)
+        return page_with_error(str(e))
+
+    return RedirectResponse(f"/sync-preview?session={sid}", status_code=303)
+
+
+@app.get("/sync-preview/session/{sid}")
+async def preview_session_status(sid: str):
+    """JSON status of a preview session (polled by the preview page)."""
+    session = SESSIONS.get(sid)
+    if session is None:
+        return JSONResponse({"status": "missing"}, status_code=404)
+    return JSONResponse({
+        "status": session["status"],
+        "error": session["error"],
+        "progress": session["progress"],
+        "proxy_url": f"/sync-preview/session/{sid}/proxy" if session["proxy_path"] else None,
+        "video_name": session["video_name"],
+        "srt": session["srt_content"],
+        "srt_info": session["srt_info"],
+        "probe": session["probe"],
+    })
+
+
+@app.get("/sync-preview/session/{sid}/proxy")
+async def preview_session_proxy(sid: str):
+    """Serve the browser-playable video proxy (supports HTTP Range)."""
+    session = SESSIONS.get(sid)
+    if session is None or not session["proxy_path"] or not Path(session["proxy_path"]).exists():
+        return JSONResponse({"error": "proxy not available"}, status_code=404)
+    ext = Path(session["proxy_path"]).suffix.lower()
+    media = {".mp4": "video/mp4", ".m4v": "video/mp4", ".mov": "video/quicktime",
+             ".webm": "video/webm"}.get(ext, "video/mp4")
+    return FileResponse(session["proxy_path"], media_type=media)
+
+
+@app.post("/sync-preview/apply", response_class=HTMLResponse)
+async def sync_preview_apply(
+    request: Request,
+    srt: Optional[str] = Form(None),
+    t1: float = Form(0.0),
+    o1: float = Form(0.0),
+    t2: float = Form(0.0),
+    o2: float = Form(0.0),
+    video_name: str = Form("subtitles"),
+    session: Optional[str] = Form(None),
+) -> HTMLResponse:
+    """Apply the previewed two-point correction and show the result."""
+    lang = get_language_from_request(request)
+    translations = load_translations(lang)
+    if not srt or not srt.strip():
+        return templates.TemplateResponse(request, "sync_preview.html", {
+            "lang": lang, "translations": translations,
+            "error": "No subtitle content provided.",
+        })
+    try:
+        corrected = _apply_two_point_params(srt, t1, o1, t2, o2)
+        summary = _two_point_summary(t1, o1, t2, o2)
+    except Exception as e:
+        return templates.TemplateResponse(request, "sync_preview.html", {
+            "lang": lang, "translations": translations, "error": str(e),
+        })
+    stem = Path(video_name).stem or "subtitles"
+    filename = f"{stem}_synced.srt"
+    return templates.TemplateResponse(request, "sync_preview_result.html", {
+        "lang": lang,
+        "translations": translations,
+        "output": corrected,
+        "summary": summary,
+        "filename": filename,
+        "session_id": session,
+    })
+
+
+@app.post("/sync-preview/download")
+async def sync_preview_download(
+    request: Request,
+    output: Optional[str] = Form(None),
+    filename: Optional[str] = Form(None),
+):
+    """Download the corrected SRT from the preview result page."""
+    if not output:
+        return templates.TemplateResponse(request, "sync_preview.html", {})
+    tmp_file_path = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.srt', delete=False, encoding='utf-8') as tmp_file:
+            tmp_file.write(output)
+            tmp_file_path = tmp_file.name
+        safe_name = (filename or "subtitles_synced.srt").replace("/", "_").replace("\\", "_")
+        return FileResponse(
+            tmp_file_path,
+            media_type="application/octet-stream",
+            filename=safe_name,
+        )
+    except Exception:
+        if tmp_file_path and os.path.exists(tmp_file_path):
+            os.unlink(tmp_file_path)
+        raise
+
+
+@app.get("/check", response_class=HTMLResponse)
+async def check_page(request: Request) -> HTMLResponse:
+    """Show the Sync Check page."""
+    lang = get_language_from_request(request)
+    return templates.TemplateResponse(request, "check.html", {
+        "lang": lang,
+        "translations": load_translations(lang),
+    })
+
+
+@app.post("/check", response_class=HTMLResponse)
+async def check_submit(
+    request: Request,
+    video_file: Optional[UploadFile] = File(None),
+    srt_file: Optional[UploadFile] = File(None),
+) -> HTMLResponse:
+    """Run a sync check on uploaded video + SRT."""
+    lang = get_language_from_request(request)
+    translations = load_translations(lang)
+
+    def page_with_error(msg: str):
+        return templates.TemplateResponse(request, "check.html", {
+            "lang": lang, "translations": translations, "error": msg,
+        })
+
+    if not SYNC_CHECK_AVAILABLE:
+        return page_with_error("Sync Check is not available on this server.")
+    if not video_file or not srt_file:
+        return page_with_error("Please upload both a video and a subtitle file.")
+
+    sdir = Path(tempfile.mkdtemp(prefix="subtk_check_"))
+    try:
+        video_p = sdir / _safe_video_filename(video_file.filename or "")
+        with open(video_p, "wb") as f:
+            while True:
+                chunk = await video_file.read(1024 * 1024)
+                if not chunk:
+                    break
+                f.write(chunk)
+        srt_content = (await srt_file.read()).decode("utf-8", errors="replace")
+        srt_p = sdir / "input.srt"
+        srt_p.write_text(srt_content, encoding="utf-8")
+
+        report = run_check(video_p, srt_p)
+        # Also create a preview session so "Open in Sync Preview" is one click.
+        sid = create_session(video_p, srt_content, video_file.filename or "video", base_dir=sdir)
+        return templates.TemplateResponse(request, "check_result.html", {
+            "lang": lang,
+            "translations": translations,
+            "report": report,
+            "report_text": format_report(report),
+            "session_id": sid,
+            "video_name": video_file.filename or "video",
+            "srt_name": srt_file.filename or "subtitles.srt",
+        })
+    except Exception as e:
+        shutil.rmtree(sdir, ignore_errors=True)
+        return page_with_error(str(e))
+
+
+@app.post("/check/apply-fix", response_class=HTMLResponse)
+async def check_apply_fix(
+    request: Request,
+    session: Optional[str] = Form(None),
+    t1: float = Form(0.0),
+    o1: float = Form(0.0),
+    t2: float = Form(0.0),
+    o2: float = Form(0.0),
+) -> HTMLResponse:
+    """Apply the suggested fix from a check report."""
+    lang = get_language_from_request(request)
+    translations = load_translations(lang)
+    sess = SESSIONS.get(session or "")
+    if sess is None:
+        return templates.TemplateResponse(request, "check.html", {
+            "lang": lang, "translations": translations,
+            "error": "Session not found. Please run the check again.",
+        })
+    corrected = _apply_two_point_params(sess["srt_content"], t1, o1, t2, o2)
+    summary = _two_point_summary(t1, o1, t2, o2)
+    stem = Path(sess["video_name"]).stem or "subtitles"
+    filename = f"{stem}_synced.srt"
+    return templates.TemplateResponse(request, "sync_preview_result.html", {
+        "lang": lang,
+        "translations": translations,
+        "output": corrected,
+        "summary": summary,
+        "filename": filename,
+        "session_id": session,
+    })
+
 
 if __name__ == "__main__":
     import argparse

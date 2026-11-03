@@ -14,6 +14,7 @@ from autosync import (
     format_time,
     DriftConfig,
     apply_drift_correction,
+    apply_two_point,
     parse_srt_line,
     COMMON_DRIFT_RATES
 )
@@ -281,6 +282,82 @@ class TestCommonDriftRates:
         
         # Reverse should be negative
         assert COMMON_DRIFT_RATES["24_to_23.976"] < 0
+
+
+class TestApplyTwoPoint:
+    """Tests for apply_two_point (the two-sync-point transform)."""
+
+    def test_constant_offset(self):
+        # All times/offsets are in milliseconds.
+        srt = "1\n00:00:01,000 --> 00:00:04,000\nHello\n\n2\n00:01:00,000 --> 00:01:02,000\nWorld\n"
+        result = apply_two_point(srt, 0, 2000, 600000, 2000)
+        lines = result.strip().split("\n")
+        assert lines[1] == "00:00:03,000 --> 00:00:06,000"
+        assert lines[5] == "00:01:02,000 --> 00:01:04,000"
+
+    def test_negative_offset(self):
+        srt = "1\n00:00:05,000 --> 00:00:08,000\nHello\n"
+        result = apply_two_point(srt, 0, -2000, 600000, -2000)
+        assert "00:00:03,000 --> 00:00:06,000" in result
+
+    def test_drift(self):
+        # +1 s at t=0, +2 s at t=10 s => +0.1 s per second.
+        srt = ("1\n00:00:01,000 --> 00:00:02,000\nA\n\n"
+               "2\n00:00:11,000 --> 00:00:12,000\nB\n")
+        result = apply_two_point(srt, 0, 1000, 10000, 2000)
+        # Cue 1: start t=1 s gets +1.1 s, end t=2 s gets +1.2 s.
+        assert "00:00:02,100 --> 00:00:03,200" in result
+        # Cue 2: start t=11 s gets +2.1 s, end t=12 s gets +2.2 s.
+        assert "00:00:13,100 --> 00:00:14,200" in result
+
+    def test_swapped_points(self):
+        # Same transform as test_drift, points given in reverse order.
+        srt = "1\n00:00:01,000 --> 00:00:02,000\nA\n"
+        result = apply_two_point(srt, 10000, 2000, 0, 1000)
+        assert "00:00:02,100 --> 00:00:03,200" in result
+
+    def test_clamped_to_zero(self):
+        # A large negative offset cannot push timestamps before 0.
+        srt = "1\n00:00:01,000 --> 00:00:02,000\nA\n"
+        result = apply_two_point(srt, 0, -5000, 60000, -5000)
+        assert "00:00:00,000 --> 00:00:00,000" in result
+
+    def test_empty_srt(self):
+        # Empty input yields no cues (a trailing newline is acceptable).
+        assert apply_two_point("", 0, 1000, 10000, 2000).strip() == ""
+
+    def test_matches_drift_config(self):
+        # apply_two_point must agree with the DriftConfig-based correction.
+        srt = ("1\n00:00:01,000 --> 00:00:04,000\nHello\n\n"
+               "2\n00:30:00,000 --> 00:30:02,000\nWorld\n")
+        two_point = apply_two_point(srt, 0, 2000, 1800000, 3500)
+        config = DriftConfig(reference_time=0.0, offset_time=1800000.0,
+                             offset_at_offset_time=3500.0, reference_offset=2000.0)
+        drift_based = apply_drift_correction(srt, config)
+        assert two_point == drift_based
+
+
+class TestDriftConfigReferenceOffset:
+    """Tests for DriftConfig with a non-zero reference offset."""
+
+    def test_reference_offset_applied_at_reference_time(self):
+        config = DriftConfig(reference_time=0.0, offset_time=100.0,
+                             offset_at_offset_time=2.0, reference_offset=1.0)
+        # At t=0 the offset is the reference offset.
+        assert config.get_offset_at_time(0.0) == 1.0
+        # At t=100 it is the offset-time offset.
+        assert abs(config.get_offset_at_time(100.0) - 2.0) < 1e-9
+
+    def test_reference_offset_zero_is_backward_compatible(self):
+        config = DriftConfig(reference_time=0.0, offset_time=100.0,
+                             offset_at_offset_time=2.0)
+        assert config.get_offset_at_time(0.0) == 0.0
+
+    def test_reference_offset_interpolation(self):
+        config = DriftConfig(reference_time=10.0, offset_time=110.0,
+                             offset_at_offset_time=3.0, reference_offset=1.0)
+        # Midpoint: 1.0 + (3.0 - 1.0) * 0.5 = 2.0
+        assert abs(config.get_offset_at_time(60.0) - 2.0) < 1e-9
 
 
 if __name__ == "__main__":
