@@ -260,6 +260,10 @@
   "preview_apply": "应用并导出修正后的 SRT",
   "preview_hotkeys": "快捷键：, / . = 前一帧 / 后一帧，< / > = 前一秒 / 后一秒，[ / ] = 前十秒 / 后十秒",
   "preview_preparing": "正在准备预览…",
+  "preview_transcript_title": "字幕文本",
+  "preview_transcript_follow": "跟随播放",
+  "preview_transcript_paused": "自动滚动已暂停",
+  "preview_transcript_empty": "未找到字幕。",
   "preview_error": "预览错误",
   "preview_summary": "已应用修正",
   "preview_back": "返回预览"

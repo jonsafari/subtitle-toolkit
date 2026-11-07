@@ -260,6 +260,10 @@
   "preview_apply": "Appliquer et exporter le SRT corrigé",
   "preview_hotkeys": "Raccourcis : , / . = une image avant / après, < / > = une seconde avant / après, [ / ] = dix secondes avant / après",
   "preview_preparing": "Préparation de l'aperçu…",
+  "preview_transcript_title": "Texte des sous-titres",
+  "preview_transcript_follow": "Suivre la lecture",
+  "preview_transcript_paused": "Défilement auto en pause",
+  "preview_transcript_empty": "Aucun sous-titre trouvé.",
   "preview_error": "Erreur de l'aperçu",
   "preview_summary": "Correction appliquée",
   "preview_back": "Retour à l'aperçu"

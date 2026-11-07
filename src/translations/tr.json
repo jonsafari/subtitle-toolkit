@@ -260,6 +260,10 @@
   "preview_apply": "Uygula ve Düzeltilmiş SRT'yi Dışa Aktar",
   "preview_hotkeys": "Kısayollar: , / . = bir kare önce / sonra, < / > = bir saniye önce / sonra, [ / ] = on saniye önce / sonra",
   "preview_preparing": "Önizleme hazırlanıyor…",
+  "preview_transcript_title": "Altyazı metni",
+  "preview_transcript_follow": "Oynatmayı takip et",
+  "preview_transcript_paused": "Otomatik kaydırma duraklatıldı",
+  "preview_transcript_empty": "Altyazı bulunamadı.",
   "preview_error": "Önizleme hatası",
   "preview_summary": "Düzeltme uygulandı",
   "preview_back": "Önizlemeye Dön"

@@ -260,6 +260,10 @@
   "preview_apply": "Apply & Export Fixed SRT",
   "preview_hotkeys": "Hotkeys: , / . = one frame earlier / later, < / > = one second earlier / later, [ / ] = ten seconds earlier / later",
   "preview_preparing": "Preparing preview…",
+  "preview_transcript_title": "Subtitle text",
+  "preview_transcript_follow": "Follow playback",
+  "preview_transcript_paused": "auto-scroll paused",
+  "preview_transcript_empty": "No subtitle cues found.",
   "preview_error": "Preview error",
   "preview_summary": "Correction Applied",
   "preview_back": "Back to Preview"

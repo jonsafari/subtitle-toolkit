@@ -260,6 +260,10 @@
   "preview_apply": "Áp dụng & Xuất file SRT đã sửa",
   "preview_hotkeys": "Phím tắt: , / . = một khung hình trước / sau, < / > = một giây trước / sau, [ / ] = mười giây trước / sau",
   "preview_preparing": "Đang chuẩn bị xem trước…",
+  "preview_transcript_title": "Chữ phụ",
+  "preview_transcript_follow": "Theo dõi phát",
+  "preview_transcript_paused": "Tự cuộn đã tạm dừng",
+  "preview_transcript_empty": "Không tìm thấy phụ đề.",
   "preview_error": "Lỗi xem trước",
   "preview_summary": "Đã áp dụng sửa đổi",
   "preview_back": "Quay lại xem trước"

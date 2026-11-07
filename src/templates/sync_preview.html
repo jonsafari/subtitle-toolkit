@@ -79,6 +79,29 @@
         </div>
     </div>
 
+    <style>
+        .cue-row-active { background-color: rgba(59, 130, 246, 0.18); }
+        .dark .cue-row-active { background-color: rgba(96, 165, 250, 0.25); }
+    </style>
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6 dark:bg-slate-800">
+        <div class="flex items-center justify-between gap-2 flex-wrap mb-2">
+            <h4 class="font-medium text-gray-800 dark:text-gray-200">
+                <i class="fas fa-align-left mr-2"></i>{{ translations.preview_transcript_title if translations else 'Subtitle text' }}
+            </h4>
+            <div class="flex items-center gap-2">
+                <span id="transcript-follow-state" class="text-xs text-amber-600 dark:text-amber-400" style="display: none;">
+                    <i class="fas fa-pause-circle mr-1"></i>{{ translations.preview_transcript_paused if translations else 'auto-scroll paused' }}
+                </span>
+                <button type="button" id="transcript-follow" class="text-xs px-2 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-slate-600 dark:text-gray-300 dark:hover:bg-slate-600" style="display: none;">
+                    <i class="fas fa-magnet mr-1"></i>{{ translations.preview_transcript_follow if translations else 'Follow playback' }}
+                </button>
+            </div>
+        </div>
+        <div id="transcript" class="overflow-y-auto border border-gray-200 rounded-md bg-gray-50 dark:bg-slate-900 dark:border-slate-600 font-mono text-sm" style="height: 260px; position: relative;">
+            <div id="transcript-rows"></div>
+        </div>
+    </div>
+
     <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800">
         <div id="status-line" class="text-gray-700 dark:text-gray-300 mb-4">
             <i class="fas fa-spinner fa-spin mr-2"></i>{{ translations.preview_preparing if translations else 'Preparing preview…' }}
@@ -171,6 +194,12 @@ const SESSION_ID = "{{ session_id or '' }}";
     const statusLine = $('status-line');
     const progressPct = $('progress-pct');
     const controls = $('controls');
+    const transcript = $('transcript');
+    const transcriptRows = $('transcript-rows');
+    const transcriptFollowBtn = $('transcript-follow');
+    const transcriptFollowState = $('transcript-follow-state');
+    // tojson produces a proper JS string literal (safe for any translation).
+    const TRANSCRIPT_EMPTY = {{ (translations.preview_transcript_empty if translations else 'No subtitle cues found.') | tojson }};
 
     const t1Input = $('t1'), t2Input = $('t2');
     const o1Input = $('o1'), o2Input = $('o2');
@@ -180,6 +209,9 @@ const SESSION_ID = "{{ session_id or '' }}";
     let srtContent = '';
     let fps = 25;
     let pollTimer = null;
+    let followPlayback = true;
+    let activeCueIndex = -1;
+    let cueRowEls = [];
 
     // ---------- SRT parsing ----------
     function parseTime(str) {
@@ -237,6 +269,15 @@ const SESSION_ID = "{{ session_id or '' }}";
         const s = sec % 60;
         return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
     }
+    function fmtSRTTime(ms) {
+        ms = Math.max(0, Math.round(ms));
+        const h = Math.floor(ms / 3600000);
+        const m = Math.floor((ms % 3600000) / 60000);
+        const s = Math.floor((ms % 60000) / 1000);
+        const frac = ms % 1000;
+        return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' +
+            String(s).padStart(2, '0') + ',' + String(frac).padStart(3, '0');
+    }
 
     // ---------- correction math (mirrors autosync.apply_two_point) ----------
     function ab() {
@@ -253,6 +294,81 @@ const SESSION_ID = "{{ session_id or '' }}";
         const b = o1 - a * t1;
         return { a, b };
     }
+
+    // ---------- subtitle transcript (scrolling text below the video) ----------
+    function buildTranscript() {
+        if (!transcriptRows) return;
+        transcriptRows.innerHTML = '';
+        cueRowEls = [];
+        if (!cues.length) {
+            const empty = document.createElement('div');
+            empty.className = 'p-3 text-gray-400 dark:text-gray-500';
+            empty.textContent = TRANSCRIPT_EMPTY;
+            transcriptRows.appendChild(empty);
+            return;
+        }
+        const frag = document.createDocumentFragment();
+        cues.forEach((c, i) => {
+            const row = document.createElement('div');
+            row.className = 'flex gap-2 px-2 py-1 border-b border-gray-100 dark:border-slate-700';
+            const idx = document.createElement('span');
+            idx.className = 'text-gray-400 dark:text-gray-500 w-8 text-right shrink-0';
+            idx.textContent = String(i + 1);
+            const times = document.createElement('span');
+            times.className = 'text-gray-500 dark:text-gray-400 shrink-0';
+            times.textContent = fmtSRTTime(c.start) + ' --> ' + fmtSRTTime(c.end);
+            const text = document.createElement('span');
+            text.className = 'text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words';
+            text.textContent = c.text;
+            row.appendChild(idx);
+            row.appendChild(times);
+            row.appendChild(text);
+            frag.appendChild(row);
+            cueRowEls.push(row);
+        });
+        transcriptRows.appendChild(frag);
+    }
+
+    // Last cue whose start is <= adj (binary search; stable across gaps).
+    function findActiveCue(adj) {
+        let lo = 0, hi = cues.length - 1, ans = -1;
+        while (lo <= hi) {
+            const mid = (lo + hi) >> 1;
+            if (cues[mid].start <= adj) { ans = mid; lo = mid + 1; }
+            else { hi = mid - 1; }
+        }
+        return ans;
+    }
+
+    // Keep the active row about 30% down the box so a few lines above and
+    // below stay visible; only scroll when it is not already in place.
+    function scrollTranscriptTo(idx) {
+        const row = cueRowEls[idx];
+        if (!row || !transcript) return;
+        const boxH = transcript.clientHeight;
+        const rowTop = row.offsetTop;
+        const rowH = row.offsetHeight;
+        const top = transcript.scrollTop;
+        if (rowTop - top < boxH * 0.3 || rowTop + rowH - top > boxH * 0.85) {
+            transcript.scrollTop = Math.max(0, rowTop - boxH * 0.3);
+        }
+    }
+
+    function setFollow(on) {
+        followPlayback = on;
+        if (transcriptFollowBtn) transcriptFollowBtn.style.display = on ? 'none' : '';
+        if (transcriptFollowState) transcriptFollowState.style.display = on ? 'none' : '';
+        if (on && activeCueIndex >= 0) scrollTranscriptTo(activeCueIndex);
+    }
+    if (transcript) {
+        // Any manual scrolling pauses auto-follow until the user resumes it
+        // (via the button) or seeks the video.
+        transcript.addEventListener('wheel', () => setFollow(false), { passive: true });
+        transcript.addEventListener('touchmove', () => setFollow(false), { passive: true });
+        transcript.addEventListener('pointerdown', () => setFollow(false));
+    }
+    if (transcriptFollowBtn) transcriptFollowBtn.addEventListener('click', () => setFollow(true));
+    video.addEventListener('seeked', () => setFollow(true));
 
     // ---------- overlay rendering ----------
     // Mirrors autosync.apply_two_point: offset_ms(t_ms) = a * t_ms + b * 1000,
@@ -271,6 +387,19 @@ const SESSION_ID = "{{ session_id or '' }}";
                 overlay.style.display = 'block';
             } else {
                 overlay.style.display = 'none';
+            }
+            // Highlight + auto-scroll the transcript to the cue active at the
+            // (offset/drift-corrected) playback time.
+            const idx = findActiveCue(adj);
+            if (idx !== activeCueIndex) {
+                if (activeCueIndex >= 0 && cueRowEls[activeCueIndex]) {
+                    cueRowEls[activeCueIndex].classList.remove('cue-row-active');
+                }
+                activeCueIndex = idx;
+                if (idx >= 0) {
+                    cueRowEls[idx].classList.add('cue-row-active');
+                    if (followPlayback) scrollTranscriptTo(idx);
+                }
             }
         }
         requestAnimationFrame(render);
@@ -364,6 +493,7 @@ const SESSION_ID = "{{ session_id or '' }}";
                     clearInterval(pollTimer);
                     srtContent = data.srt || '';
                     cues = parseSRT(srtContent);
+                    buildTranscript();
                     const probe = data.probe || {};
                     const v = probe.video || {};
                     fps = v.fps || 25;

@@ -290,6 +290,55 @@ class TestPreviewPageJS:
         assert py_re.match("00:00:01.500"), "parseTime must accept HH:MM:SS.mmm"
 
 
+class TestPreviewTranscript:
+    """Tests for the scrolling subtitle transcript box below the video."""
+
+    @pytest.mark.skipif(not SAMPLE_MP4.exists(), reason="sample.mp4 not available")
+    def test_page_contains_transcript_box(self):
+        """The session page must render the transcript panel and its controls."""
+        sid = create_session_via_upload()
+        wait_for_session(sid)
+        html = client.get(f"/sync-preview?session={sid}").text
+        assert 'id="transcript"' in html
+        assert 'id="transcript-rows"' in html
+        assert 'id="transcript-follow"' in html
+        assert 'id="transcript-follow-state"' in html
+
+    @pytest.mark.skipif(not SAMPLE_MP4.exists(), reason="sample.mp4 not available")
+    def test_transcript_box_below_video(self):
+        """The transcript box must appear below the video player in the page."""
+        sid = create_session_via_upload()
+        wait_for_session(sid)
+        html = client.get(f"/sync-preview?session={sid}").text
+        assert html.index('id="player-wrap"') < html.index('id="transcript"')
+
+    @pytest.mark.skipif(not SAMPLE_MP4.exists(), reason="sample.mp4 not available")
+    def test_transcript_js_follows_playback(self):
+        """The page JS must build rows, track the active cue, and auto-scroll.
+
+        The transcript is the foundation for later in-place editing, so the
+        core sync machinery (row building, active-cue tracking, follow
+        pause/resume) must be present.
+        """
+        sid = create_session_via_upload()
+        wait_for_session(sid)
+        html = client.get(f"/sync-preview?session={sid}").text
+        for marker in (
+            "function buildTranscript()",
+            "function findActiveCue(adj)",
+            "function scrollTranscriptTo(idx)",
+            "function setFollow(on)",
+            "cue-row-active",
+            "buildTranscript();",
+        ):
+            assert marker in html, f"missing transcript machinery: {marker}"
+
+    def test_upload_form_page_has_no_transcript_box(self):
+        """Without a session there is no video, hence no transcript box."""
+        html = client.get("/sync-preview").text
+        assert 'id="transcript"' not in html
+
+
 class TestPreviewApply:
     """Tests for POST /sync-preview/apply."""
 

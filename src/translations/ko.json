@@ -260,6 +260,10 @@
   "preview_apply": "적용 및 수정된 SRT 내보내기",
   "preview_hotkeys": "단축키: , / . = 1프레임 앞 / 뒤, < / > = 1초 앞 / 뒤, [ / ] = 10초 앞 / 뒤",
   "preview_preparing": "미리보기 준비 중…",
+  "preview_transcript_title": "자막 텍스트",
+  "preview_transcript_follow": "재생 따라가기",
+  "preview_transcript_paused": "자동 스크롤 일시 중지됨",
+  "preview_transcript_empty": "자막을 찾을 수 없습니다.",
   "preview_error": "미리보기 오류",
   "preview_summary": "수정 적용됨",
   "preview_back": "미리보기로 돌아가기"

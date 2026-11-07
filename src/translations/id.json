@@ -260,6 +260,10 @@
   "preview_apply": "Terapkan & Ekspor SRT yang Diperbaiki",
   "preview_hotkeys": "Pintasan: , / . = satu frame lebih awal / lambat, < / > = satu detik lebih awal / lambat, [ / ] = sepuluh detik lebih awal / lambat",
   "preview_preparing": "Menyiapkan pratinjau…",
+  "preview_transcript_title": "Teks subtitle",
+  "preview_transcript_follow": "Ikuti pemutaran",
+  "preview_transcript_paused": "Gulir otomatis dijeda",
+  "preview_transcript_empty": "Tidak ada subtitle yang ditemukan.",
   "preview_error": "Kesalahan pratinjau",
   "preview_summary": "Perbaikan diterapkan",
   "preview_back": "Kembali ke Pratinjau"

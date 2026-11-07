@@ -87,7 +87,7 @@ The web interface is the easiest way to use Subtitle Toolkit. No command line ne
 If your downloaded subtitles don't line up with the video:
 
 1. **Sync Check** — upload the video and the `.srt`. The tool probes the video, analyzes the subtitles, and (if the video has an embedded subtitle track) compares the two to measure the exact offset and drift. It tells you the likely cause and offers a one-click suggested fix.
-2. **Sync Preview** — watch the video with your subtitles overlaid. Fine-tune two sync points (e.g. "at 00:00:00 subtitles are 2 s late" and "at 01:00:00 subtitles are 5 s late") and see the change instantly — even while paused. Drift presets fill in the second point for common frame-rate mismatches. Hotkeys: `,` / `.` = one frame earlier/later, `<` / `>` = one second, `[` / `]` = ten seconds.
+2. **Sync Preview** — watch the video with your subtitles overlaid. Fine-tune two sync points (e.g. "at 00:00:00 subtitles are 2 s late" and "at 01:00:00 subtitles are 5 s late") and see the change instantly — even while paused. Below the video, a scrolling subtitle text box follows the playback: the current cue is highlighted and the box auto-scrolls so a few lines above and below stay visible (scroll the box to pause following; click "Follow playback" or seek the video to resume). Drift presets fill in the second point for common frame-rate mismatches. Hotkeys: `,` / `.` = one frame earlier/later, `<` / `>` = one second, `[` / `]` = ten seconds.
 3. **Export** — the corrected `.srt` is generated with exactly the same math as the preview, so what you saw is what you get. The video file is never modified.
 
 ### Multi-Language Support
