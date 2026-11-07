@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}{{ translations.check_report if translations else 'Check Report' }}{% endblock %}
+
+{% block content %}
+{% set verdict_map = {
+    'ok': translations.check_verdict_ok,
+    'fix_available': translations.check_verdict_fix_available,
+    'possible_misalignment': translations.check_verdict_possible,
+    'likely_different_version': translations.check_verdict_version
+} %}
+{% set verdict_text = verdict_map.get(report.verdict, report.verdict) %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2 dark:text-white">
+            <i class="fas fa-stethoscope mr-2"></i>{{ translations.check_report if translations else 'Check Report' }}
+        </h1>
+        <p class="text-gray-600 dark:text-gray-300 mb-4 text-lg font-medium">{{ verdict_text }}</p>
+
+        <div class="bg-gray-50 rounded-lg p-4 dark:bg-slate-700 dark:text-gray-100 max-h-96 overflow-y-auto">
+            <pre class="whitespace-pre-wrap text-sm font-mono">{{ report_text }}</pre>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800 flex flex-wrap items-center justify-center gap-4">
+        <a href="/sync-preview?session={{ session_id }}" class="btn-primary text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition duration-200">
+            <i class="fas fa-play mr-2"></i>{{ translations.check_open_preview if translations else 'Open in Sync Preview' }}
+        </a>
+        {% if report.suggested_fix %}
+        <form action="/check/apply-fix" method="post" style="display: inline;">
+            <input type="hidden" name="session" value="{{ session_id }}">
+            <input type="hidden" name="t1" value="{{ report.suggested_fix.t1 }}">
+            <input type="hidden" name="o1" value="{{ report.suggested_fix.o1 }}">
+            <input type="hidden" name="t2" value="{{ report.suggested_fix.t2 }}">
+            <input type="hidden" name="o2" value="{{ report.suggested_fix.o2 }}">
+            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-md font-medium hover:bg-green-700 transition duration-200">
+                <i class="fas fa-wand-magic-sparkles mr-2"></i>{{ translations.check_apply_fix if translations else 'Apply Suggested Fix' }}
+            </button>
+        </form>
+        {% endif %}
+        <a href="/check" class="text-gray-700 px-6 py-2 border border-gray-300 rounded-md font-medium hover:bg-gray-50 transition duration-200 dark:text-gray-300 dark:border-slate-600 dark:hover:bg-slate-700">
+            {{ translations.process_another if translations else 'Check Another File' }}
+        </a>
+        <a href="/" class="text-gray-700 px-6 py-2 border border-gray-300 rounded-md font-medium hover:bg-gray-50 transition duration-200 dark:text-gray-300 dark:border-slate-600 dark:hover:bg-slate-700">
+            {{ translations.back_to_home if translations else 'Back to Home' }}
+        </a>
+    </div>
+</div>
+{% endblock %}

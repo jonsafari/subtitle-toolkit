@@ -1,0 +1,424 @@
+{% extends "base.html" %}
+
+{% block title %}{{ translations.sync_preview_tool if translations else 'Sync Preview' }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2 dark:text-white">
+            <i class="fas fa-clapperboard mr-2"></i>{{ translations.sync_preview_tool if translations else 'Sync Preview' }}
+        </h1>
+        <p class="text-gray-600 dark:text-gray-300 mb-4">
+            {{ translations.sync_preview_page_desc if translations else 'The video plays below with your subtitle text overlaid. Adjust the offset and drift until the subtitles match the audio, then apply to export a fixed SRT. The preview uses exactly the same math as the export, so what you see is what you get.' }}
+        </p>
+        <a href="/" class="inline-flex items-center text-blue-600 hover:text-blue-800 mt-2 dark:text-blue-400 dark:hover:text-blue-300">
+            <i class="fas fa-arrow-left mr-1"></i> {{ translations.back_to_home if translations else 'Back to Home' }}
+        </a>
+
+        {% if error %}
+        <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 dark:bg-red-900/20 dark:border-red-700">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-circle text-red-400 dark:text-red-500"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-red-700 dark:text-red-300">{{ error }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if not session_id and auto_video and auto_srt %}
+    <form id="auto-form" method="POST" action="/sync-preview/session">
+        <input type="hidden" name="video_path" value="{{ auto_video }}">
+        <input type="hidden" name="srt_path" value="{{ auto_srt }}">
+    </form>
+    <script>document.getElementById('auto-form').submit();</script>
+    {% elif not session_id %}
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800">
+        <form method="POST" action="/sync-preview/session" enctype="multipart/form-data">
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="video_file">
+                    {{ translations.upload_video_file if translations else 'Upload Video File' }}
+                </label>
+                <div class="flex items-center">
+                    <label for="video_file" class="file-upload-label">
+                        <i class="fas fa-video mr-2"></i> {{ translations.choose_file if translations else 'Choose File' }}
+                    </label>
+                    <input type="file" id="video_file" name="video_file" class="file-upload-input" accept="video/*,.mkv,.mp4,.avi,.mov,.m2ts,.webm" required>
+                    <span id="video-file-name" class="ml-4 text-gray-500 dark:text-gray-400">{{ translations.no_file_chosen if translations else 'No file chosen' }}</span>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2 dark:text-gray-300" for="srt_file">
+                    {{ translations.upload_srt_file if translations else 'Upload Subtitle File (.srt)' }}
+                </label>
+                <div class="flex items-center">
+                    <label for="srt_file" class="file-upload-label">
+                        <i class="fas fa-upload mr-2"></i> {{ translations.choose_file if translations else 'Choose File' }}
+                    </label>
+                    <input type="file" id="srt_file" name="srt_file" class="file-upload-input" accept=".srt" required>
+                    <span id="srt-file-name" class="ml-4 text-gray-500 dark:text-gray-400">{{ translations.no_file_chosen if translations else 'No file chosen' }}</span>
+                </div>
+            </div>
+
+            <div class="flex justify-center">
+                <button type="submit" class="btn-primary text-white px-6 py-2 rounded-md font-medium hover:bg-blue-700 transition duration-200">
+                    <i class="fas fa-play mr-2"></i>{{ translations.sync_preview if translations else 'Start Sync Preview' }}
+                </button>
+            </div>
+        </form>
+    </div>
+    {% else %}
+    <div class="relative rounded-lg overflow-hidden bg-black mb-6" id="player-wrap">
+        <video id="video" controls preload="auto" class="w-full" style="max-height: 70vh; background: #000; display: none;"></video>
+        <div id="overlay" style="position: absolute; left: 0; right: 0; bottom: 14%; text-align: center; pointer-events: none; display: none;">
+            <span id="overlay-text" style="color: #fff; font-size: 2.2vh; line-height: 1.3; padding: 0 4%; text-shadow: 0 0 4px #000, 0 0 8px #000, 1px 1px 2px #000; white-space: pre-wrap;"></span>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6 dark:bg-slate-800">
+        <div id="status-line" class="text-gray-700 dark:text-gray-300 mb-4">
+            <i class="fas fa-spinner fa-spin mr-2"></i>{{ translations.preview_preparing if translations else 'Preparing preview…' }}
+            <span id="progress-pct" class="ml-2 text-gray-500 dark:text-gray-400"></span>
+        </div>
+
+        <div id="controls" style="display: none;">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                <div class="bg-gray-50 rounded-lg p-4 dark:bg-slate-700">
+                    <h4 class="font-medium text-gray-800 mb-1 dark:text-gray-200">
+                        <i class="fas fa-arrows-left-right mr-2"></i>{{ translations.preview_offset_title if translations else 'Offset' }}
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-3 dark:text-gray-300">
+                        {{ translations.preview_offset_desc if translations else 'Constant shift for all subtitles. Positive = later, negative = earlier.' }}
+                    </p>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <label class="text-sm text-gray-600 dark:text-gray-300" for="o1">{{ translations.preview_offset_title if translations else 'Offset' }}</label>
+                        <input type="number" id="o1" step="0.05" value="0" class="form-input px-2 py-1 border rounded-md w-24 dark:bg-slate-600 dark:border-slate-500 dark:text-white">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">s</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ translations.preview_at_time if translations else 'at time' }}</span>
+                        <input type="text" id="t1" value="0" class="form-input px-2 py-1 border rounded-md w-24 font-mono dark:bg-slate-600 dark:border-slate-500 dark:text-white">
+                        <button type="button" id="t1-now" class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400">
+                            {{ translations.preview_use_current if translations else 'use current position' }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-4 dark:bg-slate-700">
+                    <h4 class="font-medium text-gray-800 mb-1 dark:text-gray-200">
+                        <i class="fas fa-chart-line mr-2"></i>{{ translations.preview_drift_title if translations else 'Drift' }}
+                    </h4>
+                    <p class="text-sm text-gray-600 mb-3 dark:text-gray-300">
+                        {{ translations.preview_drift_desc if translations else 'Extra shift at a second point in time (for frame-rate drift). Positive = subtitles get later.' }}
+                    </p>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <label class="text-sm text-gray-600 dark:text-gray-300" for="o2">{{ translations.preview_drift_title if translations else 'Drift' }}</label>
+                        <input type="number" id="o2" step="0.05" value="0" class="form-input px-2 py-1 border rounded-md w-24 dark:bg-slate-600 dark:border-slate-500 dark:text-white">
+                        <span class="text-sm text-gray-500 dark:text-gray-400">s</span>
+                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ translations.preview_at_time if translations else 'at time' }}</span>
+                        <input type="text" id="t2" value="0" class="form-input px-2 py-1 border rounded-md w-24 font-mono dark:bg-slate-600 dark:border-slate-500 dark:text-white">
+                        <button type="button" id="t2-now" class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400">
+                            {{ translations.preview_use_current if translations else 'use current position' }}
+                        </button>
+                    </div>
+                    <label class="inline-flex items-center gap-2 mt-3 text-sm text-gray-700 dark:text-gray-300">
+                        <input type="checkbox" id="no-drift" checked class="rounded border-gray-300 dark:bg-slate-600">
+                        {{ translations.preview_no_drift if translations else 'no drift (offset only)' }}
+                    </label>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <span class="text-sm text-gray-600 dark:text-gray-300">{{ translations.preview_drift_presets if translations else 'Drift presets (if the subtitles were made for a different frame rate):' }}</span>
+                <div id="presets" class="flex flex-wrap gap-2 mt-2"></div>
+            </div>
+
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                <i class="fas fa-keyboard mr-1"></i>{{ translations.preview_hotkeys if translations else 'Hotkeys: , / . = one frame earlier / later, < / > = one second earlier / later, [ / ] = ten seconds earlier / later' }}
+            </p>
+
+            <form id="apply-form" method="POST" action="/sync-preview/apply">
+                <input type="hidden" name="srt" id="srt-hidden">
+                <input type="hidden" name="t1" id="apply-t1" value="0">
+                <input type="hidden" name="o1" id="apply-o1" value="0">
+                <input type="hidden" name="t2" id="apply-t2" value="0">
+                <input type="hidden" name="o2" id="apply-o2" value="0">
+                <input type="hidden" name="video_name" id="apply-video-name">
+                <input type="hidden" name="session" id="apply-session" value="{{ session_id }}">
+                <div class="flex justify-center">
+                    <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-md font-medium hover:bg-green-700 transition duration-200">
+                        <i class="fas fa-wand-magic-sparkles mr-2"></i>{{ translations.preview_apply if translations else 'Apply & Export Fixed SRT' }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+const SESSION_ID = "{{ session_id or '' }}";
+</script>
+<script>
+{% if session_id %}
+(function () {
+    const $ = (id) => document.getElementById(id);
+    const video = $('video');
+    const overlay = $('overlay');
+    const overlayText = $('overlay-text');
+    const statusLine = $('status-line');
+    const progressPct = $('progress-pct');
+    const controls = $('controls');
+
+    const t1Input = $('t1'), t2Input = $('t2');
+    const o1Input = $('o1'), o2Input = $('o2');
+    const noDrift = $('no-drift');
+
+    let cues = [];
+    let srtContent = '';
+    let fps = 25;
+    let pollTimer = null;
+
+    // ---------- SRT parsing ----------
+    function parseTime(str) {
+        // Hours and minutes are required; the millisecond fraction is optional
+        // so both "00:00:01,500" and "00:00:01" parse (matching the server).
+        const m = String(str).match(/(\d+):(\d+):(\d+)(?:[,.](\d+))?/);
+        if (!m) return null;
+        // SRT fractions are milliseconds; pad/truncate to 3 digits (like the
+        // server-side parser) so short fractions like ",2" mean 200 ms.
+        const ms = m[4] ? parseInt(m[4].padEnd(3, '0').slice(0, 3), 10) : 0;
+        return ((+m[1]) * 3600 + (+m[2]) * 60 + (+m[3])) * 1000 + ms;
+    }
+    function parseSRT(text) {
+        const out = [];
+        // Strip a UTF-8 BOM (would break index-line detection on cue 1).
+        const blocks = String(text).replace(/^\uFEFF/, '').replace(/\r/g, '').split(/\n\n+/);
+        for (const block of blocks) {
+            const lines = block.split('\n').filter((l) => l.trim() !== '');
+            if (lines.length < 2) continue;
+            let i = 0;
+            if (/^\d+$/.test(lines[0].trim())) i = 1;   // skip the index line
+            const tm = lines[i] && lines[i].match(/(\S+)\s*-->\s*(\S+)/);
+            if (!tm) continue;
+            const start = parseTime(tm[1]);
+            const end = parseTime(tm[2]);
+            if (start === null || end === null) continue;
+            const body = lines.slice(i + 1).join('\n').replace(/<[^>]+>/g, '').trim();
+            if (!body) continue;
+            out.push({ start, end, text: body });
+        }
+        out.sort((a, b) => a.start - b.start);
+        return out;
+    }
+
+    // ---------- time helpers ----------
+    function parseTimeInput(str) {
+        str = String(str).trim();
+        if (/^\d+(\.\d+)?$/.test(str)) return parseFloat(str);
+        const m = str.match(/^(?:(\d+):)?(\d+):(\d+(?:\.\d+)?)$/);
+        if (!m) return null;
+        const h = m[1] ? +m[1] : 0;
+        return h * 3600 + (+m[2]) * 60 + (+m[3]);
+    }
+    function fmtClock(sec) {
+        sec = Math.max(0, Math.floor(sec));
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        return (h ? h + ':' : '') + String(m).padStart(h ? 2 : 1, '0') + ':' + String(s).padStart(2, '0');
+    }
+    function fmtHMS(sec) {
+        sec = Math.max(0, Math.floor(sec));
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+
+    // ---------- correction math (mirrors autosync.apply_two_point) ----------
+    function ab() {
+        const t1 = parseTimeInput(t1Input.value) || 0;
+        const t2 = parseTimeInput(t2Input.value) || 0;
+        const o1 = parseFloat(o1Input.value) || 0;
+        let o2 = parseFloat(o2Input.value) || 0;
+        if (noDrift.checked) o2 = o1;
+        if (t2 < t1) {
+            const tt = t1; t1 = t2; t2 = tt;
+            const oo = o1; o1 = o2; o2 = oo;
+        }
+        const a = t2 > t1 ? (o2 - o1) / (t2 - t1) : 0;
+        const b = o1 - a * t1;
+        return { a, b };
+    }
+
+    // ---------- overlay rendering ----------
+    // Mirrors autosync.apply_two_point: offset_ms(t_ms) = a * t_ms + b * 1000,
+    // where a = (o2-o1)/(t2-t1) [s/s] and b = o1 - a*t1 [s] (seconds-based points).
+    function render() {
+        if (video && cues.length) {
+            const t = video.currentTime * 1000;
+            const { a, b } = ab();
+            const adj = t + a * t + b * 1000;
+            let text = '';
+            for (const c of cues) {
+                if (adj >= c.start && adj <= c.end) { text = c.text; break; }
+            }
+            if (text) {
+                overlayText.textContent = text;
+                overlay.style.display = 'block';
+            } else {
+                overlay.style.display = 'none';
+            }
+        }
+        requestAnimationFrame(render);
+    }
+
+    // ---------- controls ----------
+    function syncFromInputs() { /* values read live in ab() */ }
+    function setNow(which) {
+        const input = which === 1 ? t1Input : t2Input;
+        input.value = video.currentTime.toFixed(3);
+        syncFromInputs();
+    }
+    $('t1-now').addEventListener('click', () => setNow(1));
+    $('t2-now').addEventListener('click', () => setNow(2));
+    noDrift.addEventListener('change', () => {
+        if (noDrift.checked) o2Input.value = o1Input.value;
+        o2Input.disabled = noDrift.checked;
+    });
+    o2Input.addEventListener('input', () => {
+        if (!noDrift.checked && (parseFloat(o2Input.value) || 0) === (parseFloat(o1Input.value) || 0)) {
+            // allow equal values; user may still want to re-enable drift later
+        }
+    });
+    o1Input.addEventListener('input', () => { if (noDrift.checked) o2Input.value = o1Input.value; });
+
+    // hotkeys (only when the video is focused or playing)
+    document.addEventListener('keydown', (e) => {
+        if (!video || video.style.display === 'none') return;
+        const tag = (e.target && e.target.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        const frame = 1000 / fps;
+        let handled = true;
+        switch (e.key) {
+            case ',': video.currentTime = Math.max(0, video.currentTime - frame / 1000); break;
+            case '.': video.currentTime = video.currentTime + frame / 1000; break;
+            case '<': video.currentTime = Math.max(0, video.currentTime - 1); break;
+            case '>': video.currentTime = video.currentTime + 1; break;
+            case '[': video.currentTime = Math.max(0, video.currentTime - 10); break;
+            case ']': video.currentTime = video.currentTime + 10; break;
+            default: handled = false;
+        }
+        if (handled) e.preventDefault();
+    });
+
+    // ---------- drift presets ----------
+    function buildPresets(videoFps) {
+        const box = $('presets');
+        if (!box) return;
+        const common = [23.976, 24, 25, 29.97, 30];
+        for (const s of common) {
+            if (Math.abs(s - videoFps) < 0.05) continue;
+            const perHour = 3600 * (s / videoFps - 1);
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'text-xs px-2 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-slate-600 dark:text-gray-300 dark:hover:bg-slate-600';
+            btn.textContent = s + ' fps (' + (perHour > 0 ? '+' : '') + perHour.toFixed(1) + 's/h)';
+            btn.addEventListener('click', () => {
+                const t2 = parseTimeInput(t2Input.value) || 0;
+                const o1 = parseFloat(o1Input.value) || 0;
+                o2Input.value = (o1 + perHour * (t2 / 3600)).toFixed(2);
+                noDrift.checked = false;
+                o2Input.disabled = false;
+            });
+            box.appendChild(btn);
+        }
+        if (!box.children.length) {
+            box.innerHTML = '<span class="text-xs text-gray-400">—</span>';
+        }
+    }
+
+    // ---------- apply form ----------
+    $('apply-form').addEventListener('submit', (e) => {
+        const t1 = parseTimeInput(t1Input.value) || 0;
+        const t2 = parseTimeInput(t2Input.value) || 0;
+        const o1 = parseFloat(o1Input.value) || 0;
+        let o2 = parseFloat(o2Input.value) || 0;
+        if (noDrift.checked) o2 = o1;
+        $('apply-t1').value = t1;
+        $('apply-o1').value = o1;
+        $('apply-t2').value = t2;
+        $('apply-o2').value = o2;
+        $('srt-hidden').value = srtContent;
+    });
+
+    // ---------- session loading ----------
+    function pollStatus() {
+        fetch('/sync-preview/session/' + SESSION_ID)
+            .then((r) => (r.status === 404 ? Promise.reject('missing') : r.json()))
+            .then((data) => {
+                if (data.status === 'ready') {
+                    clearInterval(pollTimer);
+                    srtContent = data.srt || '';
+                    cues = parseSRT(srtContent);
+                    const probe = data.probe || {};
+                    const v = probe.video || {};
+                    fps = v.fps || 25;
+                    if (data.proxy_url) {
+                        video.src = data.proxy_url;
+                        video.style.display = 'block';
+                        video.play().catch(() => { /* autoplay may be blocked */ });
+                    }
+                    const dur = probe.duration || 0;
+                    if (dur > 0) t2Input.value = fmtHMS(dur);
+                    $('apply-video-name').value = data.video_name || '';
+                    buildPresets(fps);
+                    statusLine.textContent = '';
+                    statusLine.innerHTML = '<i class="fas fa-circle-check mr-2 text-green-600"></i> ';
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = (data.video_name || '') +
+                        (cues.length ? ' — ' + cues.length + ' cues' : '');
+                    statusLine.appendChild(nameSpan);
+                    controls.style.display = 'block';
+                    o2Input.disabled = noDrift.checked;
+                    requestAnimationFrame(render);
+                } else if (data.status === 'error' || data.status === 'missing') {
+                    clearInterval(pollTimer);
+                    statusLine.textContent = '';
+                    statusLine.innerHTML = '<i class="fas fa-circle-exclamation mr-2 text-red-600"></i> ';
+                    const errSpan = document.createElement('span');
+                    errSpan.textContent = (data.error || 'error');
+                    statusLine.appendChild(errSpan);
+                } else {
+                    const pct = Math.round((data.progress || 0) * 100);
+                    progressPct.textContent = data.status === 'preparing' ? pct + '%' : '';
+                }
+            })
+            .catch(() => {
+                clearInterval(pollTimer);
+                statusLine.innerHTML =
+                    '<i class="fas fa-circle-exclamation mr-2 text-red-600"></i>session not found';
+            });
+    }
+    pollTimer = setInterval(pollStatus, 1000);
+    pollStatus();
+})();
+{% endif %}
+</script>
+<script>
+    function bindFileName(inputId, spanId) {
+        const input = document.getElementById(inputId);
+        const span = document.getElementById(spanId);
+        if (input && span) {
+            input.addEventListener('change', function () {
+                span.textContent = this.files.length ? this.files[0].name : '';
+            });
+        }
+    }
+    bindFileName('video_file', 'video-file-name');
+    bindFileName('srt_file', 'srt-file-name');
+</script>
+{% endblock %}
