@@ -236,7 +236,7 @@
   "preview_no_drift": "brak dryfu (tylko przesunięcie)",
   "preview_drift_presets": "Ustawienia dryfu (jeśli napisy zostały zrobione dla innej liczby klatek na sekundę):",
   "preview_apply": "Zastosuj i wyeksportuj poprawiony SRT",
-  "preview_hotkeys": "Skróty: , / . = klatka wcześniej / później, < / > = sekunda wcześniej / później, [ / ] = dziesięć sekund wcześniej / później",
+  "preview_hotkeys": "Skróty: , / . = klatka wstecz / dalej, < / > = sekunda wstecz / dalej, [ / ] = dziesięć sekund wstecz / dalej, A = przypnij aktywny napis",
   "preview_preparing": "Przygotowywanie podglądu…",
   "preview_transcript_title": "Tekst napisów",
   "preview_transcript_follow": "Śledź odtwarzanie",
@@ -266,5 +266,15 @@
   "target_language_desc": "Kod języka tłumaczenia (np. es, fr, deu)",
   "upload_files": "Wgraj pliki napisów",
   "upload_files_desc": "Wybierz wiele plików napisów. Pliki z istniejącą wersją w języku docelowym zostaną pominięte.",
-  "upload_instructions_file": "Albo wgraj plik z instrukcjami"
+  "upload_instructions_file": "Albo wgraj plik z instrukcjami",
+  "preview_anchor_tooltip": "Przypnij ten napis do bieżącej pozycji wideo",
+  "preview_anchor_remove": "Usuń kotwicę",
+  "preview_anchor_list_title": "Kotwice",
+  "preview_anchor_clear_all": "Wyczyść wszystko",
+  "preview_anchor_offset_only": "Przesunięcie: {offset}s (bez dryfu)",
+  "preview_anchor_drift": "Dryf: {drift} s/godz",
+  "preview_anchor_residual_good": "Maks. rezydum: {res}s ✓",
+  "preview_anchor_residual_warn": "Maks. rezydum: {res}s ⚠ (nieliniowy?)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "Napis"
 }

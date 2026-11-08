@@ -237,7 +237,7 @@
   "preview_no_drift": "nessuna deriva (solo offset)",
   "preview_drift_presets": "Impostazioni predefinite di deriva (se i sottotitoli sono stati fatti per un'altra frequenza dei fotogrammi):",
   "preview_apply": "Applica ed esporta SRT corretto",
-  "preview_hotkeys": "Scorciatoie: , / . = un fotogramma prima / dopo, < / > = un secondo prima / dopo, [ / ] = dieci secondi prima / dopo",
+  "preview_hotkeys": "Scorciatoie: , / . = un frame prima / dopo, < / > = un secondo prima / dopo, [ / ] = dieci secondi prima / dopo, A = ancora il sottotitolo attivo",
   "preview_preparing": "Preparazione anteprima…",
   "preview_transcript_title": "Testo dei sottotitoli",
   "preview_transcript_follow": "Segui la riproduzione",
@@ -266,5 +266,15 @@
   "target_language_desc": "Codice lingua per la traduzione (ad esempio, es, fr, deu)",
   "upload_files": "Carica file di sottotitoli",
   "upload_files_desc": "Seleziona più file di sottotitoli. I file con la lingua di destinazione già presente verranno saltati.",
-  "upload_instructions_file": "O carica un file di istruzioni"
+  "upload_instructions_file": "O carica un file di istruzioni",
+  "preview_anchor_tooltip": "Fissa questa sottotitolo alla posizione attuale del video",
+  "preview_anchor_remove": "Rimuovi ancoraggio",
+  "preview_anchor_list_title": "Ancoraggi",
+  "preview_anchor_clear_all": "Cancella tutti",
+  "preview_anchor_offset_only": "Offset: {offset}s (nessuna deriva)",
+  "preview_anchor_drift": "Deriva: {drift} s/ora",
+  "preview_anchor_residual_good": "Residuo max: {res}s ✓",
+  "preview_anchor_residual_warn": "Residuo max: {res}s ⚠ (non lineare?)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "Sottotitolo"
 }

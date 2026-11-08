@@ -258,7 +258,7 @@
   "preview_no_drift": "无漂移（仅偏移）",
   "preview_drift_presets": "漂移预设（如果字幕是按其他帧率制作的）：",
   "preview_apply": "应用并导出修正后的 SRT",
-  "preview_hotkeys": "快捷键：, / . = 前一帧 / 后一帧，< / > = 前一秒 / 后一秒，[ / ] = 前十秒 / 后十秒",
+  "preview_hotkeys": "快捷键: , / . = 前一帧 / 后一帧, < / > = 前一秒 / 后一秒, [ / ] = 前十秒 / 后十秒, A = 锚定当前字幕",
   "preview_preparing": "正在准备预览…",
   "preview_transcript_title": "字幕文本",
   "preview_transcript_follow": "跟随播放",
@@ -266,5 +266,15 @@
   "preview_transcript_empty": "未找到字幕。",
   "preview_error": "预览错误",
   "preview_summary": "已应用修正",
-  "preview_back": "返回预览"
+  "preview_back": "返回预览",
+  "preview_anchor_tooltip": "将此字幕固定到当前视频位置",
+  "preview_anchor_remove": "移除锚点",
+  "preview_anchor_list_title": "锚点",
+  "preview_anchor_clear_all": "全部清除",
+  "preview_anchor_offset_only": "偏移: {offset}秒（无漂移）",
+  "preview_anchor_drift": "漂移: {drift} 秒/小时",
+  "preview_anchor_residual_good": "最大残差: {res}秒 ✓",
+  "preview_anchor_residual_warn": "最大残差: {res}秒 ⚠（非线性？）",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "字幕"
 }

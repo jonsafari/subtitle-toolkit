@@ -258,7 +258,7 @@
   "preview_no_drift": "không trôi (chỉ lệch)",
   "preview_drift_presets": "Cài đặt trôi (nếu phụ đề được làm cho tần số khung hình khác):",
   "preview_apply": "Áp dụng & Xuất file SRT đã sửa",
-  "preview_hotkeys": "Phím tắt: , / . = một khung hình trước / sau, < / > = một giây trước / sau, [ / ] = mười giây trước / sau",
+  "preview_hotkeys": "Phím tắt: , / . = một khung hình trước / sau, < / > = một giây trước / sau, [ / ] = mười giây trước / sau, A = ghim phụ đề hiện tại",
   "preview_preparing": "Đang chuẩn bị xem trước…",
   "preview_transcript_title": "Chữ phụ",
   "preview_transcript_follow": "Theo dõi phát",
@@ -266,5 +266,15 @@
   "preview_transcript_empty": "Không tìm thấy phụ đề.",
   "preview_error": "Lỗi xem trước",
   "preview_summary": "Đã áp dụng sửa đổi",
-  "preview_back": "Quay lại xem trước"
+  "preview_back": "Quay lại xem trước",
+  "preview_anchor_tooltip": "Ghim phụ đề này tại vị trí video hiện tại",
+  "preview_anchor_remove": "Xóa mỏ neo",
+  "preview_anchor_list_title": "Mỏ neo",
+  "preview_anchor_clear_all": "Xóa tất cả",
+  "preview_anchor_offset_only": "Dịch chuyển: {offset}s (không trôi)",
+  "preview_anchor_drift": "Trôi: {drift} s/giờ",
+  "preview_anchor_residual_good": "Dư lượng tối đa: {res}s ✓",
+  "preview_anchor_residual_warn": "Dư lượng tối đa: {res}s ⚠ (không tuyến tính?)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "Phụ đề"
 }

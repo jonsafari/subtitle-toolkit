@@ -258,7 +258,7 @@
   "preview_no_drift": "no drift (offset only)",
   "preview_drift_presets": "Drift presets (if the subtitles were made for a different frame rate):",
   "preview_apply": "Apply & Export Fixed SRT",
-  "preview_hotkeys": "Hotkeys: , / . = one frame earlier / later, < / > = one second earlier / later, [ / ] = ten seconds earlier / later",
+  "preview_hotkeys": "Hotkeys: , / . = one frame earlier / later, < / > = one second earlier / later, [ / ] = ten seconds earlier / later, A = anchor active cue",
   "preview_preparing": "Preparing preview…",
   "preview_transcript_title": "Subtitle text",
   "preview_transcript_follow": "Follow playback",
@@ -266,5 +266,15 @@
   "preview_transcript_empty": "No subtitle cues found.",
   "preview_error": "Preview error",
   "preview_summary": "Correction Applied",
-  "preview_back": "Back to Preview"
+  "preview_back": "Back to Preview",
+  "preview_anchor_tooltip": "Pin this cue to the current video position",
+  "preview_anchor_remove": "Remove anchor",
+  "preview_anchor_list_title": "Anchors",
+  "preview_anchor_clear_all": "Clear all",
+  "preview_anchor_offset_only": "Offset: {offset}s (no drift)",
+  "preview_anchor_drift": "Drift: {drift} s/hour",
+  "preview_anchor_residual_good": "Max residual: {res}s ✓",
+  "preview_anchor_residual_warn": "Max residual: {res}s ⚠ (non-linear?)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "Cue"
 }

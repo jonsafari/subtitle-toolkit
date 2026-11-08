@@ -242,7 +242,7 @@
   "preview_no_drift": "geen drift (alleen verschuiving)",
   "preview_drift_presets": "Drift-instellingen (als de ondertitels voor een andere beeldfrequentie zijn gemaakt):",
   "preview_apply": "Toepassen en gecorrigeerde SRT exporteren",
-  "preview_hotkeys": "Sneltoetsen: , / . = één frame eerder / later, < / > = één seconde eerder / later, [ / ] = tien seconden eerder / later",
+  "preview_hotkeys": "Sneltoetsen: , / . = een frame eerder / later, < / > = een seconde eerder / later, [ / ] = tien seconden eerder / later, A = actieve ondertitel verankeren",
   "preview_preparing": "Voorbeeld voorbereiden…",
   "preview_transcript_title": "Onderteksttekst",
   "preview_transcript_follow": "Volg de afspeeling",
@@ -266,5 +266,15 @@
   "recursive_scan": "Ondervermappen doorzoeken",
   "start_translation": "Vertaling starten",
   "upload_files_desc": "Selecteer meerdere ondertitelbestanden. Bestanden met een bestaande doeltaalversie worden overgeslagen.",
-  "upload_instructions_file": "Of upload een instructiebestand"
+  "upload_instructions_file": "Of upload een instructiebestand",
+  "preview_anchor_tooltip": "Bevestig deze ondertitel op de huidige videopositie",
+  "preview_anchor_remove": "Veranker verwijderen",
+  "preview_anchor_list_title": "Verankers",
+  "preview_anchor_clear_all": "Alles wissen",
+  "preview_anchor_offset_only": "Verschuiving: {offset}s (geen drift)",
+  "preview_anchor_drift": "Drift: {drift} s/uur",
+  "preview_anchor_residual_good": "Max residu: {res}s ✓",
+  "preview_anchor_residual_warn": "Max residu: {res}s ⚠ (niet lineair?)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "Ondertitel"
 }

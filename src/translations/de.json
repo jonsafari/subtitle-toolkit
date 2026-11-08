@@ -250,7 +250,7 @@
   "preview_no_drift": "kein Drift (nur Versatz)",
   "preview_drift_presets": "Drift-Voreinstellungen (falls die Untertitel für eine andere Framerate erstellt wurden):",
   "preview_apply": "Anwenden & korrigierte SRT exportieren",
-  "preview_hotkeys": "Tastenkürzel: , / . = ein Frame früher / später, < / > = eine Sekunde früher / später, [ / ] = zehn Sekunden früher / später",
+  "preview_hotkeys": "Tastatur: , / . = ein Frame früher / später, < / > = eine Sekunde früher / später, [ / ] = zehn Sekunden früher / später, A = aktiven Untertitel ankern",
   "preview_preparing": "Vorschau wird vorbereitet…",
   "preview_transcript_title": "Untertiteltext",
   "preview_transcript_follow": "Wiedergabe folgen",
@@ -266,5 +266,15 @@
   "instructions_help": "Eine Option wählen: aus der Dropdown-Liste auswählen, Datei hochladen oder Text einfügen.",
   "paste_instructions": "Oder Anweisungen hier einfügen",
   "please_select_files": "Bitte wähle mindestens eine Datei aus",
-  "upload_instructions_file": "Oder eine Anweisungsdatei hochladen"
+  "upload_instructions_file": "Oder eine Anweisungsdatei hochladen",
+  "preview_anchor_tooltip": "Diesen Untertitel an der aktuellen Videoposition fixieren",
+  "preview_anchor_remove": "Anker entfernen",
+  "preview_anchor_list_title": "Anker",
+  "preview_anchor_clear_all": "Alle löschen",
+  "preview_anchor_offset_only": "Versatz: {offset}s (keine Drift)",
+  "preview_anchor_drift": "Drift: {drift} s/Stunde",
+  "preview_anchor_residual_good": "Max. Rest: {res}s ✓",
+  "preview_anchor_residual_warn": "Max. Rest: {res}s ⚠ (nicht linear?)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "Eintrag"
 }

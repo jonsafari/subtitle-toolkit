@@ -243,7 +243,7 @@
   "preview_no_drift": "بدون انحراف (إزاحة فقط)",
   "preview_drift_presets": "إعدادات الانحراف (إذا كانت الترجمة معدة لمعدل إطارات مختلف):",
   "preview_apply": "تطبيق وتصدير SRT المُصحَّح",
-  "preview_hotkeys": "اختصارات: , / . = إطار واحد قبل / بعد، < / > = ثانية قبل / بعد، [ / ] = عشر ثوانٍ قبل / بعد",
+  "preview_hotkeys": "اختصارات: , / . = إطار سابق / لاحق, < / > = ثانية سابقة / لاحقة, [ / ] = عشر ثوانٍ سابقة / لاحقة, A = تثبيت النص النشط",
   "preview_preparing": "جارٍ تجهيز المعاينة…",
   "preview_transcript_title": "نص الترجمة",
   "preview_transcript_follow": "اتبع التشغيل",
@@ -266,5 +266,15 @@
   "please_select_files": "يرجى اختيار ملف واحد على الأقل",
   "recursive_scan": "امسح المجلدات الفرعية",
   "start_translation": "بدء الترجمة",
-  "upload_instructions_file": "أو ارفع ملف تعليمات"
+  "upload_instructions_file": "أو ارفع ملف تعليمات",
+  "preview_anchor_tooltip": "تثبيت هذا النص في الموضع الحالي للفيديو",
+  "preview_anchor_remove": "إزالة المرساة",
+  "preview_anchor_list_title": "المراسي",
+  "preview_anchor_clear_all": "مسح الكل",
+  "preview_anchor_offset_only": "إزاحة: {offset}ث (بدون انحراف)",
+  "preview_anchor_drift": "انحراف: {drift} ث/ساعة",
+  "preview_anchor_residual_good": "أقصى بقايا: {res}ث ✓",
+  "preview_anchor_residual_warn": "أقصى بقايا: {res}ث ⚠ (غير خطي؟)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "نص"
 }

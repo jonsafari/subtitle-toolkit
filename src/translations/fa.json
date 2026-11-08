@@ -236,7 +236,7 @@
   "preview_no_drift": "بدون انحراف (فقط جابجایی)",
   "preview_drift_presets": "تنظیم‌های پیش‌فرض انحراف (اگر زیرنویس‌ها برای نرخ فریم دیگری ساخته شده‌اند):",
   "preview_apply": "اعمال و خروجی SRT اصلاح‌شده",
-  "preview_hotkeys": "کلیدهای میانبر: , / . = یک فریم زودتر / دیرتر، < / > = یک ثانیه زودتر / دیرتر، [ / ] = ده ثانیه زودتر / دیرتر",
+  "preview_hotkeys": "کلیدهای میانبر: , / . = یک فریم قبل / بعد, < / > = یک ثانیه قبل / بعد, [ / ] = ده ثانیه قبل / بعد, A = لنگر انداختن زیرنویس فعال",
   "preview_preparing": "در حال آماده‌سازی پیش‌نمایش…",
   "preview_transcript_title": "متن زیرنویس",
   "preview_transcript_follow": "پیگیری پخش",
@@ -266,5 +266,15 @@
   "target_language_desc": "کد زبان برای ترجمه (مثلاً es، fr، deu)",
   "upload_files": "بارگذاری فایل‌های زیرنویس",
   "upload_files_desc": "چندین فایل زیرنویس را انتخاب کنید. فایل‌هایی که نسخه زبان مقصد دارند نادیده گرفته می‌شوند.",
-  "upload_instructions_file": "یا فایل دستورالعمل بارگذاری کنید"
+  "upload_instructions_file": "یا فایل دستورالعمل بارگذاری کنید",
+  "preview_anchor_tooltip": "این زیرنویس را در موقعیت فعلی ویدیو ثابت کنید",
+  "preview_anchor_remove": "حذف لنگر",
+  "preview_anchor_list_title": "لنگرها",
+  "preview_anchor_clear_all": "پاک کردن همه",
+  "preview_anchor_offset_only": "جابه‌جایی: {offset}ث (بدون انحراف)",
+  "preview_anchor_drift": "انحراف: {drift} ث/ساعت",
+  "preview_anchor_residual_good": "بیشینه باقی‌مانده: {res}ث ✓",
+  "preview_anchor_residual_warn": "بیشینه باقی‌مانده: {res}ث ⚠ (غیرخطی؟)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "زیرنویس"
 }

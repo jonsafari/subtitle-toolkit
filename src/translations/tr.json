@@ -258,7 +258,7 @@
   "preview_no_drift": "sapma yok (sadece kayma)",
   "preview_drift_presets": "Sapma ayarları (altyazılar farklı bir kare hızı için yapıldıysa):",
   "preview_apply": "Uygula ve Düzeltilmiş SRT'yi Dışa Aktar",
-  "preview_hotkeys": "Kısayollar: , / . = bir kare önce / sonra, < / > = bir saniye önce / sonra, [ / ] = on saniye önce / sonra",
+  "preview_hotkeys": "Kısayollar: , / . = bir kare önce / sonra, < / > = bir saniye önce / sonra, [ / ] = on saniye önce / sonra, A = aktif altyazıyı sabitle",
   "preview_preparing": "Önizleme hazırlanıyor…",
   "preview_transcript_title": "Altyazı metni",
   "preview_transcript_follow": "Oynatmayı takip et",
@@ -266,5 +266,15 @@
   "preview_transcript_empty": "Altyazı bulunamadı.",
   "preview_error": "Önizleme hatası",
   "preview_summary": "Düzeltme uygulandı",
-  "preview_back": "Önizlemeye Dön"
+  "preview_back": "Önizlemeye Dön",
+  "preview_anchor_tooltip": "Bu alty yazıyı mevcut video konumuna sabitle",
+  "preview_anchor_remove": "Çapayı kaldır",
+  "preview_anchor_list_title": "Çapalar",
+  "preview_anchor_clear_all": "Tümünü temizle",
+  "preview_anchor_offset_only": "Ofset: {offset}s (drift yok)",
+  "preview_anchor_drift": "Drift: {drift} s/saat",
+  "preview_anchor_residual_good": "Maks artık: {res}s ✓",
+  "preview_anchor_residual_warn": "Maks artık: {res}s ⚠ (doğrusal değil?)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "Altyazı"
 }

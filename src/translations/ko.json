@@ -258,7 +258,7 @@
   "preview_no_drift": "드리프트 없음(오프셋만)",
   "preview_drift_presets": "드리프트 프리셋(자막이 다른 프레임 속도로 제작된 경우):",
   "preview_apply": "적용 및 수정된 SRT 내보내기",
-  "preview_hotkeys": "단축키: , / . = 1프레임 앞 / 뒤, < / > = 1초 앞 / 뒤, [ / ] = 10초 앞 / 뒤",
+  "preview_hotkeys": "단축키: , / . = 한 프레임 앞 / 뒤, < / > = 한 초 앞 / 뒤, [ / ] = 열 초 앞 / 뒤, A = 현재 자막 앵커",
   "preview_preparing": "미리보기 준비 중…",
   "preview_transcript_title": "자막 텍스트",
   "preview_transcript_follow": "재생 따라가기",
@@ -266,5 +266,15 @@
   "preview_transcript_empty": "자막을 찾을 수 없습니다.",
   "preview_error": "미리보기 오류",
   "preview_summary": "수정 적용됨",
-  "preview_back": "미리보기로 돌아가기"
+  "preview_back": "미리보기로 돌아가기",
+  "preview_anchor_tooltip": "이 자막을 현재 비디오 위치에 고정",
+  "preview_anchor_remove": "앵커 삭제",
+  "preview_anchor_list_title": "앵커",
+  "preview_anchor_clear_all": "모두 지우기",
+  "preview_anchor_offset_only": "오프셋: {offset}초 (드리프트 없음)",
+  "preview_anchor_drift": "드리프트: {drift} 초/시간",
+  "preview_anchor_residual_good": "최대 잔차: {res}초 ✓",
+  "preview_anchor_residual_warn": "최대 잔차: {res}초 ⚠ (비선형?)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "자막"
 }

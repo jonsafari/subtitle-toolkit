@@ -258,7 +258,7 @@
   "preview_no_drift": "tanpa drift (hanya pergeseran)",
   "preview_drift_presets": "Preset drift (jika subtitle dibuat untuk frame rate berbeda):",
   "preview_apply": "Terapkan & Ekspor SRT yang Diperbaiki",
-  "preview_hotkeys": "Pintasan: , / . = satu frame lebih awal / lambat, < / > = satu detik lebih awal / lambat, [ / ] = sepuluh detik lebih awal / lambat",
+  "preview_hotkeys": "Pintasan: , / . = satu frame sebelumnya / selanjutnya, < / > = satu detik sebelumnya / selanjutnya, [ / ] = sepuluh detik sebelumnya / selanjutnya, A = tandai subtitle aktif",
   "preview_preparing": "Menyiapkan pratinjau…",
   "preview_transcript_title": "Teks subtitle",
   "preview_transcript_follow": "Ikuti pemutaran",
@@ -266,5 +266,15 @@
   "preview_transcript_empty": "Tidak ada subtitle yang ditemukan.",
   "preview_error": "Kesalahan pratinjau",
   "preview_summary": "Perbaikan diterapkan",
-  "preview_back": "Kembali ke Pratinjau"
+  "preview_back": "Kembali ke Pratinjau",
+  "preview_anchor_tooltip": "Tandai subtitle ini di posisi video saat ini",
+  "preview_anchor_remove": "Hapus jangkar",
+  "preview_anchor_list_title": "Jangkar",
+  "preview_anchor_clear_all": "Hapus semua",
+  "preview_anchor_offset_only": "Offset: {offset}d (tanpa drift)",
+  "preview_anchor_drift": "Drift: {drift} d/jam",
+  "preview_anchor_residual_good": "Residu maks: {res}d ✓",
+  "preview_anchor_residual_warn": "Residu maks: {res}d ⚠ (non-linear?)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "Subtitle"
 }

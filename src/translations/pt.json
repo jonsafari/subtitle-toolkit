@@ -236,7 +236,7 @@
   "preview_no_drift": "sem deriva (apenas deslocamento)",
   "preview_drift_presets": "Predefinições de deriva (se as legendas foram feitas para outra taxa de quadros):",
   "preview_apply": "Aplicar e exportar SRT corrigido",
-  "preview_hotkeys": "Atalhos: , / . = um quadro antes / depois, < / > = um segundo antes / depois, [ / ] = dez segundos antes / depois",
+  "preview_hotkeys": "Atalhos: , / . = um quadro antes / depois, < / > = um segundo antes / depois, [ / ] = dez segundos antes / depois, A = ancorar legenda ativa",
   "preview_preparing": "Preparando pré-visualização…",
   "preview_transcript_title": "Texto das legendas",
   "preview_transcript_follow": "Seguir a reprodução",
@@ -266,5 +266,15 @@
   "target_language_desc": "Código do idioma para tradução (ex.: es, fr, deu)",
   "upload_files": "Enviar arquivos de legendas",
   "upload_files_desc": "Selecione vários arquivos de legendas. Arquivos com versão no idioma de destino já presente serão ignorados.",
-  "upload_instructions_file": "Ou envie um arquivo de instruções"
+  "upload_instructions_file": "Ou envie um arquivo de instruções",
+  "preview_anchor_tooltip": "Fixar esta legenda na posição atual do vídeo",
+  "preview_anchor_remove": "Remover âncora",
+  "preview_anchor_list_title": "Âncoras",
+  "preview_anchor_clear_all": "Limpar tudo",
+  "preview_anchor_offset_only": "Deslocamento: {offset}s (sem deriva)",
+  "preview_anchor_drift": "Deriva: {drift} s/hora",
+  "preview_anchor_residual_good": "Resíduo máx: {res}s ✓",
+  "preview_anchor_residual_warn": "Resíduo máx: {res}s ⚠ (não linear?)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "Legenda"
 }

@@ -258,7 +258,7 @@
   "preview_no_drift": "pas de dérive (décalage uniquement)",
   "preview_drift_presets": "Réglages de dérive (si les sous-titres ont été faits pour une autre fréquence d'image) :",
   "preview_apply": "Appliquer et exporter le SRT corrigé",
-  "preview_hotkeys": "Raccourcis : , / . = une image avant / après, < / > = une seconde avant / après, [ / ] = dix secondes avant / après",
+  "preview_hotkeys": "Raccourcis : , / . = une image avant / après, < / > = une seconde avant / après, [ / ] = dix secondes avant / après, A = ancrer le sous-titre actif",
   "preview_preparing": "Préparation de l'aperçu…",
   "preview_transcript_title": "Texte des sous-titres",
   "preview_transcript_follow": "Suivre la lecture",
@@ -266,5 +266,15 @@
   "preview_transcript_empty": "Aucun sous-titre trouvé.",
   "preview_error": "Erreur de l'aperçu",
   "preview_summary": "Correction appliquée",
-  "preview_back": "Retour à l'aperçu"
+  "preview_back": "Retour à l'aperçu",
+  "preview_anchor_tooltip": "Épingler cette sous-titres à la position actuelle de la vidéo",
+  "preview_anchor_remove": "Supprimer l'ancre",
+  "preview_anchor_list_title": "Ancres",
+  "preview_anchor_clear_all": "Tout effacer",
+  "preview_anchor_offset_only": "Décalage : {offset}s (pas de dérive)",
+  "preview_anchor_drift": "Dérive : {drift} s/heure",
+  "preview_anchor_residual_good": "Résidu max : {res}s ✓",
+  "preview_anchor_residual_warn": "Résidu max : {res}s ⚠ (non linéaire ?)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "Sous-titre"
 }

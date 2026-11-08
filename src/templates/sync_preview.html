@@ -82,6 +82,21 @@
     <style>
         .cue-row-active { background-color: rgba(59, 130, 246, 0.18); }
         .dark .cue-row-active { background-color: rgba(96, 165, 250, 0.25); }
+        .pin-btn { opacity: 0; transition: opacity 0.15s; cursor: pointer; font-size: 0.85rem; color: #9ca3af; display: inline-flex; align-items: center; gap: 2px; }
+        .cue-row:hover .pin-btn { opacity: 1; }
+        .pin-btn:hover { color: #3b82f6; }
+        .pin-btn.anchored { opacity: 1; color: #3b82f6; }
+        .pin-btn .pin-remove { display: none; margin-left: 3px; font-weight: bold; }
+        .pin-btn.anchored:hover .pin-remove { display: inline; }
+        .pin-btn.anchored:hover .pin-icon { display: none; }
+        .anchor-offset { font-size: 0.7rem; color: #6b7280; margin-left: 4px; font-family: monospace; }
+        .dark .anchor-offset { color: #9ca3af; }
+        .anchor-list-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; padding: 3px 0; }
+        .anchor-list-item .a-time { font-family: monospace; color: #6b7280; }
+        .dark .anchor-list-item .a-time { color: #9ca3af; }
+        .anchor-list-item .a-off { font-family: monospace; color: #3b82f6; }
+        .anchor-list-item .a-rm { cursor: pointer; color: #9ca3af; font-weight: bold; margin-left: auto; }
+        .anchor-list-item .a-rm:hover { color: #ef4444; }
     </style>
     <div class="bg-white rounded-lg shadow-md p-4 mb-6 dark:bg-slate-800">
         <div class="flex items-center justify-between gap-2 flex-wrap mb-2">
@@ -153,13 +168,26 @@
                 </div>
             </div>
 
+            <div id="anchor-panel" style="display: none;" class="mb-4 bg-blue-50 dark:bg-slate-700/50 rounded-lg p-3 border border-blue-200 dark:border-slate-600">
+                <div class="flex items-center justify-between mb-1">
+                    <h4 class="font-medium text-sm text-gray-800 dark:text-gray-200">
+                        <i class="fas fa-thumbtack mr-1"></i>{{ translations.preview_anchor_list_title if translations else 'Anchors' }}
+                    </h4>
+                    <button type="button" id="anchor-clear-all" class="text-xs text-gray-500 hover:text-red-500 dark:text-gray-400">
+                        {{ translations.preview_anchor_clear_all if translations else 'Clear all' }}
+                    </button>
+                </div>
+                <div id="anchor-list"></div>
+                <div id="anchor-summary" class="mt-2 text-xs text-gray-600 dark:text-gray-300 font-mono"></div>
+            </div>
+
             <div class="mb-4">
                 <span class="text-sm text-gray-600 dark:text-gray-300">{{ translations.preview_drift_presets if translations else 'Drift presets (if the subtitles were made for a different frame rate):' }}</span>
                 <div id="presets" class="flex flex-wrap gap-2 mt-2"></div>
             </div>
 
             <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                <i class="fas fa-keyboard mr-1"></i>{{ translations.preview_hotkeys if translations else 'Hotkeys: , / . = one frame earlier / later, < / > = one second earlier / later, [ / ] = ten seconds earlier / later' }}
+                <i class="fas fa-keyboard mr-1"></i>{{ translations.preview_hotkeys if translations else 'Hotkeys: , / . = one frame earlier / later, < / > = one second earlier / later, [ / ] = ten seconds earlier / later, A = anchor active cue' }}
             </p>
 
             <form id="apply-form" method="POST" action="/sync-preview/apply">
@@ -212,6 +240,9 @@ const SESSION_ID = "{{ session_id or '' }}";
     let followPlayback = true;
     let activeCueIndex = -1;
     let cueRowEls = [];
+    let pinEls = [];
+    let anchors = []; // [{cueIndex, videoTime, offset}]
+    const TRANSLATIONS = {{ (translations or {}) | tojson }};
 
     // ---------- SRT parsing ----------
     function parseTime(str) {
@@ -300,6 +331,7 @@ const SESSION_ID = "{{ session_id or '' }}";
         if (!transcriptRows) return;
         transcriptRows.innerHTML = '';
         cueRowEls = [];
+        pinEls = [];
         if (!cues.length) {
             const empty = document.createElement('div');
             empty.className = 'p-3 text-gray-400 dark:text-gray-500';
@@ -310,7 +342,7 @@ const SESSION_ID = "{{ session_id or '' }}";
         const frag = document.createDocumentFragment();
         cues.forEach((c, i) => {
             const row = document.createElement('div');
-            row.className = 'flex gap-2 px-2 py-1 border-b border-gray-100 dark:border-slate-700';
+            row.className = 'cue-row flex gap-2 px-2 py-1 border-b border-gray-100 dark:border-slate-700';
             const idx = document.createElement('span');
             idx.className = 'text-gray-400 dark:text-gray-500 w-8 text-right shrink-0';
             idx.textContent = String(i + 1);
@@ -318,13 +350,24 @@ const SESSION_ID = "{{ session_id or '' }}";
             times.className = 'text-gray-500 dark:text-gray-400 shrink-0';
             times.textContent = fmtSRTTime(c.start) + ' --> ' + fmtSRTTime(c.end);
             const text = document.createElement('span');
-            text.className = 'text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words';
+            text.className = 'text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words flex-1';
             text.textContent = c.text;
+            const pin = document.createElement('span');
+            pin.className = 'pin-btn shrink-0';
+            pin.title = TRANSLATIONS.preview_anchor_tooltip || 'Pin this cue to the current video position';
+            pin.innerHTML = '<span class="pin-icon">\ud83d\udccc</span><span class="pin-remove">\u00d7</span><span class="anchor-offset"></span>';
+            pin.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (anchors.some(a => a.cueIndex === i)) removeAnchor(i);
+                else addAnchor(i);
+            });
             row.appendChild(idx);
             row.appendChild(times);
             row.appendChild(text);
+            row.appendChild(pin);
             frag.appendChild(row);
             cueRowEls.push(row);
+            pinEls.push(pin);
         });
         transcriptRows.appendChild(frag);
     }
@@ -439,10 +482,171 @@ const SESSION_ID = "{{ session_id or '' }}";
             case '>': video.currentTime = video.currentTime + 1; break;
             case '[': video.currentTime = Math.max(0, video.currentTime - 10); break;
             case ']': video.currentTime = video.currentTime + 10; break;
+            case 'a': case 'A':
+                if (activeCueIndex >= 0) addAnchor(activeCueIndex);
+                break;
             default: handled = false;
         }
         if (handled) e.preventDefault();
     });
+
+    // ---------- anchors ----------
+    function addAnchor(cueIndex) {
+        if (cueIndex < 0 || cueIndex >= cues.length) return;
+        // Remove existing anchor for this cue (re-anchor).
+        anchors = anchors.filter(a => a.cueIndex !== cueIndex);
+        const t = video.currentTime;
+        const offset = t - cues[cueIndex].start / 1000;
+        anchors.push({ cueIndex, videoTime: t, offset });
+        anchors.sort((a, b) => a.videoTime - b.videoTime);
+        updateFromAnchors();
+    }
+
+    function removeAnchor(cueIndex) {
+        anchors = anchors.filter(a => a.cueIndex !== cueIndex);
+        updateFromAnchors();
+    }
+
+    function clearAnchors() {
+        anchors = [];
+        t1Input.value = '0';
+        o1Input.value = '0';
+        t2Input.value = '0';
+        o2Input.value = '0';
+        noDrift.checked = true;
+        o2Input.disabled = true;
+        updateAnchorUI();
+    }
+
+    function leastSquares(pts) {
+        // Fit o(t) = a*t + b for pts = [{t, o}]
+        const n = pts.length;
+        if (n < 2) return { a: 0, b: pts.length ? pts[0].o : 0 };
+        let sx = 0, sy = 0, sxx = 0, sxy = 0;
+        for (const p of pts) { sx += p.t; sy += p.o; sxx += p.t * p.t; sxy += p.t * p.o; }
+        const den = n * sxx - sx * sx;
+        if (Math.abs(den) < 1e-12) return { a: 0, b: sy / n };
+        const a = (n * sxy - sx * sy) / den;
+        const b = (sy - a * sx) / n;
+        return { a, b };
+    }
+
+    function updateFromAnchors() {
+        if (!anchors.length) {
+            t1Input.value = '0';
+            o1Input.value = '0';
+            t2Input.value = '0';
+            o2Input.value = '0';
+            noDrift.checked = true;
+            o2Input.disabled = true;
+        } else if (anchors.length === 1) {
+            const a0 = anchors[0];
+            t1Input.value = '0';
+            o1Input.value = a0.offset.toFixed(3);
+            t2Input.value = '0';
+            o2Input.value = a0.offset.toFixed(3);
+            noDrift.checked = true;
+            o2Input.disabled = true;
+        } else {
+            const pts = anchors.map(a => ({ t: a.videoTime, o: a.offset }));
+            const fit = leastSquares(pts);
+            const first = anchors[0], last = anchors[anchors.length - 1];
+            t1Input.value = first.videoTime.toFixed(3);
+            o1Input.value = (fit.a * first.videoTime + fit.b).toFixed(3);
+            t2Input.value = last.videoTime.toFixed(3);
+            o2Input.value = (fit.a * last.videoTime + fit.b).toFixed(3);
+            noDrift.checked = false;
+            o2Input.disabled = false;
+        }
+        updateAnchorUI();
+    }
+
+    function updateAnchorUI() {
+        // Update pin buttons in transcript.
+        if (pinEls.length) {
+            const anchoredSet = new Set(anchors.map(a => a.cueIndex));
+            pinEls.forEach((pin, i) => {
+                const anch = anchors.find(a => a.cueIndex === i);
+                if (anch) {
+                    pin.classList.add('anchored');
+                    pin.querySelector('.anchor-offset').textContent = (anch.offset >= 0 ? '+' : '') + anch.offset.toFixed(1) + 's';
+                } else {
+                    pin.classList.remove('anchored');
+                    pin.querySelector('.anchor-offset').textContent = '';
+                }
+            });
+        }
+        // Update anchor list panel.
+        const panel = $('anchor-panel');
+        const list = $('anchor-list');
+        const summary = $('anchor-summary');
+        if (!panel) return;
+        if (!anchors.length) {
+            panel.style.display = 'none';
+            return;
+        }
+        panel.style.display = 'block';
+        list.innerHTML = '';
+        for (const a of anchors) {
+            const div = document.createElement('div');
+            div.className = 'anchor-list-item';
+            div.innerHTML = '<span>\ud83d\udccc</span>' +
+                '<span class="a-cue">' + (TRANSLATIONS.preview_anchor_cue || 'Cue') + ' ' + (a.cueIndex + 1) + '</span>' +
+                '<span class="a-time">' + fmtHMS(a.videoTime) + '</span>' +
+                '<span class="a-off">' + (a.offset >= 0 ? '+' : '') + a.offset.toFixed(2) + 's</span>' +
+                '<span class="a-rm" data-ci="' + a.cueIndex + '">\u00d7</span>';
+            div.querySelector('.a-rm').addEventListener('click', () => removeAnchor(a.cueIndex));
+            list.appendChild(div);
+        }
+        // Summary line.
+        let sumText = '';
+        if (anchors.length === 1) {
+            sumText = (TRANSLATIONS.preview_anchor_offset_only || 'Offset: {offset}s (no drift)').replace('{offset}', (anchors[0].offset >= 0 ? '+' : '') + anchors[0].offset.toFixed(2));
+        } else {
+            const pts = anchors.map(a => ({ t: a.videoTime, o: a.offset }));
+            const fit = leastSquares(pts);
+            const driftH = fit.a * 3600;
+            sumText = (TRANSLATIONS.preview_anchor_drift || 'Drift: {drift} s/hour').replace('{drift}', (driftH >= 0 ? '+' : '') + driftH.toFixed(1));
+            // Residuals for 3+.
+            if (anchors.length >= 3) {
+                let maxRes = 0;
+                for (const a of anchors) {
+                    const fitted = fit.a * a.videoTime + fit.b;
+                    maxRes = Math.max(maxRes, Math.abs(a.offset - fitted));
+                }
+                if (maxRes < 0.5) {
+                    sumText += '  |  ' + (TRANSLATIONS.preview_anchor_residual_good || 'Max residual: {res}s \u2713').replace('{res}', maxRes.toFixed(1));
+                } else {
+                    sumText += '  |  ' + (TRANSLATIONS.preview_anchor_residual_warn || 'Max residual: {res}s \u26a0 (non-linear?)').replace('{res}', maxRes.toFixed(1));
+                }
+            }
+            // FPS hint.
+            if (fps > 0) {
+                const common = [23.976, 24, 25, 29.97, 30];
+                for (const s of common) {
+                    if (Math.abs(s - fps) < 0.05) continue;
+                    const scDrift = 3600 * (s / fps - 1);
+                    if (Math.abs(driftH - scDrift) < 0.5) {
+                        sumText += '  \u2248 ' + s + ' \u2192 ' + fps + ' fps';
+                        break;
+                    }
+                }
+            }
+        }
+        summary.textContent = sumText;
+    }
+
+    $('anchor-clear-all').addEventListener('click', clearAnchors);
+
+    // Manual edits to t1/o1/t2/o2 clear anchors (they become stale).
+    for (const inp of [t1Input, o1Input, t2Input, o2Input]) {
+        inp.addEventListener('input', () => {
+            if (anchors.length) {
+                anchors = [];
+                updateAnchorUI();
+            }
+        });
+    }
 
     // ---------- drift presets ----------
     function buildPresets(videoFps) {
@@ -494,6 +698,7 @@ const SESSION_ID = "{{ session_id or '' }}";
                     srtContent = data.srt || '';
                     cues = parseSRT(srtContent);
                     buildTranscript();
+                    updateAnchorUI();
                     const probe = data.probe || {};
                     const v = probe.video || {};
                     fps = v.fps || 25;

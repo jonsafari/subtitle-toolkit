@@ -236,7 +236,7 @@
   "preview_no_drift": "без дрейфу (лише зсув)",
   "preview_drift_presets": "Налаштування дрейфу (якщо субтитри зроблені для іншої частоти кадрів):",
   "preview_apply": "Застосувати та експортувати виправлений SRT",
-  "preview_hotkeys": "Гарячі клавіші: , / . = кадр раніше / пізніше, < / > = секунда раніше / пізніше, [ / ] = десять секунд раніше / пізніше",
+  "preview_hotkeys": "Гарячі клавіші: , / . = кадр раніше / пізніше, < / > = секунда раніше / пізніше, [ / ] = десять секунд раніше / пізніше, A = закріпити активний субтитр",
   "preview_preparing": "Підготовка перегляду…",
   "preview_transcript_title": "Текст субтитрів",
   "preview_transcript_follow": "Стеж за відтворенням",
@@ -266,5 +266,15 @@
   "target_language_desc": "Код мови для перекладу (напр., es, fr, deu)",
   "upload_files": "Завантажити файли субтитрів",
   "upload_files_desc": "Виберіть кілька файлів субтитрів. Файли з наявною версією мовою призначення буде пропущено.",
-  "upload_instructions_file": "Або завантажте файл з інструкціями"
+  "upload_instructions_file": "Або завантажте файл з інструкціями",
+  "preview_anchor_tooltip": "Закріпити цей субтитр у поточній позиції відео",
+  "preview_anchor_remove": "Видалити якір",
+  "preview_anchor_list_title": "Якорі",
+  "preview_anchor_clear_all": "Очистити все",
+  "preview_anchor_offset_only": "Зсув: {offset}с (без дрейфу)",
+  "preview_anchor_drift": "Дрейф: {drift} с/год",
+  "preview_anchor_residual_good": "Макс. залишок: {res}с ✓",
+  "preview_anchor_residual_warn": "Макс. залишок: {res}с ⚠ (нелінійний?)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "Субтитр"
 }

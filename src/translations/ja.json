@@ -249,7 +249,7 @@
   "preview_no_drift": "ドリフトなし（オフセットのみ）",
   "preview_drift_presets": "ドリフトプリセット（字幕が別のフレームレートで作られた場合）:",
   "preview_apply": "適用して修正済み SRT をエクスポート",
-  "preview_hotkeys": "ホットキー: , / . = 1 フレーム前 / 後、< / > = 1 秒前 / 後、[ / ] = 10 秒前 / 後",
+  "preview_hotkeys": "ホットキー: , / . = 1フレーム前 / 後, < / > = 1秒前 / 後, [ / ] = 10秒前 / 後, A = 現在の字幕をアンカー",
   "preview_preparing": "プレビューを準備中…",
   "preview_transcript_title": "字幕テキスト",
   "preview_transcript_follow": "再生に合わせる",
@@ -266,5 +266,15 @@
   "paste_instructions": "またはここに指示を貼り付け",
   "please_select_files": "少なくとも 1 つのファイルを選択してください",
   "start_translation": "翻訳を開始",
-  "upload_instructions_file": "または指示ファイルをアップロード"
+  "upload_instructions_file": "または指示ファイルをアップロード",
+  "preview_anchor_tooltip": "この字幕を現在の動画位置にピン留め",
+  "preview_anchor_remove": "アンカーを削除",
+  "preview_anchor_list_title": "アンカー",
+  "preview_anchor_clear_all": "すべてクリア",
+  "preview_anchor_offset_only": "オフセット: {offset}秒（ドリフトなし）",
+  "preview_anchor_drift": "ドリフト: {drift} 秒/時間",
+  "preview_anchor_residual_good": "最大残差: {res}秒 ✓",
+  "preview_anchor_residual_warn": "最大残差: {res}秒 ⚠（非線形？）",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "字幕"
 }

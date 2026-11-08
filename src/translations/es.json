@@ -248,7 +248,7 @@
   "preview_no_drift": "sin deriva (solo desplazamiento)",
   "preview_drift_presets": "Ajustes predefinidos de deriva (si los subtítulos se hicieron para otra tasa de fotogramas):",
   "preview_apply": "Aplicar y exportar SRT corregida",
-  "preview_hotkeys": "Atajos: , / . = un fotograma antes / después, < / > = un segundo antes / después, [ / ] = diez segundos antes / después",
+  "preview_hotkeys": "Atajos: , / . = un fotograma antes / después, < / > = un segundo antes / después, [ / ] = diez segundos antes / después, A = anclar subtítulo activo",
   "preview_preparing": "Preparando vista previa…",
   "preview_transcript_title": "Texto de subtítulos",
   "preview_transcript_follow": "Seguir la reproducción",
@@ -266,5 +266,15 @@
   "paste_instructions": "O pega instrucciones aquí",
   "please_select_files": "Selecciona al menos un archivo",
   "start_translation": "Iniciar traducción",
-  "upload_instructions_file": "O sube un archivo de instrucciones"
+  "upload_instructions_file": "O sube un archivo de instrucciones",
+  "preview_anchor_tooltip": "Fijar este subtítulo en la posición actual del vídeo",
+  "preview_anchor_remove": "Eliminar ancla",
+  "preview_anchor_list_title": "Anclas",
+  "preview_anchor_clear_all": "Borrar todo",
+  "preview_anchor_offset_only": "Desplazamiento: {offset}s (sin deriva)",
+  "preview_anchor_drift": "Deriva: {drift} s/hora",
+  "preview_anchor_residual_good": "Residuo máx: {res}s ✓",
+  "preview_anchor_residual_warn": "Residuo máx: {res}s ⚠ (¿no lineal?)",
+  "preview_anchor_fps_hint": "≈ {from} → {to} fps",
+  "preview_anchor_cue": "Subtítulo"
 }
